@@ -1,0 +1,71 @@
+{
+  "businessName": "Aromatique",
+  "csName": "Anindya",
+  "productType": "physical",
+  "enableShipping": true,
+  "enableExternalProductLookup": true,
+  "salesFlow": "consultative",
+  "checkoutFields": [
+    "name",
+    "phone",
+    "address"
+  ],
+  "orderFields": [
+    "productName",
+    "variant",
+    "quality",
+    "quantity",
+    "productPrice",
+    "shippingCost"
+  ],
+  "shippingWeights": {},
+  "paymentInstructions": "",
+  "handoffAfterPaymentSummary": true,
+  "businessHours": {
+    "enabled": false,
+    "timezone": "Asia/Jakarta",
+    "weekly": {
+      "monday": [
+        "09:00-17:00"
+      ],
+      "tuesday": [
+        "09:00-17:00"
+      ],
+      "wednesday": [
+        "09:00-17:00"
+      ],
+      "thursday": [
+        "09:00-17:00"
+      ],
+      "friday": [
+        "09:00-17:00"
+      ],
+      "saturday": [],
+      "sunday": []
+    },
+    "holidays": [],
+    "outOfHoursResponse": "Pesan Kakak sudah kami terima di luar jam operasional.",
+    "responseEstimate": "Tim kami akan membalas pada jam operasional berikutnya.",
+    "handoffPolicy": "create",
+    "slaMinutes": {
+      "low": 240,
+      "normal": 120,
+      "high": 60,
+      "urgent": 15
+    }
+  },
+  "consent": {
+    "optOutKeywords": [
+      "STOP",
+      "BERHENTI",
+      "UNSUBSCRIBE"
+    ],
+    "optInKeywords": [
+      "START",
+      "MULAI",
+      "SUBSCRIBE"
+    ],
+    "optOutResponse": "Permintaan berhenti berhasil disimpan. Pesan promosi tidak akan dikirim lagi.",
+    "optInResponse": "Preferensi berhasil diperbarui. Kakak dapat menerima informasi promosi lagi."
+  }
+}

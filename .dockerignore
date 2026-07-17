@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.github
+.env*
+!.env.example
+data
+backups
+logs
+wa_auth
+sessions
+*.log
