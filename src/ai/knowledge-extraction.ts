@@ -2,11 +2,30 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
+import ExcelJS from 'exceljs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
-const xlsx = require('xlsx');
+
+const cellText = (value: ExcelJS.CellValue) => {
+    if (value === null || value === undefined) return '';
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value !== 'object') return String(value);
+    if ('result' in value) return cellText(value.result as ExcelJS.CellValue);
+    if ('richText' in value) return value.richText.map((part) => part.text).join('');
+    if ('text' in value) return String(value.text);
+    return String(value);
+};
+
+const worksheetText = (worksheet: ExcelJS.Worksheet) => {
+    const lines: string[] = [];
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+        const values = Array.isArray(row.values) ? row.values.slice(1) : [];
+        lines.push(values.map((value) => cellText(value as ExcelJS.CellValue)).join('\t'));
+    });
+    return lines.join('\n');
+};
 
 export interface ExtractedKnowledge {
     text: string;
@@ -25,10 +44,13 @@ export const extractKnowledgeFile = async (filePath: string): Promise<ExtractedK
         const result = await mammoth.extractRawText({ path: filePath });
         return { text: result.value, mediaType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', metadata: { warnings: result.messages.length } };
     }
-    if (ext === '.xlsx' || ext === '.xls' || ext === '.csv') {
-        const workbook = xlsx.readFile(filePath);
-        const text = workbook.SheetNames.map((name: string) => `## ${name}\n${xlsx.utils.sheet_to_txt(workbook.Sheets[name])}`).join('\n\n');
-        return { text, mediaType: ext === '.csv' ? 'text/csv' : 'application/vnd.ms-excel', metadata: { sheets: workbook.SheetNames } };
+    if (ext === '.xlsx' || ext === '.csv') {
+        const workbook = new ExcelJS.Workbook();
+        if (ext === '.csv') await workbook.csv.readFile(filePath);
+        else await workbook.xlsx.readFile(filePath);
+        const sheets = workbook.worksheets.map((worksheet) => worksheet.name);
+        const text = workbook.worksheets.map((worksheet) => `## ${worksheet.name}\n${worksheetText(worksheet)}`).join('\n\n');
+        return { text, mediaType: ext === '.csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', metadata: { sheets } };
     }
     if (['.png', '.jpg', '.jpeg'].includes(ext)) {
         const result = await Tesseract.recognize(filePath, 'ind+eng');

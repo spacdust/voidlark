@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { supportsFragranceCatalogSchema } from './product-domain.js';
 
 export interface AromaProfile {
@@ -55,16 +55,24 @@ export const matchCatalogCandidates = (profile: AromaProfile, catalog: CatalogAr
 
 let catalogCache: CatalogAroma[] | null = null;
 
-export const loadCatalogSchemaRows = (): unknown[][] => {
+export const loadCatalogSchemaRows = async (): Promise<unknown[][]> => {
     const workbookPath = path.resolve('knowledge_base', 'penggolongan-notes.xlsx');
     if (!fs.existsSync(workbookPath)) return [];
-    const workbook = XLSX.readFile(workbookPath);
-    return XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: '' });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(workbookPath);
+    const worksheet = workbook.worksheets[0];
+    if (!worksheet) return [];
+    const rows: unknown[][] = [];
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+        const values = Array.isArray(row.values) ? row.values.slice(1) : [];
+        rows.push(values.map((value) => value ?? ''));
+    });
+    return rows;
 };
 
-export const loadCatalogAromas = (): CatalogAroma[] => {
+export const loadCatalogAromas = async (): Promise<CatalogAroma[]> => {
     if (catalogCache) return catalogCache;
-    const rows = loadCatalogSchemaRows();
+    const rows = await loadCatalogSchemaRows();
     if (!supportsFragranceCatalogSchema(rows)) return [];
     const entries: CatalogAroma[] = [];
     for (const row of rows) {

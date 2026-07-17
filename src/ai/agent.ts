@@ -572,8 +572,8 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
         ? await lookupProductReference(buildExternalSearchQuery(externalLookupQuery, productDomain), { forceExternal: true })
         : null;
     const compactExternalReference = externalReference?.content.slice(0, 4_500) || 'Tidak diperlukan pada turn ini.';
-    const domainMatcher = selectDomainMatcher(productDomain, loadCatalogSchemaRows());
-    const domainMatch = domainMatcher.match(externalReference?.content || '');
+    const domainMatcher = selectDomainMatcher(productDomain, await loadCatalogSchemaRows());
+    const domainMatch = await domainMatcher.match(externalReference?.content || '');
     const externalSafeFallback = externalReference && externalLookupQuery
         ? buildExternalLookupFallback(externalLookupQuery, externalReference.content, businessConfig.businessName)
         : SAFE_CUSTOMER_FALLBACK;

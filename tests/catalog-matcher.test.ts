@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractAromaProfile, matchCatalogCandidates, type CatalogAroma } from '../src/ai/catalog-matcher.js';
+import { extractAromaProfile, loadCatalogSchemaRows, matchCatalogCandidates, type CatalogAroma } from '../src/ai/catalog-matcher.js';
 
 const catalog: CatalogAroma[] = [
     { inspired: 'Britney Radiance', character: 'The Way', family: 'floral' },
@@ -26,4 +26,10 @@ test('ranks catalog candidates deterministically and preserves pair direction', 
 
 test('returns no recommendation without a supported family match', () => {
     assert.deepEqual(matchCatalogCandidates({ notes: ['salt'], families: ['marine'] }, catalog), []);
+});
+
+test('reads the existing catalog workbook first sheet into rows', async () => {
+    const rows = await loadCatalogSchemaRows();
+    assert.ok(rows.length > 1);
+    assert.ok(rows.some((row) => row.map((cell) => String(cell).trim().toLowerCase()).includes('nama item')));
 });

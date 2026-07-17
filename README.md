@@ -85,7 +85,7 @@ Aturan industri tidak di-hardcode di engine. Identitas bisnis, gaya balasan, alu
 
 - Input teks, gambar, PDF, caption, voice note, dan lokasi.
 - Payment proof dengan MIME allowlist, batas ukuran, sanitasi filename, dan SHA-256.
-- Knowledge source: TXT, Markdown, PDF, DOCX, XLS/XLSX, CSV, PNG, JPG, dan JPEG.
+- Knowledge source: TXT, Markdown, PDF, DOCX, XLSX, CSV, PNG, JPG, dan JPEG.
 - OCR untuk gambar melalui Tesseract.
 - Corpus versioning, checksum dedupe, bounded chunking, metadata, dan atomic activation.
 - Corpus lama tetap aktif jika ingestion versi baru gagal.
@@ -292,6 +292,8 @@ Lihat seluruh contoh di [`.env.example`](.env.example).
 | `prompt.builder.json` | Sumber form Gaya Balasan dan preset prompt |
 | `config/system-prompt.txt` | System prompt aktif yang digunakan bot |
 | `knowledge_base/` | Dokumen pengetahuan bisnis |
+
+Isi `knowledge_base/` bersifat data operasional lokal dan diabaikan Git. Repository hanya mempertahankan `knowledge_base/.gitkeep`; unggah dokumen melalui Admin UI pada setiap environment atau pulihkan dari cadangan konfigurasi.
 | `.env` | Secret dan konfigurasi runtime |
 
 > [!WARNING]
@@ -345,7 +347,7 @@ Sebelum perubahan besar, unduh backup konfigurasi melalui **Koneksi Sistem → B
 | --- | --- |
 | Teks | `.txt`, `.md`, `.csv` |
 | Dokumen | `.pdf`, `.docx` |
-| Spreadsheet | `.xls`, `.xlsx` |
+| Spreadsheet | `.xlsx` |
 | Gambar/OCR | `.png`, `.jpg`, `.jpeg` |
 
 ### Alur ingestion

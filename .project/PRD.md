@@ -14,7 +14,7 @@ Voidlark adalah bot Customer Service WhatsApp berbasis AI untuk konsultasi, duku
 - Admin: Express server-rendered HTML/CSS/JS pada loopback `127.0.0.1`.
 - Ongkir: RajaOngkir/Komerce domestic API.
 - Lookup eksternal: Tavily di UI; backend lama masih mengenali Brave bila env lama tersedia.
-- Knowledge parsing: TXT, Markdown, PDF, DOCX, XLS/XLSX, CSV, PNG, JPG, dan JPEG.
+- Knowledge parsing: TXT, Markdown, PDF, DOCX, XLSX, CSV, PNG, JPG, dan JPEG.
 - Icon: inline SVG resmi dari `@phosphor-icons/core`.
 
 ## Perintah Utama
@@ -299,7 +299,7 @@ Project belum production-ready. Temuan utama audit disimpan lengkap di `.project
 - Knowledge belum retrieval-based dan ingestion belum atomic,
 - belum ada automated tests milik project,
 - observability dan deployment supervision belum lengkap,
-- `xlsx` memiliki satu advisory high severity tanpa fix otomatis.
+- Parsing workbook menggunakan `exceljs`; format spreadsheet Knowledge yang didukung adalah XLSX dan CSV.
 
 Perkiraan production readiness hasil audit: 35-40%.
 

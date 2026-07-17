@@ -63,6 +63,8 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 - **Changed:** Audit UX admin merapikan Dashboard menjadi lima KPI sejajar, memadatkan detail status AI panjang, menyederhanakan Profil & Alur, mengganti bobot ongkir menjadi input label+gram, menambah handoff setelah rekap pembayaran, dan membuat jam operasional/consent lebih ramah pengguna.
 - **Changed:** Katalog & Informasi memakai hierarki langkah dan istilah pemrosesan yang mudah dipahami; Calon Pelanggan memperoleh waktu serta sorting; Riwayat Percakapan dapat dicari lewat nama/nomor dan memakai metadata, jam presisi, serta pemisah tanggal.
 - **Fixed:** Tombol tes koneksi kini mengirim jenis tes yang benar dan ditempatkan dekat API key; perawatan menerima nomor/JID customer tanpa `@lid`; backup config v2 mencakup semua setting non-secret; antrean pesan bermasalah dipindahkan ke Perlu Ditangani.
+- **Fixed:** CI tidak lagi gagal pada `npm audit --audit-level=high`; parser SheetJS `xlsx` yang memiliki advisory tanpa fix diganti dengan `exceljs` dan dukungan spreadsheet dibatasi ke XLSX/CSV.
+- **Changed:** Isi `knowledge_base/` tidak lagi dilacak Git; file lokal tetap tersedia, sedangkan repository hanya menyimpan `.gitkeep`.
 - **Refactored:** Product intelligence kini memilih strategi `fragrance` atau `generic` dari system prompt dan Knowledge relevan. Query web parfum memakai fragrance notes, sedangkan produk lain memakai spesifikasi resmi dan tidak menjalankan XLSX aroma matcher.
 
 ## [2026-07-15]

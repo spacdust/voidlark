@@ -11,13 +11,13 @@ export interface DomainMatchResult {
 export interface DomainMatcher {
     id: ProductDomain;
     supports: (domain: ProductDomain, schemaRows: unknown[][]) => boolean;
-    match: (externalReference: string) => DomainMatchResult;
+    match: (externalReference: string) => Promise<DomainMatchResult>;
 }
 
 const genericMatcher: DomainMatcher = {
     id: 'generic',
     supports: () => true,
-    match: () => ({
+    match: async () => ({
         profileEvidence: 'Gunakan spesifikasi produk dari referensi web terverifikasi.',
         candidateEvidence: 'Gunakan hanya produk dan atribut yang ditemukan pada Knowledge relevan.',
         policy: 'Gunakan referensi web hanya untuk memahami produk luar. Jangan menciptakan produk, spesifikasi, pilihan, harga, stok, atau ketersediaan yang tidak ada pada evidence.',
@@ -27,9 +27,9 @@ const genericMatcher: DomainMatcher = {
 const fragranceMatcher: DomainMatcher = {
     id: 'fragrance',
     supports: (domain, schemaRows) => domain === 'fragrance' && supportsFragranceCatalogSchema(schemaRows),
-    match: (externalReference) => {
+    match: async (externalReference) => {
         const profile = extractAromaProfile(externalReference);
-        const candidates = matchCatalogCandidates(profile, loadCatalogAromas(), 3);
+        const candidates = matchCatalogCandidates(profile, await loadCatalogAromas(), 3);
         return {
             profileEvidence: `Notes: ${profile.notes.join(', ') || '-'}\nKeluarga: ${profile.families.join(', ') || '-'}`,
             candidateEvidence: candidates.length

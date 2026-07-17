@@ -19,3 +19,5 @@ data/*.db-shm
 data/*.db-wal
 *.traineddata
 .kilo/
+knowledge_base/*
+!knowledge_base/.gitkeep

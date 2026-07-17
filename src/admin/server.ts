@@ -50,7 +50,7 @@ const SAFE_OPERATIONAL_ENV_KEYS = [
 const backupPreviewCache = new Map<string, { payload: BackupPayload; expiresAt: number }>();
 let activeAdminServer: Server | null = null;
 const PHOSPHOR_SVG_DIR = path.resolve('node_modules/@phosphor-icons/core/assets/regular');
-const ALLOWED_EXT = new Set(['.txt', '.md', '.pdf', '.docx', '.xlsx', '.xls', '.csv', '.png', '.jpg', '.jpeg']);
+const ALLOWED_EXT = new Set(['.txt', '.md', '.pdf', '.docx', '.xlsx', '.csv', '.png', '.jpg', '.jpeg']);
 const ENV_GROUPS = [
     {
         title: 'Database',
@@ -3540,10 +3540,10 @@ ${pageHeader('Katalog & Informasi', 'Kelola sumber jawaban produk, harga, dan FA
 <form class="upload-card" method="post" action="/admin/knowledge/upload" enctype="multipart/form-data">
   <div class="upload-head"><h2>Unggah informasi bot</h2></div>
   <label class="upload-zone" data-upload-zone>
-    <input id="knowledgeFiles" class="upload-input" type="file" name="files" multiple required accept=".txt,.md,.pdf,.docx,.xlsx,.xls,.csv,.png,.jpg,.jpeg">
+    <input id="knowledgeFiles" class="upload-input" type="file" name="files" multiple required accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.png,.jpg,.jpeg">
     <span class="upload-copy">
       <strong>Pilih file atau tarik ke sini</strong>
-      <span>TXT, MD, PDF, DOCX, XLS/XLSX, CSV, atau gambar.</span>
+      <span>TXT, MD, PDF, DOCX, XLSX, CSV, atau gambar.</span>
     </span>
   </label>
   <div class="upload-list" data-upload-list aria-live="polite"></div>

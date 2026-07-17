@@ -55,8 +55,8 @@ Kualitas data matcher berikutnya:
 - [x] Tambahkan security headers dan `Cache-Control: no-store` untuk admin.
 - [x] Redact tool arguments dan detail error admin dari log default; audit logger terstruktur untuk seluruh nomor/alamat/pesan tetap dilanjutkan sebelum deploy publik.
 - [ ] Jalankan aplikasi dengan OS account berprivilege minimum.
-- [ ] Tambahkan secret scanning dan dependency scanning ke CI quality gate. Audit lokal sudah dijalankan dan menemukan 1 advisory high pada `xlsx` tanpa fix upstream.
-- [ ] Evaluasi atau isolasi dependency `xlsx` yang memiliki advisory high severity tanpa fix otomatis.
+- [ ] Tambahkan secret scanning dan dependency scanning ke CI quality gate. `npm audit --audit-level=high` tetap menjadi quality gate wajib.
+- [x] Ganti dependency `xlsx` yang memiliki advisory high tanpa fix dengan `exceljs` untuk parsing XLSX/CSV.
 
 Kriteria selesai:
 

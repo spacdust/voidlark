@@ -12,9 +12,9 @@ test('falls back to generic plugin when fragrance schema is absent', () => {
     assert.equal(matcher.id, 'generic');
 });
 
-test('generic plugin returns domain-neutral evidence contract', () => {
+test('generic plugin returns domain-neutral evidence contract', async () => {
     const matcher = selectDomainMatcher('generic', []);
-    const result = matcher.match('Canva Pro includes premium templates and brand kits.');
+    const result = await matcher.match('Canva Pro includes premium templates and brand kits.');
     assert.equal(result.profileEvidence, 'Gunakan spesifikasi produk dari referensi web terverifikasi.');
     assert.equal(result.candidateEvidence, 'Gunakan hanya produk dan atribut yang ditemukan pada Knowledge relevan.');
     assert.doesNotMatch(result.policy, /parfum|aroma|inspired|karakter/i);
