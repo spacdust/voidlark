@@ -633,11 +633,11 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
     const basePrompt = fs.existsSync(path.resolve('config', 'system-prompt.txt'))
         ? fs.readFileSync(path.resolve('config', 'system-prompt.txt'), 'utf-8')
         : 'Kamu adalah Customer Service yang ramah dan siap membantu.';
-    const retrievalQuery = [...recentHistory.map((message) => message.content), prompt].join('\n');
+    const retrievalQuery = [...history.map((message) => message.content), prompt].join('\n');
     const { text: relevantContext, citations } = selectRelevantKnowledge(context, retrievalQuery, 5_000);
     const productDomain = resolveProductDomain(basePrompt, relevantContext);
     const externalLookupQuery = businessConfig.enableExternalProductLookup
-        ? resolveExternalLookupQuery(prompt, recentHistory)
+        ? resolveExternalLookupQuery(prompt, history)
         : null;
     const externalReference = externalLookupQuery
         ? await lookupProductReference(buildExternalSearchQuery(externalLookupQuery, productDomain), { forceExternal: true })
@@ -653,7 +653,7 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
     const model = process.env.AI_MODEL || 'gemini/gemini-2.5-flash';
     const messages: any[] = [
         { role: 'system', content: systemPrompt },
-        ...recentHistory.map((message) => ({ role: message.role, content: message.content.slice(0, 4_000) })),
+        ...history.map((message) => ({ role: message.role, content: message.content.slice(0, 4_000) })),
         { role: 'user', content: prompt },
     ];
     const usedTools: string[] = [];

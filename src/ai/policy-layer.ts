@@ -8,7 +8,7 @@ import type { ToolName } from './tool-validation.js';
 export type PolicyDecision = 'allow' | 'deny' | 'require_confirmation';
 
 export interface PolicyContext {
-    toolName: ToolName;
+    toolName: ToolName | string;
     customerJid: string;
     arguments: Record<string, unknown>;
     conversationTurn: number;
@@ -25,7 +25,7 @@ export interface PolicyResult {
  * Policy rules for AI tool mutations
  */
 export class PolicyEngine {
-    private rules: Map<ToolName, (context: PolicyContext) => PolicyResult> = new Map();
+    private rules: Map<string, (context: PolicyContext) => PolicyResult> = new Map();
 
     constructor() {
         this.registerDefaultPolicies();
@@ -119,8 +119,8 @@ export class PolicyEngine {
         
         if (!rule) {
             // Default: allow read-only tools, require confirmation for mutations
-            const mutationTools: ToolName[] = ['simpanDraftPesanan', 'konfirmasiPesanan', 'tandaiSudahBayar', 'buatHandoff', 'lupakanPercakapan'];
-            if (mutationTools.includes(context.toolName)) {
+            const mutationTools: string[] = ['simpanDraftPesanan', 'konfirmasiPesanan', 'tandaiSudahBayar', 'buatHandoff', 'lupakanPercakapan'];
+            if (mutationTools.includes(context.toolName as string)) {
                 appLogger.warn({ component: 'policy-layer', tool: context.toolName }, 'policy.no_rule_for_mutation');
                 return {
                     decision: 'require_confirmation',
@@ -146,7 +146,7 @@ export class PolicyEngine {
     /**
      * Register custom policy rule
      */
-    registerPolicy(toolName: ToolName, rule: (context: PolicyContext) => PolicyResult) {
+    registerPolicy(toolName: string, rule: (context: PolicyContext) => PolicyResult) {
         this.rules.set(toolName, rule);
     }
 }
@@ -158,6 +158,6 @@ export const evaluatePolicy = (context: PolicyContext): PolicyResult => {
     return policyEngine.evaluate(context);
 };
 
-export const registerCustomPolicy = (toolName: ToolName, rule: (context: PolicyContext) => PolicyResult) => {
+export const registerCustomPolicy = (toolName: string, rule: (context: PolicyContext) => PolicyResult) => {
     policyEngine.registerPolicy(toolName, rule);
 };

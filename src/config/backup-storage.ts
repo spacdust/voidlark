@@ -73,9 +73,11 @@ export class LocalBackupStorage implements BackupStorage {
             await pipeline(
                 input,
                 cipher,
-                (chunk) => {
-                    hash.update(chunk);
-                    return chunk;
+                async function* (source: any) {
+                    for await (const chunk of source) {
+                        hash.update(chunk as Buffer);
+                        yield chunk;
+                    }
                 },
                 output
             );
@@ -89,9 +91,11 @@ export class LocalBackupStorage implements BackupStorage {
             
             await pipeline(
                 input,
-                (chunk) => {
-                    hash.update(chunk);
-                    return chunk;
+                async function* (source: any) {
+                    for await (const chunk of source) {
+                        hash.update(chunk as Buffer);
+                        yield chunk;
+                    }
                 },
                 output
             );
