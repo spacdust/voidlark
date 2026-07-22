@@ -4,7 +4,7 @@
 
 ### Engine Layanan Pelanggan & Otomasi WhatsApp Berbasis AI: Durable, Auditable, dan Siap Production
 
-![Voidlark Brand Kit](docs/assets/voidlark-brandkit.png)
+![Voidlark Logo](docs/assets/voidlark-logo.png)
 
 [![Node.js](https://img.shields.io/badge/Node.js-24-2E7D32?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ESM-2563EB?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)

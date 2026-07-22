@@ -410,20 +410,20 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     :root {
       color-scheme: light;
       font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      --bg: #f4f4f0;
+      --bg: #f8fafc;
       --panel: #ffffff;
-      --ink: #191c1d;
-      --muted: #646a6c;
-      --line: rgba(0, 0, 0, 0.05);
-      --soft: #f9f8f6;
-      --primary: #006067;
-      --primary-hover: #004d53;
-      --primary-weak: rgba(0, 96, 103, 0.04);
-      --accent: #006067;
-      --success: #256041;
-      --danger: #9c332b;
-      --warn: #7e5a1b;
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.02), 0 2px 10px rgba(0, 0, 0, 0.015);
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: rgba(15, 23, 42, 0.08);
+      --soft: #f1f5f9;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --primary-weak: rgba(2, 132, 199, 0.08);
+      --accent: #0d9488;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
       --sidebar: 224px;
       --radius: 12px;
       --radius-sm: 8px;
@@ -434,25 +434,25 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       --text-sm: 14px;
       --text-xs: 12px;
       --control-h: 44px;
-      --label: #2c3133;
+      --label: #334155;
     }
     html[data-theme="dark"] {
       color-scheme: dark;
-      --bg: #090b0c;
-      --panel: #111416;
-      --ink: #ecefec;
-      --muted: #8d9597;
-      --line: rgba(255, 255, 255, 0.05);
-      --soft: #171c1e;
-      --primary: #45c4ce;
-      --primary-hover: #67d4de;
-      --primary-weak: rgba(69, 196, 206, 0.06);
-      --accent: #45c4ce;
-      --success: #55a87e;
-      --danger: #d96f64;
-      --warn: #cca14e;
-      --shadow: 0 4px 24px rgba(0, 0, 0, 0.25), 0 2px 12px rgba(0, 0, 0, 0.15);
-      --label: #ced6d5;
+      --bg: #0b0f17;
+      --panel: #111827;
+      --ink: #f3f4f6;
+      --muted: #9ca3af;
+      --line: rgba(255, 255, 255, 0.08);
+      --soft: #1f2937;
+      --primary: #00e5ff;
+      --primary-hover: #38bdf8;
+      --primary-weak: rgba(0, 229, 255, 0.1);
+      --accent: #00f5d4;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+      --label: #e2e8f0;
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55; font-size: var(--text); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
@@ -467,9 +467,13 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       border-right: 1px solid var(--line);
     }
     .topbar { height: 100%; min-height: 0; padding: 24px 18px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
-    .brand { display: grid; gap: 8px; padding: 0 8px 20px; border-bottom: 1px solid var(--line); }
-    .brand strong { color: var(--ink); font-family: "IBM Plex Mono", monospace; font-size: 18px; letter-spacing: .02em; font-weight: 600; text-transform: uppercase; }
-    .badge { width: max-content; color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-sm); padding: 2px 8px; font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+    .brand { display: flex; flex-direction: column; gap: 8px; padding: 0 8px 20px; border-bottom: 1px solid var(--line); }
+    .brand-header { display: flex; align-items: center; gap: 10px; }
+    .brand-logo-svg { width: 32px; height: 32px; flex-shrink: 0; }
+    .brand-title { display: flex; flex-direction: column; gap: 1px; }
+    .brand-title strong { color: var(--ink); font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: .04em; font-weight: 700; text-transform: uppercase; line-height: 1.1; }
+    .brand-sub { color: var(--primary); font-family: "IBM Plex Mono", monospace; font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .badge { width: max-content; color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-sm); padding: 2px 0; font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
     .theme-panel { flex: 0 0 auto; display: grid; gap: 10px; padding: 14px 8px 0; border-top: 1px solid var(--line); }
     .logout-form { margin: 12px 8px 0; }
     .logout-button { width: 100%; min-height: 40px; display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: var(--muted); font: 600 13px "IBM Plex Sans", sans-serif; cursor: pointer; }
@@ -1321,7 +1325,27 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     <div class="topbar">
       <div class="brand-row">
         <div class="brand">
-          <strong>Voidlark</strong>
+          <div class="brand-header">
+            <svg class="brand-logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="url(#vl-bg-nav)" stroke="rgba(255,255,255,0.12)"/>
+              <path d="M7 20L14 12L20 17L25 10" stroke="url(#vl-accent-nav)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="25" cy="10" r="2" fill="#00F5D4"/>
+              <defs>
+                <linearGradient id="vl-bg-nav" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#1E293B"/>
+                  <stop offset="1" stop-color="#0F172A"/>
+                </linearGradient>
+                <linearGradient id="vl-accent-nav" x1="7" y1="20" x2="25" y2="10" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#00E5FF"/>
+                  <stop offset="1" stop-color="#00F5D4"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="brand-title">
+              <strong>Voidlark</strong>
+              <span class="brand-sub">AI Engine</span>
+            </div>
+          </div>
           <span class="badge">Quiet AI. Precise Service.</span>
         </div>
         <button type="button" class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="admin-nav">Menu</button>
