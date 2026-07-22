@@ -1,7 +1,7 @@
 <div align="center">
 
 <p align="center">
-  <img src="docs/assets/voidlark-logo.png" alt="Voidlark Logo" width="220">
+  <img src="docs/assets/voidlark-logo.svg" alt="Voidlark Logo" width="220">
 </p>
 
 ### Engine Layanan Pelanggan & Otomasi WhatsApp Berbasis AI: Durable, Auditable, dan Siap Production
