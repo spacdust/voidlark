@@ -695,5 +695,18 @@ export const initSchema = async (database: Database = pool) => {
             );
         });
     }
+    // Backfill phone numbers for existing leads if empty
+    await database.query(`
+        UPDATE leads 
+        SET phone = REPLACE(jid, '@s.whatsapp.net', '') 
+        WHERE jid LIKE '%@s.whatsapp.net' 
+          AND (phone IS NULL OR phone = '')
+    `);
+    // Clear invalid phone numbers derived from lid JIDs
+    await database.query(`
+        UPDATE leads 
+        SET phone = NULL 
+        WHERE jid LIKE '%@lid'
+    `);
     console.log('✅ Schema database siap.');
 };

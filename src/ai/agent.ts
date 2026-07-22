@@ -20,6 +20,9 @@ import { selectDomainMatcher } from './domain-matchers.js';
 import { validateClaims } from './claim-validator.js';
 import { retrieveKnowledge } from './knowledge.js';
 import { withTransientRetry } from '../operations/retry.js';
+import { validateToolArguments, type ToolName } from './tool-validation.js';
+import { getCircuitBreaker } from './circuit-breaker.js';
+import { getTokenLimiter, estimateTokenCount } from './token-limiter.js';
 
 dotenv.config();
 
@@ -27,6 +30,20 @@ interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
 }
+
+interface ClosingOrderConfig {
+    enableShipping: boolean;
+    handoffAfterPaymentSummary: boolean;
+    paymentInstructions: string;
+}
+
+export const buildClosingOrderRule = (config: ClosingOrderConfig) => {
+    const checkoutScope = `produk + checkout lengkap${config.enableShipping ? ' + ongkir/kurir' : ''}`;
+    if (config.handoffAfterPaymentSummary) {
+        return `CLOSING ORDER: Saat customer setuju order final (${checkoutScope}), WAJIB panggil tool konfirmasiPesanan. Lalu balas ringkasan pesanan saja. Jangan kirim instruksi pembayaran karena admin akan melanjutkan penanganan pembayaran. Jangan bilang lunas sebelum status paid.`;
+    }
+    return `CLOSING ORDER: Saat customer setuju order final (${checkoutScope}), WAJIB panggil tool konfirmasiPesanan. Lalu balas ringkasan pesanan dan instruksi pembayaran: ${config.paymentInstructions}. Jangan bilang lunas sebelum status paid.`;
+};
 
 const normalizeSearchText = (value: string) => value
     .toLowerCase()
@@ -39,29 +56,9 @@ const STOP_WORDS = new Set(['yang', 'dan', 'atau', 'untuk', 'dari', 'dengan', 'i
 
 const selectRelevantKnowledge = (knowledge: string, query: string, maxChars = 7_000) => {
     const indexed = retrieveKnowledge(query, { maxChars });
-    if (indexed.text) return indexed.text;
-    if (knowledge.length <= maxChars) return knowledge;
-    const terms = [...new Set(normalizeSearchText(query).split(' ').filter((term) => term.length >= 3 && !STOP_WORDS.has(term)))];
-    const chunks = knowledge
-        .split(/\n\s*\n|(?=--- Referensi dari )/)
-        .map((content, index) => ({ content: content.trim(), index }))
-        .filter((chunk) => chunk.content);
-    const scored = chunks.map((chunk) => {
-        const normalized = normalizeSearchText(chunk.content);
-        const score = terms.reduce((total, term) => total + (normalized.includes(term) ? (normalized.startsWith(term) ? 4 : 1) : 0), 0);
-        return { ...chunk, score };
-    });
-    const selected = scored.filter((chunk) => chunk.score > 0).sort((a, b) => b.score - a.score || a.index - b.index);
-    if (!selected.length) selected.push(...scored.slice(0, 8));
-    const output: string[] = [];
-    let usedChars = 0;
-    for (const chunk of selected) {
-        const remaining = maxChars - usedChars;
-        if (remaining <= 0) break;
-        output.push(chunk.content.slice(0, remaining));
-        usedChars += Math.min(chunk.content.length, remaining) + 2;
-    }
-    return output.join('\n\n');
+    if (indexed.text) return { text: indexed.text, citations: indexed.citations };
+    if (knowledge.length <= maxChars) return { text: knowledge, citations: [] };
+    return { text: knowledge.slice(0, maxChars), citations: [] };
 };
 
 export interface AgentResult {
@@ -133,29 +130,92 @@ const parseCompatibleCompletion = (raw: string): OpenAI.Chat.Completions.ChatCom
     } as OpenAI.Chat.Completions.ChatCompletion;
 };
 
+const cleanAssistantMessage = (msg: any) => ({
+    role: 'assistant' as const,
+    content: msg.content ?? undefined,
+    tool_calls: msg.tool_calls && msg.tool_calls.length > 0
+        ? msg.tool_calls.map((tc: any) => ({
+            id: tc.id,
+            type: tc.type,
+            function: {
+                name: tc.function.name,
+                arguments: tc.function.arguments,
+            },
+        }))
+        : undefined,
+});
+
 const createCompatibleCompletion = async (
     client: OpenAI,
     params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
 ) => {
     const started = process.hrtime.bigint();
-    try {
-    const response = await fetch(`${String(client.baseURL).replace(/\/$/, '')}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${String(client.apiKey)}`,
-            'HTTP-Referer': 'http://localhost:3000',
-            'X-Title': 'Voidlark WhatsApp Bot',
-        },
-        body: JSON.stringify({ ...params, stream: false }),
+    
+    // Initialize safety systems
+    const circuitBreaker = getCircuitBreaker('ai-provider', {
+        failureThreshold: 5,
+        successThreshold: 2,
+        timeout: 60_000,
+        monitoringWindow: 120_000,
     });
-    const body = await response.text();
-    if (!response.ok) throw new Error(`${response.status} ${body.slice(0, 500)}`);
-    const parsed = parseCompatibleCompletion(body);
-    operationalMetrics.ai(Number(process.hrtime.bigint() - started) / 1e9);
-    return parsed;
+    const tokenLimiter = getTokenLimiter();
+    const model = params.model || 'gemini/gemini-2.5-flash';
+    
+    // Estimate prompt tokens
+    const promptText = params.messages.map(m => 
+        typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+    ).join('\n');
+    const estimatedPromptTokens = estimateTokenCount(promptText);
+    
+    // Check token limits before making request
+    const limitCheck = tokenLimiter.checkLimits(estimatedPromptTokens, model);
+    if (!limitCheck.allowed) {
+        console.error(`🚫 Token limit exceeded: ${limitCheck.reason}`);
+        throw new Error(`Token/cost limit exceeded: ${limitCheck.reason}`);
+    }
+    
+    try {
+        // Execute with circuit breaker protection
+        const result = await circuitBreaker.execute(async () => {
+            const response = await fetch(`${String(client.baseURL).replace(/\/$/, '')}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${String(client.apiKey)}`,
+                    'HTTP-Referer': 'http://localhost:3000',
+                    'X-Title': 'Voidlark WhatsApp Bot',
+                },
+                body: JSON.stringify({ ...params, stream: false }),
+                signal: AbortSignal.timeout(75_000), // 75s timeout
+            });
+            
+            const body = await response.text();
+            if (!response.ok) throw new Error(`${response.status} ${body.slice(0, 500)}`);
+            
+            return parseCompatibleCompletion(body);
+        });
+        
+        // Record actual token usage
+        const usage = result.usage;
+        if (usage) {
+            tokenLimiter.recordUsage(
+                model,
+                usage.prompt_tokens || estimatedPromptTokens,
+                usage.completion_tokens || 0
+            );
+        }
+        
+        operationalMetrics.ai(Number(process.hrtime.bigint() - started) / 1e9);
+        return result;
     } catch (error) {
         operationalMetrics.ai(Number(process.hrtime.bigint() - started) / 1e9, true);
+        
+        // Log circuit breaker state on error
+        const stats = circuitBreaker.getStats();
+        if (stats.state !== 'CLOSED') {
+            console.error(`⚠️  Circuit breaker state: ${stats.state}, failures: ${stats.totalFailures}/${stats.totalRequests}`);
+        }
+        
         throw error;
     }
 };
@@ -192,7 +252,7 @@ const ALL_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
             parameters: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string', description: 'Nama pelanggan' },
+                    name: { type: 'string', description: 'Nama asli pelanggan (HANYA jika pelanggan secara eksplisit menyebutkan nama. JANGAN mengisi dengan kalimat, keluhan, atau obrolan biasa. Jika tidak menyebutkan nama, biarkan kosong)' },
                     phone: { type: 'string', description: 'No HP pelanggan' },
                     address: { type: 'string', description: 'Alamat lengkap pengiriman' },
                     preferences: { type: 'string', description: 'Preferensi produk/kebutuhan pelanggan' },
@@ -377,34 +437,46 @@ const checkShippingBeforeHandoff = async (reason: string, prompt: string) => {
     return null;
 };
 
-// Handler untuk setiap tool call
+// Handler untuk setiap tool call dengan validation (Fase 8: AI Safety)
 const handleToolCall = async (
     name: string,
     args: any,
     jid: string,
     prompt: string,
 ): Promise<{ content: string; handoff?: { reason: string }; orderConfirmed?: { orderId: number; summary: string }; postPaymentHandoff?: { reason: string } }> => {
+    // Validate tool arguments with Zod
+    const validation = validateToolArguments(name as ToolName, args);
+    if (!validation.success) {
+        console.error(`❌ Tool validation failed for ${name}:`, validation.error);
+        return {
+            content: `Parameter tool tidak valid: ${validation.error}. Coba lagi dengan parameter yang benar.`,
+        };
+    }
+
+    // Use validated data
+    const validatedArgs = validation.data!;
+    
     switch (name) {
         case 'cekOngkir': {
-            console.log('🔧 Tool: cekOngkir untuk kota:', args.cityName);
-            const result = await checkShippingCost(args.cityName);
+            console.log('🔧 Tool: cekOngkir untuk kota:', validatedArgs.cityName);
+            const result = await checkShippingCost(validatedArgs.cityName);
             return { content: result };
         }
         case 'simpanDataPelanggan': {
             console.log('Tool: simpanDataPelanggan dipanggil (payload disembunyikan).');
-            await upsertLead({ jid, ...args });
+            await upsertLead({ jid, ...validatedArgs });
             return { content: 'Data pelanggan berhasil disimpan/diupdate.' };
         }
         case 'simpanDraftPesanan': {
             console.log('Tool: simpanDraftPesanan dipanggil (payload disembunyikan).');
-            await setChatState(jid, args.stage as ChatStage, args);
-            await upsertDraftOrder({ jid, ...args });
+            await setChatState(jid, validatedArgs.stage as ChatStage, validatedArgs);
+            await upsertDraftOrder({ jid, ...validatedArgs });
             return { content: 'Draft pesanan berhasil disimpan/diupdate.' };
         }
         case 'konfirmasiPesanan': {
             console.log('Tool: konfirmasiPesanan dipanggil (payload disembunyikan).');
             if (!jid) return { content: 'Gagal konfirmasi: JID customer kosong.' };
-            const result = await confirmDraftOrder(jid, args.note);
+            const result = await confirmDraftOrder(jid, validatedArgs.note);
             if (!result.ok) return { content: `Gagal konfirmasi pesanan: ${result.error}` };
             const config = getBusinessConfig();
             const payment = config.paymentInstructions;
@@ -420,22 +492,22 @@ const handleToolCall = async (
             if (!getBusinessConfig().enableExternalProductLookup) {
                 return { content: 'Lookup eksternal nonaktif di Config. Pakai knowledge base toko saja.' };
             }
-            const lookup = await lookupProductReference(String(args.query || ''), {
-                forceExternal: Boolean(args.forceExternal),
+            const lookup = await lookupProductReference(String(validatedArgs.query || ''), {
+                forceExternal: Boolean(validatedArgs.forceExternal),
             });
             console.log(`   lookup source: ${lookup.source}`);
             return { content: lookup.content };
         }
         case 'escalateToHuman': {
-            console.log('🔧 Tool: escalateToHuman, alasan:', args.reason);
-            if (looksLikeShippingIssue(args.reason || '')) {
-                const shippingResult = await checkShippingBeforeHandoff(args.reason || '', prompt);
+            console.log('🔧 Tool: escalateToHuman, alasan:', validatedArgs.reason);
+            if (looksLikeShippingIssue(validatedArgs.reason || '')) {
+                const shippingResult = await checkShippingBeforeHandoff(validatedArgs.reason || '', prompt);
                 if (shippingResult) {
                     return { content: `Eskalasi dibatalkan karena cek ongkir berhasil.\n${shippingResult}` };
                 }
             }
-            await logHandoff(jid, args.reason);
-            return { content: 'Eskalasi ke admin berhasil dicatat.', handoff: { reason: args.reason } };
+            await logHandoff(jid, validatedArgs.reason);
+            return { content: 'Eskalasi ke admin berhasil dicatat.', handoff: { reason: validatedArgs.reason } };
         }
         default:
             return { content: `Tool "${name}" tidak dikenali.` };
@@ -480,7 +552,7 @@ export const askAgent = async (prompt: string, context: string = '', history: Ch
         const shippingRule = businessConfig.enableShipping
             ? 'Jika pelanggan memberikan alamat/kecamatan/kelurahan/kota tujuan atau meminta cek ongkir, WAJIB panggil tool cekOngkir pada turn yang sama. Gunakan tujuan paling spesifik, misalnya "Plamongan Sari, Pedurungan, Semarang", bukan hanya "Semarang".'
             : 'Shipping/ongkir nonaktif untuk bisnis ini. Jangan meminta alamat fisik untuk ongkir dan jangan membahas cek ongkir.';
-        const orderRule = `CLOSING ORDER: Saat customer setuju order final (produk + checkout lengkap${businessConfig.enableShipping ? ' + ongkir/kurir' : ''}), WAJIB panggil tool konfirmasiPesanan. Lalu balas ringkasan pesanan + instruksi bayar: ${businessConfig.paymentInstructions}. Jangan bilang lunas sebelum status paid.`;
+        const orderRule = buildClosingOrderRule(businessConfig);
         const recentHistory = history.slice(-12);
         const retrievalQuery = [...recentHistory.map((message) => message.content), prompt].join('\n');
         const relevantContext = selectRelevantKnowledge(context, retrievalQuery);
@@ -516,7 +588,7 @@ export const askAgent = async (prompt: string, context: string = '', history: Ch
             }
 
             // Ada tool calls — proses semua
-            messages.push(msg);
+            messages.push(cleanAssistantMessage(msg));
             for (const tc of msg.tool_calls) {
                 if (tc.type !== 'function') continue;
                 const args = JSON.parse(tc.function.arguments);
@@ -561,9 +633,8 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
     const basePrompt = fs.existsSync(path.resolve('config', 'system-prompt.txt'))
         ? fs.readFileSync(path.resolve('config', 'system-prompt.txt'), 'utf-8')
         : 'Kamu adalah Customer Service yang ramah dan siap membantu.';
-    const recentHistory = history.slice(-12);
     const retrievalQuery = [...recentHistory.map((message) => message.content), prompt].join('\n');
-    const relevantContext = selectRelevantKnowledge(context, retrievalQuery, 5_000);
+    const { text: relevantContext, citations } = selectRelevantKnowledge(context, retrievalQuery, 5_000);
     const productDomain = resolveProductDomain(basePrompt, relevantContext);
     const externalLookupQuery = businessConfig.enableExternalProductLookup
         ? resolveExternalLookupQuery(prompt, recentHistory)
@@ -640,7 +711,7 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
             const cleaned = stripInternalMarkup(message.content);
             if (cleaned) {
                 const text = sanitizeAgentText(cleaned);
-                return { text, plan: buildResponsePlan(text), usedTools };
+                return { text, plan: buildResponsePlan(text), usedTools, citations };
             }
             messages.push({ role: 'user', content: 'Markup internal tidak boleh dikirim ke customer. Berikan jawaban final Bahasa Indonesia saja, tanpa DSML, XML, environment details, JSON, atau proses berpikir.' });
             continue;
@@ -655,10 +726,10 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
                     const repaired = await createCompletion({ model, messages: messages.slice(-6), temperature: 0.2, max_tokens: 1_200 });
                     const repairedText = sanitizeAgentText(repaired.choices[0].message.content || text);
                     const guardedText = await enforceCatalogEvidence(repairedText, relevantContext, model, createCompletion);
-                    return { text: guardedText, plan: buildResponsePlan(guardedText), usedTools };
+                    return { text: guardedText, plan: buildResponsePlan(guardedText), usedTools, citations };
                 }
                 const guardedText = await enforceCatalogEvidence(text, relevantContext, model, createCompletion);
-                return { text: guardedText, plan: buildResponsePlan(guardedText), usedTools };
+                return { text: guardedText, plan: buildResponsePlan(guardedText), usedTools, citations };
             }
             const compactMessages = messages.slice(-4);
             const systemMessage = messages[0];
@@ -674,9 +745,9 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
             const retry = await createCompletion({ model, messages: compactMessages, temperature: 0.2, max_tokens: 2_500 });
             const text = sanitizeAgentText(retry.choices[0].message.content || '') || externalSafeFallback;
             const guardedText = await enforceCatalogEvidence(text, relevantContext, model, createCompletion);
-            return { text: guardedText, plan: buildResponsePlan(guardedText), usedTools };
+            return { text: guardedText, plan: buildResponsePlan(guardedText), usedTools, citations };
         }
-        messages.push(message);
+        messages.push(cleanAssistantMessage(message));
         for (const toolCall of message.tool_calls) {
             if (toolCall.type !== 'function') continue;
             const args = parseToolArguments(toolCall.function.arguments);

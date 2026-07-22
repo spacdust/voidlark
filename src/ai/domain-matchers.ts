@@ -40,6 +40,48 @@ const fragranceMatcher: DomainMatcher = {
     },
 };
 
-const matchers: DomainMatcher[] = [fragranceMatcher, genericMatcher];
+const digitalMatcher: DomainMatcher = {
+    id: 'digital',
+    supports: (domain) => domain === 'digital',
+    match: async (externalReference) => {
+        const durations = externalReference.match(/\b(?:\d+\s*(?:bulan|tahun|hari|mo|yr|day|month|year)s?|lifetime|permanen)\b/gi) || [];
+        const licenses = externalReference.match(/\b(?:personal|family|pro|premium|business|enterprise|individual|sharing|private)\b/gi) || [];
+        return {
+            profileEvidence: `Durasi Paket: ${[...new Set(durations)].join(', ') || '-'}\nTipe Akun/Lisensi: ${[...new Set(licenses)].join(', ') || '-'}`,
+            candidateEvidence: 'Pastikan varian durasi, tipe lisensi, dan metode aktivasi persis sama dengan yang tertera di Knowledge.',
+            policy: 'Hanya rekomendasikan varian lisensi/durasi terverifikasi. Jangan menjanjikan garansi masa aktif atau tipe akun yang tidak ada pada evidence.',
+        };
+    },
+};
+
+const fashionMatcher: DomainMatcher = {
+    id: 'fashion',
+    supports: (domain) => domain === 'fashion',
+    match: async (externalReference) => {
+        const sizes = externalReference.match(/\b(?:s|m|l|xl|xxl|3xl|[34][0-9])\b/gi) || [];
+        const materials = externalReference.match(/\b(?:katun|cotton|combed|fleece|canvas|denim|leather|polyester|silk|rayon)\b/gi) || [];
+        return {
+            profileEvidence: `Ukuran Terdeteksi: ${[...new Set(sizes)].map((s) => s.toUpperCase()).join(', ') || '-'}\nMaterial/Bahan: ${[...new Set(materials)].join(', ') || '-'}`,
+            candidateEvidence: 'Gunakan tabel Size Chart dan varian warna yang tersedia pada Knowledge.',
+            policy: 'Rekomendasikan ukuran berdasarkan Size Chart resmi di Knowledge. Jangan menjanjikan ketersediaan ukuran atau bahan yang tidak ada pada evidence.',
+        };
+    },
+};
+
+const electronicsMatcher: DomainMatcher = {
+    id: 'electronics',
+    supports: (domain) => domain === 'electronics',
+    match: async (externalReference) => {
+        const specs = externalReference.match(/\b(?:\d+\s*(?:gb|tb|mb|ram|rom|ssd|mah|watt|hz|inch|inci))\b/gi) || [];
+        const warranties = externalReference.match(/\b(?:garansi\s*(?:resmi|toko|distributor)?\s*\d*\s*(?:bulan|tahun|hari)?)\b/gi) || [];
+        return {
+            profileEvidence: `Spesifikasi Kunci: ${[...new Set(specs)].join(', ') || '-'}\nGaransi: ${[...new Set(warranties)].join(', ') || '-'}`,
+            candidateEvidence: 'Gunakan spesifikasi memori, kondisi (Baru/Second), dan tipe garansi resmi dari Knowledge.',
+            policy: 'Jangan mengonfirmasi varian RAM/Storage atau klaim Garansi Resmi yang tidak ada pada evidence.',
+        };
+    },
+};
+
+const matchers: DomainMatcher[] = [fragranceMatcher, digitalMatcher, fashionMatcher, electronicsMatcher, genericMatcher];
 
 export const selectDomainMatcher = (domain: ProductDomain, schemaRows: unknown[][]) => matchers.find((matcher) => matcher.supports(domain, schemaRows)) || genericMatcher;

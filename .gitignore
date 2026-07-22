@@ -21,3 +21,7 @@ data/*.db-wal
 .kilo/
 knowledge_base/*
 !knowledge_base/.gitkeep
+.agents/
+config/whatsapp-sessions.json
+data/*.lock
+

@@ -42,6 +42,19 @@ test('admin knowledge copy uses plain Indonesian while internal ingestion names 
     assert.doesNotMatch(store, /throw new Error\([^)]*ingestion/i);
 });
 
+test('all admin collapse controls persist their latest state across navigation', async () => {
+    const source = await readFile(new URL('../src/admin/server.ts', import.meta.url), 'utf8');
+    const details = [...source.matchAll(/<details\b([^>]*)>/g)];
+
+    assert.ok(details.length > 0);
+    for (const [, attributes] of details) {
+        assert.match(attributes, /data-persist-collapse="[^"]+"/);
+    }
+    assert.match(source, /querySelectorAll\('\[data-persist-collapse\]'\)/);
+    assert.match(source, /addEventListener\('toggle'/);
+    assert.match(source, /localStorage\.setItem\(collapseStorageKey/);
+});
+
 test('lead table exposes explicit created and updated timestamps plus server sort controls', async () => {
     const source = await readFile(new URL('../src/admin/server.ts', import.meta.url), 'utf8');
     const tableStart = source.indexOf('const leadSortControls');

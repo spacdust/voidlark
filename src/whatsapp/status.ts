@@ -4,6 +4,9 @@ export type WaStatus = {
     state: WaConnectionState;
     lastUpdate: string;
     detail?: string;
+    qr?: string;
+    qrUrl?: string;
+    phone?: string;
 };
 
 let status: WaStatus = {

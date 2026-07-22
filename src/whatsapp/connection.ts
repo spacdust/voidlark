@@ -9,8 +9,26 @@ import makeWASocket, {
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
+import QRCode from 'qrcode';
 import { usePostgresAuthState } from './auth.js';
+import { pool } from '../config/db.js';
 import { setWaStatus } from './status.js';
+
+export const checkWhatsAppCredentialsExist = async (): Promise<boolean> => {
+    try {
+        const { rows } = await pool.query("SELECT data FROM auth_keys WHERE id = 'creds'");
+        if (rows.length > 0) {
+            const data = rows[0].data;
+            // Jika sudah ada object `me` (berisi nomor telepon/ID), berarti sudah pernah login sukses.
+            if (data && data.me && data.me.id) {
+                return true;
+            }
+        }
+        return false;
+    } catch {
+        return false;
+    }
+};
 import { DurableInboundWorker, DurableOutboundWorker } from './message-worker.js';
 import { PermanentInboundError } from './message-worker.js';
 import { messageStore } from './message-store.js';
@@ -146,13 +164,17 @@ export const startWhatsAppConnection = async () => {
         outboundWorker.wake();
         sock.ev.on('creds.update', saveCreds);
 
-        sock.ev.on('connection.update', (update) => {
+        sock.ev.on('connection.update', async (update) => {
             if (myGen !== generation || activeSocket !== sock) return;
 
             const { connection, lastDisconnect, qr } = update;
 
             if (qr) {
-                setWaStatus({ state: 'qr', detail: 'Scan QR di terminal' });
+                let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(qr)}`;
+                try {
+                    qrUrl = await QRCode.toDataURL(qr, { margin: 1, width: 260 });
+                } catch {}
+                setWaStatus({ state: 'qr', detail: 'Scan QR di web admin', qr, qrUrl });
                 appLogger.info({ component: 'whatsapp' }, 'whatsapp.qr_ready');
                 qrcode.generate(qr, { small: true });
             }
@@ -209,8 +231,10 @@ export const startWhatsAppConnection = async () => {
                 appLogger.warn({ component: 'whatsapp', statusCode, ...(boom ? { err: boom } : {}) }, 'whatsapp.connection_closed');
                 scheduleReconnect(3000, `close ${statusCode ?? 'unknown'}`);
             } else if (connection === 'open') {
-                setWaStatus({ state: 'open', detail: 'Terhubung' });
-                appLogger.info({ component: 'whatsapp' }, 'whatsapp.connection_open');
+                const meId = sock.user?.id || '';
+                const phone = meId.split(':')[0].split('@')[0];
+                setWaStatus({ state: 'open', detail: 'Terhubung', phone });
+                appLogger.info({ component: 'whatsapp', phone }, 'whatsapp.connection_open');
             } else if (connection === 'connecting') {
                 setWaStatus({ state: 'connecting', detail: 'Menghubungkan...' });
             }

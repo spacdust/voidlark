@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import { parseWeightRows } from '../src/admin/server.js';
 import { estimateConfiguredShippingWeightGrams } from '../src/api/rajaongkir.js';
+import { buildClosingOrderRule } from '../src/ai/agent.js';
 import { validateBusinessHoursConfig } from '../src/chat/business-hours.js';
 
 test('repeatable shipping weight rows keep valid positive gram values', () => {
@@ -17,6 +18,22 @@ test('repeatable shipping weight rows keep valid positive gram values', () => {
 test('runtime shipping parsing honors arbitrary configured labels', () => {
     assert.equal(estimateConfiguredShippingWeightGrams('2 x 60ml dan 1 paket besar', { '60ml': 140, 'paket besar': 500 }, 900), 780);
     assert.equal(estimateConfiguredShippingWeightGrams('barang tanpa ukuran', { '60ml': 140 }, 900), 900);
+});
+
+test('post-order handoff controls whether payment instructions are sent', () => {
+    const baseConfig = {
+        enableShipping: false,
+        paymentInstructions: 'Transfer ke rekening toko.',
+    };
+
+    const handoffRule = buildClosingOrderRule({ ...baseConfig, handoffAfterPaymentSummary: true });
+    assert.match(handoffRule, /ringkasan pesanan saja/i);
+    assert.match(handoffRule, /jangan kirim instruksi pembayaran/i);
+    assert.doesNotMatch(handoffRule, /Transfer ke rekening toko/);
+
+    const automaticRule = buildClosingOrderRule({ ...baseConfig, handoffAfterPaymentSummary: false });
+    assert.match(automaticRule, /ringkasan pesanan dan instruksi pembayaran/i);
+    assert.match(automaticRule, /Transfer ke rekening toko/);
 });
 
 test('business-hours validation rejects values that can break inbound processing', () => {

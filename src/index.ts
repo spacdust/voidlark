@@ -1,7 +1,7 @@
 import { acquireInstanceLock } from './config/instance-lock.js';
 import { connectDB, pool } from './config/db.js';
 import { initSchema } from './config/schema.js';
-import { startWhatsAppConnection, stopWhatsAppConnection } from './whatsapp/connection.js';
+import { startWhatsAppConnection, stopWhatsAppConnection, checkWhatsAppCredentialsExist } from './whatsapp/connection.js';
 import { initializeKnowledgeBase, stopKnowledgeWorker } from './ai/knowledge.js';
 import { startAdminServer, stopAdminServer } from './admin/server.js';
 import { assertProductionAdminPassword } from './admin/security.js';
@@ -39,9 +39,14 @@ const init = async () => {
     await initializeKnowledgeBase();
     backupScheduler = startDatabaseBackupScheduler();
 
-    // 2. Mulai WhatsApp Client
+    // 2. Mulai WhatsApp Client hanya jika sesi (kredensial) sudah ada
     await startAdminServer();
-    await startWhatsAppConnection();
+    const hasCreds = await checkWhatsAppCredentialsExist();
+    if (hasCreds) {
+        startWhatsAppConnection().catch((err) => {
+            appLogger.error({ component: 'whatsapp', err }, 'whatsapp.auto_start_failed');
+        });
+    }
 };
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

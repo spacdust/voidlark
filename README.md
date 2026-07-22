@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-ESM-2563EB?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Baileys-128C7E?style=flat-square&logo=whatsapp&logoColor=white)](https://github.com/WhiskeySockets/Baileys)
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20PostgreSQL-0F766E?style=flat-square)](#database)
-[![Tests](https://img.shields.io/badge/Tests-107%20passing-16A34A?style=flat-square)](#pengujian)
+[![Tests](https://img.shields.io/badge/Tests-153%20passing-16A34A?style=flat-square)](#pengujian)
 
 **Konsultasi AI · Knowledge Base · Order & Payment · Handoff Admin · Durable Queue · Observability**
 
@@ -60,6 +60,9 @@ Aturan industri tidak di-hardcode di engine. Identitas bisnis, gaya balasan, alu
 - Riwayat percakapan dan customer state untuk menjaga konteks.
 - Simulator percakapan pada Admin UI tanpa mengirim pesan WhatsApp nyata.
 - System prompt aktif dipisahkan dari prompt builder dan tidak ditimpa saat halaman dibuka.
+- Pencocokan domain otomatis (Universal Domain Matcher) untuk produk Digital, Fashion, Elektronik, Parfum, dan Umum.
+- Universal claim validator untuk membatasi klaim durasi, lisensi, ukuran, bahan, dan spesifikasi memori agar mencegah halusinasi AI.
+- Visualisasi sumber kutipan (Citation Visualizer) pada Sandbox Admin UI untuk transparansi retrieval data.
 
 ### Penjualan dan Operasional Bisnis
 
@@ -70,6 +73,9 @@ Aturan industri tidak di-hardcode di engine. Identitas bisnis, gaya balasan, alu
 - Jam operasional, hari libur, timezone, respons di luar jam kerja, dan SLA.
 - Consent, opt-out, re-opt-in, dan suppression untuk pesan promosi.
 - Handoff dengan priority, assignment, ownership, SLA, resolution note, dan audit trail.
+- Manajemen Multi-Nomor WhatsApp dengan rotasi Lead (Round Robin, Least Busy, Sticky Assignment).
+- Jeda waktu acak anti-ban (Anti-Ban Delay) dan simulator waktu mengetik yang proporsional.
+- AI Queue Limiter untuk mengantrekan panggilan AI paralel agar tidak melebihi rate limit provider.
 
 ### Durable Message Pipeline
 
@@ -118,6 +124,7 @@ Admin UI merupakan aplikasi server-rendered Express yang responsif dan tidak mem
 | Pesanan | Memfilter draft, awaiting payment, dan paid |
 | Handoff | Assignment, priority, SLA, resolve, dan riwayat operator |
 | Perlu Ditangani | Handoff pelanggan serta antrean pesan gagal/retry |
+| Manajemen WhatsApp | Integrasi multi-nomor terhubung, rotasi CS, batas kuota, jeda anti-ban, dan antrean AI |
 | Koneksi Sistem | Env editor, pengujian koneksi, health, backup, dan perawatan |
 
 ## Cara Kerja
@@ -482,7 +489,7 @@ Build dan type-check:
 npm run build
 ```
 
-Suite saat ini mencakup 107 test untuk:
+Suite saat ini mencakup 153 test untuk:
 
 - security, auth, CSRF, dan konfigurasi,
 - prompt preservation,
@@ -494,7 +501,10 @@ Suite saat ini mencakup 107 test untuk:
 - business hours, consent, handoff assignment, SLA, dan race handling,
 - knowledge chunking, retrieval, atomic activation, dan restart recovery,
 - backup checksum, retention, corrupt restore rejection, dan drill,
-- metrics, readiness, dan operational retry behavior.
+- metrics, readiness, dan operational retry behavior,
+- rotasi WhatsApp dan alokasi lead multi-nomor (Round Robin, Least Busy, Sticky Assignment),
+- pencocokan multi-domain (Digital, Fashion, Elektronik, Parfum, dan Umum),
+- hybrid retrieval, citation visualizer, dan klaim validator.
 
 Test runner menjalankan setiap file dalam proses terisolasi dengan timeout agar stabil pada Windows dan mencegah resource leak antar-test.
 
@@ -578,6 +588,7 @@ Workflow GitHub Actions berada di `.github/workflows/ci.yml` dan menjalankan ins
 ├── tests/              # Test suite offline dan deterministic
 ├── docs/operations.md  # Runbook incident dan prosedur operasi
 ├── knowledge_base/     # Dokumen sumber bisnis
+├── .project/           # Dokumen manajemen proyek (PRD, CHANGELOG, NEXTPLAN)
 ├── business.config.json
 ├── prompt.builder.json
 ├── config/

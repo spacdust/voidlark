@@ -1,6 +1,6 @@
 {
   "businessName": "Aromatique",
-  "csName": "Anindya",
+  "csName": "Anin",
   "productType": "physical",
   "enableShipping": true,
   "enableExternalProductLookup": true,
@@ -18,7 +18,11 @@
     "productPrice",
     "shippingCost"
   ],
-  "shippingWeights": {},
+  "shippingWeights": {
+    "30": 200,
+    "50": 350,
+    "100": 480
+  },
   "paymentInstructions": "",
   "handoffAfterPaymentSummary": true,
   "businessHours": {

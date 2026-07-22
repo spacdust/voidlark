@@ -11,6 +11,9 @@ export interface Lead {
 }
 
 export const upsertLead = async (lead: Lead) => {
+    if (lead.jid.endsWith('@s.whatsapp.net')) {
+        lead.phone = lead.jid.replace(/@s\.whatsapp\.net$/, '');
+    }
     const fields: string[] = [];
     const values: any[] = [lead.jid];
     let idx = 2;
