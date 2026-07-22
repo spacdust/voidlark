@@ -2,7 +2,9 @@
 
 # VOIDLARK
 
-### AI Customer Service untuk WhatsApp yang tahan gangguan, dapat diaudit, dan siap dioperasikan
+### Engine Layanan Pelanggan & Otomasi WhatsApp Berbasis AI: Durable, Auditable, dan Siap Production
+
+![Voidlark Brand Kit](docs/assets/voidlark-brandkit.png)
 
 [![Node.js](https://img.shields.io/badge/Node.js-24-2E7D32?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ESM-2563EB?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -10,664 +12,285 @@
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20PostgreSQL-0F766E?style=flat-square)](#database)
 [![Tests](https://img.shields.io/badge/Tests-153%20passing-16A34A?style=flat-square)](#pengujian)
 
-**Konsultasi AI · Knowledge Base · Order & Payment · Handoff Admin · Durable Queue · Observability**
+**Durable Pipeline · Knowledge Retrieval · Claim Validator · Multi-Domain Matcher · Operator Handoff · Audit Trail**
 
-[Mulai Cepat](#mulai-cepat) · [Fitur](#fitur-utama) · [Arsitektur](#arsitektur) · [Konfigurasi](#konfigurasi) · [Deploy](#deployment)
+[Mulai Cepat](#mulai-cepat) · [Fitur Utama](#fitur-utama) · [Arsitektur](#arsitektur) · [Konfigurasi](#konfigurasi) · [Deployment](#deployment)
 
 </div>
 
 ---
 
-## Tentang Voidlark
+## Filosofi System
 
-Voidlark adalah sistem Customer Service WhatsApp berbasis AI untuk bisnis fisik maupun digital. Sistem ini menangani percakapan konsultatif, rekomendasi produk, pengumpulan data pelanggan, draft pesanan, pembayaran manual, ongkir, pencarian referensi eksternal, dan eskalasi ke admin manusia.
+Kebanyakan chatbot WhatsApp AI gagal di produksi bukan karena model AI kurang pintar, melainkan karena **arsitektur eksekusinya ringkih**: pesan hilang saat crash, status terputus, LLM berhalusinasi mengumbar janji palsu, dan operator manusia tidak bisa mengambil alih saat terjadi situasi kritis.
 
-Berbeda dari bot demo yang langsung memanggil model lalu mengirim balasan, Voidlark menyimpan setiap pesan ke durable pipeline. Pesan masuk dideduplikasi, diurutkan per pelanggan, diberi lease, di-retry dengan backoff, dan dipindahkan ke dead-letter queue jika gagal permanen. Pesan keluar menggunakan persistent outbox serta melacak status `sent`, `delivered`, dan `read`.
+**Voidlark** dibangun dengan pendekatan *systems engineering* untuk menangani transaksi bisnis nyata via WhatsApp:
 
-Aturan industri tidak di-hardcode di engine. Identitas bisnis, gaya balasan, alur checkout, jam operasional, consent, dan pengetahuan produk dapat dikelola melalui Admin UI serta file konfigurasi.
+1. **Durable Message Pipeline**: Setiap pesan masuk disimpan ke antrean persisten. Pesan dideduplikasi, diurutkan secara ketat per-JID (kontak), diberi eksklusivitas *lease*, di-retry dengan *exponential backoff + jitter*, dan dialihkan ke *dead-letter queue* bila gagal permanen.
+2. **Policy Engine & Claim Guard**: AI dibatasi oleh *Universal Claim Validator* yang mengontrol klaim durasi, garansi, spesifikasi, dan harga. Menghentikan halusinasi AI sebelum menyentuh layar pelanggan.
+3. **Decoupled Architecture**: Logika domain (katalog, jam kerja, alur checkout, ongkos kirim, consent) diisolasi dalam konfigurasi dan database — bukan di-hardcode dalam prompt atau source code core logic.
+4. **Deterministic Operator Handoff**: Saat konteks membutuhkan penanganan manusia (klaim garansi, komplain berat, permintaan khusus), bot beralih mode secara instan dan menyerahkan kontrol penuh ke antrean operator Admin UI dengan audit trail lengkap.
 
 > [!IMPORTANT]
-> Voidlark menggunakan library WhatsApp Web tidak resmi melalui Baileys. Pengguna bertanggung jawab mematuhi kebijakan WhatsApp, mendapatkan consent pelanggan, membatasi spam, dan mengoperasikan akun secara wajar.
+> Voidlark memanfaatkan koneksi WhatsApp Web via Baileys engine. Pengguna wajib mematuhi aturan platform, menjaga consent pelanggan, dan menerapkan rate limiting anti-ban secara bertanggung jawab.
 
-## Daftar Isi
-
-- [Fitur Utama](#fitur-utama)
-- [Tampilan Operasional](#tampilan-operasional)
-- [Cara Kerja](#cara-kerja)
-- [Tech Stack](#tech-stack)
-- [Mulai Cepat](#mulai-cepat)
-- [Konfigurasi](#konfigurasi)
-- [Menyiapkan Bisnis](#menyiapkan-bisnis)
-- [Knowledge Base](#knowledge-base)
-- [Database](#database)
-- [Admin UI](#admin-ui)
-- [Endpoint Operasional](#endpoint-operasional)
-- [Backup dan Pemulihan](#backup-dan-pemulihan)
-- [Pengujian](#pengujian)
-- [Deployment](#deployment)
-- [Keamanan](#keamanan)
-- [Struktur Project](#struktur-project)
-- [Troubleshooting](#troubleshooting)
-- [Batasan](#batasan)
+---
 
 ## Fitur Utama
 
-### Percakapan dan AI
+### 1. Percakapan & AI Safeguards
+* **OpenAI-Compatible Engine**: Kompatibel dengan OpenAI SDK, gateway lokal (Ollama, vLLM), OpenRouter, maupun provider cloud (Gemini, DeepSeek, Claude).
+* **Universal Claim Validator**: Membatasi klaim durasi, lisensi, garansi, dimensi, dan harga untuk mencegah instruksi berhalusinasi.
+* **Citation Visualizer**: Menampilkan evidence data & sumber rujukan secara nyata di Sandbox Admin UI untuk verifikasi transparansi grounding data.
+* **Universal Domain Matcher**: Algoritma pencocokan domain otomatis untuk katalog *Digital*, *Fashion*, *Elektronik*, *Parfum*, dan *Umum*.
+* **Structured Tool Calling**: Integrasi fungsi otomatis untuk kalkulasi ongkir, pembuatan draft order, verifikasi pembayaran, lookup Tavily/Brave, dan eskalasi handoff.
 
-- Endpoint AI OpenAI-compatible; dapat menggunakan gateway lokal atau provider yang kompatibel.
-- Menerima completion berbentuk JSON biasa maupun payload SSE dari gateway, lalu menormalisasinya sebelum respons dikirim.
-- Tool calling untuk ongkir, penyimpanan lead, order, pembayaran, lookup eksternal, dan handoff.
-- Riwayat percakapan dan customer state untuk menjaga konteks.
-- Simulator percakapan pada Admin UI tanpa mengirim pesan WhatsApp nyata.
-- System prompt aktif dipisahkan dari prompt builder dan tidak ditimpa saat halaman dibuka.
-- Pencocokan domain otomatis (Universal Domain Matcher) untuk produk Digital, Fashion, Elektronik, Parfum, dan Umum.
-- Universal claim validator untuk membatasi klaim durasi, lisensi, ukuran, bahan, dan spesifikasi memori agar mencegah halusinasi AI.
-- Visualisasi sumber kutipan (Citation Visualizer) pada Sandbox Admin UI untuk transparansi retrieval data.
+### 2. Penjualan & Operasional Bisnis
+* **Consultative & Direct Checkout Flow**: Mendukung alur tanya-jawab produk hingga pencatatan data pembeli (Nama, No HP, Alamat lengkap).
+* **Multi-Courier Shipping**: Kalkulasi ongkos kirim otomatis via API RajaOngkir / Komerce.
+* **Multi-Number WhatsApp Engine**: Manajemen rotasi lead lintas nomor WhatsApp (Round Robin, Least Busy, Sticky Assignment).
+* **Anti-Ban Protection**: Jeda waktu acak (*Anti-Ban Delay*) dan simulasi waktu mengetik (*typing indicator*) yang proporsional sesuai panjang pesan.
+* **Consent & Suppression Management**: Penanganan otomatis keyword opt-out (misal: *STOP*) dan re-opt-in sesuai regulasi privasi.
 
-### Penjualan dan Operasional Bisnis
+### 3. Engine Durable Queue & Message Outbox
+* **Per-JID Concurrency Lock**: Menjamin urutan balasan per kontak pelanggan tanpa mengunci pemrosesan kontak lain secara paralel.
+* **Outbound Outbox Pattern**: Lacak status pengiriman secara presisi (`queued` → `sending` → `sent` → `delivered` → `read` → `failed` → `dead_letter`).
+* **Retry & Dead-Letter Recovery**: Penanganan otomatis kegagalan jaringan dengan opsi retry manual via Dashboard Operasional.
 
-- Profil bisnis generik untuk produk fisik maupun digital.
-- Alur penjualan konsultatif dan checkout field yang dapat dikonfigurasi.
-- Lead capture, draft order, konfirmasi order, dan payment lifecycle.
-- Perhitungan ongkir melalui RajaOngkir/Komerce.
-- Jam operasional, hari libur, timezone, respons di luar jam kerja, dan SLA.
-- Consent, opt-out, re-opt-in, dan suppression untuk pesan promosi.
-- Handoff dengan priority, assignment, ownership, SLA, resolution note, dan audit trail.
-- Manajemen Multi-Nomor WhatsApp dengan rotasi Lead (Round Robin, Least Busy, Sticky Assignment).
-- Jeda waktu acak anti-ban (Anti-Ban Delay) dan simulator waktu mengetik yang proporsional.
-- AI Queue Limiter untuk mengantrekan panggilan AI paralel agar tidak melebihi rate limit provider.
+### 4. Knowledge Ingestion & Media Processing
+* **Multi-Format Ingestion**: Ekstraksi otomatis dari file `.txt`, `.md`, `.pdf`, `.docx`, `.xlsx`, `.csv`, serta `.png`/`.jpg` (via OCR Tesseract).
+* **Atomic Corpus Activation**: Ingestion versi baru diolah secara terpisah; corpus lama tetap melayani traffic hingga versi baru lulus validasi checksum dan siap diaktifkan secara atomic.
+* **Evidence-Based Lexical Retrieval**: Chunking berbatas metadata untuk pencarian context yang presisi tanpa distorsi kata kunci.
 
-### Durable Message Pipeline
+### 5. Observabilitas & Keandalan Enterprise
+* **Dual Database Driver**: Mendukung SQLite (dengan WAL mode & busy timeout) untuk deployment hemat resource, dan PostgreSQL untuk kebutuhan skala enterprise.
+* **Append-Only Audit Trail**: Setiap tindakan sistem, mutasi transaksi, dan perubahan konfigurasi tercatat secara konstan.
+* **Automated Database Backup**: Backup terjadwal dengan checksum verification, fungsi retention rotasi otomatis, dan *restore drill command*.
+* **Prometheus Metrics & Health Checks**: Endpoint `/health/live`, `/health/ready`, `/health`, dan `/metrics` untuk pengawasan real-time.
 
-- Memproses seluruh item dalam event `messages.upsert`.
-- Deduplikasi berdasarkan provider message ID.
-- Serialisasi per JID dengan concurrency global untuk JID berbeda.
-- Lease, expiry recovery, exponential backoff, jitter, retry, dan dead-letter.
-- Persistent outbound outbox dengan dedupe key.
-- Pelacakan status outbound: `queued`, `sending`, `sent`, `delivered`, `read`, `failed`, `dead_letter`.
-- Retry manual melalui Admin UI.
-
-### Media dan Knowledge
-
-- Input teks, gambar, PDF, caption, voice note, dan lokasi.
-- Payment proof dengan MIME allowlist, batas ukuran, sanitasi filename, dan SHA-256.
-- Knowledge source: TXT, Markdown, PDF, DOCX, XLSX, CSV, PNG, JPG, dan JPEG.
-- OCR untuk gambar melalui Tesseract.
-- Corpus versioning, checksum dedupe, bounded chunking, metadata, dan atomic activation.
-- Corpus lama tetap aktif jika ingestion versi baru gagal.
-- Lexical retrieval dengan evidence dan citation contract.
-
-### Keandalan dan Observability
-
-- SQLite default dan PostgreSQL opsional.
-- Versioned migration dengan checksum.
-- Transaction API dan nested savepoint.
-- Append-only audit trail.
-- Backup terjadwal, retention, checksum, restore validation, dan restore drill.
-- Structured logging Pino dengan redaksi PII dan secret.
-- Liveness, readiness, health detail, dan Prometheus metrics.
-- SLO rules dan alert sink lokal berbentuk JSONL.
-- Single-instance guard untuk mendeteksi proses aktif lain yang memakai workspace yang sama.
+---
 
 ## Tampilan Operasional
 
-Admin UI merupakan aplikasi server-rendered Express yang responsif dan tidak membutuhkan framework frontend terpisah.
+Dashboard Admin UI dibangun menggunakan server-rendered Express yang ringan, responsif, dan siap guna tanpa dependensi build step frontend yang rumit.
 
-| Area | Fungsi |
-| --- | --- |
-| Ringkasan | KPI lead, order, handoff, status layanan, dan antrean bermasalah |
-| Profil & Alur | Identitas bisnis, checkout, shipping, jam kerja, SLA, dan consent |
-| Gaya Balasan | Prompt builder, preset gaya, preview, validator, dan AI assist |
-| Katalog & Informasi | Upload knowledge, status ingestion, corpus aktif, dan retry job |
-| Simulasi Percakapan | Menguji respons AI tanpa mengirim WhatsApp |
-| Calon Pelanggan | Melihat lead dan progres customer |
-| Pesanan | Memfilter draft, awaiting payment, dan paid |
-| Handoff | Assignment, priority, SLA, resolve, dan riwayat operator |
-| Perlu Ditangani | Handoff pelanggan serta antrean pesan gagal/retry |
-| Manajemen WhatsApp | Integrasi multi-nomor terhubung, rotasi CS, batas kuota, jeda anti-ban, dan antrean AI |
-| Koneksi Sistem | Env editor, pengujian koneksi, health, backup, dan perawatan |
+| Modul | Fungsi Utama |
+| :--- | :--- |
+| **Ringkasan** | Dashboard KPI lead, status antrean pesan, kesehatan WhatsApp, dan alert kritis |
+| **Profil & Alur** | Pengaturan identitas bisnis, checkout fields, kurir shipping, SLA, dan consent |
+| **Gaya Balasan** | Visual Prompt Builder, manajemen preset gaya, validator, dan simulator balasan |
+| **Katalog & Informasi** | Management ingestion Knowledge Base, status chunking, dan retry job |
+| **Simulasi Percakapan** | Sandbox pengujian prompt & tool calling AI tanpa mengirim pesan WhatsApp nyata |
+| **Calon Pelanggan & Pesanan**| CRM ringkas pelacakan lead, status pembayaran, dan riwayat pesanan |
+| **Handoff Operator** | Manajemen antrean penanganan manusia, SLA timer, assignment, dan resolusi |
+| **Manajemen WhatsApp** | Rotasi multi-nomor, kuota per nomor, jeda anti-ban, dan queue rate-limiter |
+| **Koneksi System** | Health detail, backup/restore manager, log viewer, dan pengujian API |
 
-## Cara Kerja
+---
+
+## Arsitektur System
 
 ```mermaid
-flowchart LR
-    WA[WhatsApp / Baileys] --> IQ[(Inbound Queue)]
-    IQ --> D{Dedupe + Lease}
-    D --> W[Per-JID Worker]
-    W --> C[Consent & Business Hours]
-    C --> K[Knowledge Retrieval]
-    K --> AI[OpenAI-compatible AI]
-    AI --> T[Business Tools]
-    T --> DB[(SQLite / PostgreSQL)]
-    AI --> OQ[(Outbound Outbox)]
-    OQ --> WA
-    WA --> R[Delivery / Read Receipts]
-    R --> OQ
-    DB --> UI[Admin UI]
-    IQ --> UI
-    OQ --> UI
+flowchart TD
+    subgraph Ingress ["Layer Masuk & Durable Queue"]
+        WA[WhatsApp Web / Baileys Engine] -->|Event upsert| IQ[(Inbound Message Queue)]
+        IQ -->|Deduplicate & Lease| Worker[Per-JID Sequential Worker]
+    end
+
+    subgraph Core ["Logic & Control Layer"]
+        Worker --> Check[Consent & Business Hours Guard]
+        Check --> Policy[Policy Engine & Claim Validator]
+        Policy --> KB[Knowledge Base Lexical Retrieval]
+        KB --> AI[OpenAI-Compatible AI Gateway]
+        AI --> Tools{Execution Tools}
+        Tools -->|Kalkulasi Ongkir| Ship[Shipping API]
+        Tools -->|Simpan Lead / Order| DB[(Database SQLite / Postgres)]
+        Tools -->|Handoff Manusia| Admin[Admin Operator Queue]
+    end
+
+    subgraph Egress ["Layer Keluar & Tracking"]
+        AI -->|Generate Response| OQ[(Outbound Outbox Queue)]
+        OQ -->|Simulasi Anti-Ban Delay| WA
+        WA -->|Status Ack| Status[Sent / Delivered / Read Track]
+        Status --> DB
+    end
+
+    subgraph Management ["Observability & Interface"]
+        UI[Express Admin UI] <--> DB
+        UI <--> Management
+        Metrics[Prometheus /metrics & /health] <--> Core
+    end
 ```
 
-Urutan bootstrap aplikasi:
-
-1. Memvalidasi password production dan mengambil instance lock.
-2. Menghubungkan database dan menjalankan migration.
-3. Memuat active knowledge corpus serta worker ingestion.
-4. Menyalakan scheduler backup database.
-5. Menyalakan Admin UI dan endpoint operasional.
-6. Membuka koneksi WhatsApp dan memulihkan queue yang belum selesai.
+---
 
 ## Tech Stack
 
-| Lapisan | Teknologi |
-| --- | --- |
-| Runtime | Node.js 24, TypeScript, ESM, `tsx`, `tsc` |
-| WhatsApp | `@whiskeysockets/baileys` |
-| AI | OpenAI-compatible HTTP API dan OpenAI SDK |
-| Web | Express 5, server-rendered HTML/CSS/JS |
-| Database | SQLite bawaan Node.js atau PostgreSQL melalui `pg` |
-| Knowledge | `pdf-parse`, Mammoth, SheetJS, Tesseract.js |
-| Logging | Pino dan `pino-pretty` untuk development |
-| Security | Helmet, rate limiting, CSRF, Fetch Metadata, secure session cookie |
-| Icons | Phosphor Icons |
-| Delivery | Docker multi-stage, Compose, GitHub Actions |
+| Layer | Komponen & Teknologi |
+| :--- | :--- |
+| **Runtime & Core** | Node.js 24, TypeScript (ESM), Native `tsx`, Express 5 |
+| **WhatsApp Engine** | `@whiskeysockets/baileys` |
+| **AI Integration** | OpenAI SDK & HTTP OpenAI-Compatible API |
+| **Database & Persistensi** | SQLite (Node.js Native `node:sqlite`) / PostgreSQL (`pg`) |
+| **Knowledge Engine** | `pdf-parse`, `mammoth`, `xlsx` (SheetJS), `tesseract.js` |
+| **Logging & Security** | Pino Structured Logger, Helmet, CSRF Protection, Rate Limiting, Fetch Metadata |
+| **Observability** | Prometheus Exposition Format, Native Health Endpoints, Pino Redaction |
+| **Deployment** | Docker Multi-Stage, Docker Compose, GitHub Actions CI |
 
-## Prasyarat
-
-- Node.js 24 atau lebih baru.
-- npm yang disertakan bersama Node.js.
-- Akun WhatsApp yang dapat memindai QR.
-- Endpoint AI OpenAI-compatible.
-- Opsional: PostgreSQL, Docker, RajaOngkir/Komerce, Tavily, atau Brave Search.
+---
 
 ## Mulai Cepat
 
-### 1. Install dependency
+### 1. Prasyarat System
+* Node.js v24.0.0 atau yang lebih baru
+* npm v10.0.0+
+* Endpoint AI (Local Ollama/vLLM, OpenRouter, OpenAI, atau Gemini API)
 
+### 2. Instalasi Dependency
 ```powershell
 npm install
 ```
 
-Untuk instalasi reproducible pada CI atau deployment:
-
-```powershell
-npm ci
-```
-
-### 2. Buat konfigurasi environment
-
+### 3. Konfigurasi Environment
+Salin template environment `.env.example`:
 ```powershell
 Copy-Item ".env.example" ".env"
 ```
 
-Linux/macOS:
-
-```bash
-cp .env.example .env
-```
-
-Isi minimal berikut:
-
+Isi konfigurasi dasar `.env`:
 ```dotenv
 DB_DRIVER=sqlite
 SQLITE_PATH=./data/voidlark.db
 AI_API_BASE_URL=http://localhost:20128/v1
 AI_API_KEY=your_api_key
 AI_MODEL=gemini/gemini-2.5-flash
-ADMIN_PASSWORD=development-password
+ADMIN_PASSWORD=password-super-aman-minimal-16-karakter
 HOST=127.0.0.1
 PORT=3000
 ```
 
-> [!NOTE]
-> `.env.example` menggunakan `AI_API_BASE_URL`, `AI_API_KEY`, dan `AI_MODEL`. `OPENROUTER_API_KEY` tersedia hanya sebagai fallback kompatibilitas lama.
-
-### 3. Jalankan development server
-
+### 4. Jalankan Server Development
 ```powershell
 npm run dev
 ```
 
-Development memilih port kosong mulai `3000`. URL aktual ditulis ke terminal, misalnya:
-
+Terminal akan menampilkan port aktif dan URL akses Admin UI:
 ```text
-Admin web aktif: http://127.0.0.1:3001/admin
+[INFO] Admin web aktif: http://127.0.0.1:3000/admin
 ```
 
-### 4. Login dan hubungkan WhatsApp
+### 5. Hubungkan WhatsApp
+1. Buka browser dan login ke `http://127.0.0.1:3000/admin`.
+2. Masukkan `ADMIN_PASSWORD` yang dikonfigurasi.
+3. Buka menu **Manajemen WhatsApp** atau lihat terminal untuk melakukan **Scan QR Code**.
+4. Setelah terhubung (status `open`), uji balasan menggunakan **Simulasi Percakapan**.
 
-1. Buka URL Admin yang muncul di terminal.
-2. Login menggunakan `ADMIN_PASSWORD`.
-3. Buka **Koneksi Sistem** dan pastikan AI/database siap.
-4. Scan QR WhatsApp yang muncul di terminal jika sesi belum tersedia.
-5. Tunggu status WhatsApp menjadi `open`.
-6. Uji respons melalui **Simulasi Percakapan** sebelum mengirim pesan nyata.
+---
 
-### 5. Build production
+## Konfigurasi Environment
+
+Daftar variabel lingkungan utama yang didukung Voidlark:
+
+| Variabel | Wajib | Default | Deskripsi |
+| :--- | :---: | :--- | :--- |
+| `DB_DRIVER` | No | `sqlite` | Opsi database: `sqlite` atau `postgres` |
+| `SQLITE_PATH` | Ya (SQLite) | `./data/voidlark.db` | Path penyimpanan file database SQLite |
+| `DATABASE_URL` | Ya (Postgres)| - | Connection string PostgreSQL |
+| `AI_API_BASE_URL` | Ya | `http://localhost:20128/v1` | Base URL endpoint AI OpenAI-compatible |
+| `AI_API_KEY` | Ya | - | Credential API Key provider AI |
+| `AI_MODEL` | Ya | - | Name/ID model AI yang digunakan |
+| `ADMIN_PASSWORD` | Ya | - | Password login Admin UI (min. 16 karakter di production) |
+| `RAJAONGKIR_API_KEY` | Optional | - | API Key RajaOngkir/Komerce untuk kalkulasi ongkir |
+| `TAVILY_API_KEY` | Optional | - | API Key Tavily Search untuk web lookup eksternal |
+| `DB_BACKUP_ENABLED` | No | `true` | Mengaktifkan scheduler backup otomatis |
+| `DB_BACKUP_RETENTION` | No | `14` | Jumlah simpanan backup terbelakang yang dipertahankan |
+| `INBOUND_CONCURRENCY`| No | `3` | Batas maksimum worker pemrosesan pesan paralel |
+
+---
+
+## Pengujian (Test Suite)
+
+Voidlark dilengkapi dengan test suite yang komprehensif, deterministik, dan bebas resource leak.
 
 ```powershell
-npm run build
-npm start
-```
-
-`npm start` menjalankan `dist/index.js` dalam mode production dan akan menolak password admin lemah atau default.
-
-## Konfigurasi
-
-### Environment variables
-
-| Variable | Wajib | Default | Keterangan |
-| --- | --- | --- | --- |
-| `DB_DRIVER` | Tidak | `sqlite` | `sqlite` atau `postgres` |
-| `SQLITE_PATH` | SQLite | `./data/voidlark.db` | Lokasi database SQLite |
-| `DATABASE_URL` | PostgreSQL | - | PostgreSQL connection string |
-| `AI_API_BASE_URL` | Ya | `http://localhost:20128/v1` | Base URL API OpenAI-compatible |
-| `AI_API_KEY` | Ya | - | Credential AI utama |
-| `AI_MODEL` | Ya | provider-dependent | ID model persis dari provider/gateway |
-| `ADMIN_PASSWORD` | Ya | - | Password Admin UI; production minimal 16 karakter dan tidak boleh berpola lemah |
-| `HOST` | Tidak | `127.0.0.1` | Bind host Admin UI |
-| `PORT` | Tidak | `3000` | Port awal development dan fixed port production |
-| `ADMIN_WA_JID` | Disarankan | - | JID WhatsApp operator, contoh `628xxx@s.whatsapp.net` |
-| `RAJAONGKIR_API_KEY` | Opsional | - | Satu atau beberapa key dipisahkan koma |
-| `STORE_DESTINATION_ID` | Ongkir | - | ID lokasi toko untuk kalkulasi ongkir |
-| `STORE_CITY_NAME` | Tidak | `Bantul` | Label lokasi asal |
-| `SHIPPING_COURIERS` | Tidak | daftar kurir | Kurir yang diminta ke API |
-| `SHIPPING_WEIGHT_GRAMS` | Tidak | `500` | Fallback berat jika produk tidak terbaca |
-| `TAVILY_API_KEY` | Opsional | - | Key lookup eksternal, mendukung rotasi dengan koma |
-| `BRAVE_SEARCH_API_KEY` | Opsional | - | Kompatibilitas lookup lama |
-| `DB_BACKUP_ENABLED` | Tidak | `true` | Menyalakan scheduler backup |
-| `DB_BACKUP_DIR` | Tidak | `./backups/database` | Direktori backup database |
-| `DB_BACKUP_RETENTION` | Tidak | `14` | Jumlah backup yang dipertahankan |
-| `DB_BACKUP_INTERVAL_MINUTES` | Tidak | `1440` | Interval scheduler backup |
-| `DB_BACKUP_RUN_ON_START` | Tidak | `false` | Membuat backup saat startup |
-| `SLO_RULES_JSON` | Tidak | `[]` | Daftar rule SLO berbentuk JSON array |
-| `ALERT_LOG_HOOK_FILE` | Tidak | - | File JSONL untuk alert lokal |
-| `LOG_LEVEL` | Tidak | `debug` dev / `info` prod | Level structured logging Pino |
-| `INBOUND_CONCURRENCY` | Tidak | `3` | Batas worker inbound lintas JID |
-| `INBOUND_MEDIA_ROOT` | Tidak | `./data/inbound-media` | Penyimpanan media masuk |
-| `INBOUND_MEDIA_MAX_BYTES` | Tidak | `10485760` | Batas byte media masuk |
-| `PAYMENT_WEBHOOK_SECRET` | Webhook | - | Shared secret HMAC payment webhook |
-| `PAYMENT_WEBHOOK_SIGNATURE_HEADER` | Tidak | `x-payment-signature` | Header signature webhook |
-
-Lihat seluruh contoh di [`.env.example`](.env.example).
-
-### File konfigurasi
-
-| File | Peran |
-| --- | --- |
-| `business.config.json` | Identitas bisnis, flow, checkout, shipping, jam operasional, SLA, consent |
-| `prompt.builder.json` | Sumber form Gaya Balasan dan preset prompt |
-| `config/system-prompt.txt` | System prompt aktif yang digunakan bot |
-| `knowledge_base/` | Dokumen pengetahuan bisnis |
-
-Isi `knowledge_base/` bersifat data operasional lokal dan diabaikan Git. Repository hanya mempertahankan `knowledge_base/.gitkeep`; unggah dokumen melalui Admin UI pada setiap environment atau pulihkan dari cadangan konfigurasi.
-| `.env` | Secret dan konfigurasi runtime |
-
-> [!WARNING]
-> Jangan commit `.env`, API key, database customer, backup, atau sesi WhatsApp. Path sensitif sudah dikecualikan melalui `.gitignore`.
-
-## Menyiapkan Bisnis
-
-Gunakan **Admin → Profil & Alur** untuk mengatur:
-
-- nama bisnis dan nama CS virtual,
-- produk fisik atau digital,
-- sales flow,
-- field pesanan,
-- field checkout,
-- ongkir dan aturan berat,
-- instruksi pembayaran,
-- handoff opsional setelah rekap pembayaran,
-- jam operasional dan hari libur,
-- SLA handoff,
-- keyword opt-out dan opt-in.
-
-Contoh konfigurasi minimal:
-
-```json
-{
-  "businessName": "Aromatique",
-  "csName": "Anindya",
-  "productType": "physical",
-  "enableShipping": true,
-  "salesFlow": "consultative",
-  "checkoutFields": ["name", "phone", "address"],
-  "orderFields": ["productName", "variant", "quantity", "productPrice", "shippingCost"],
-  "paymentInstructions": "Transfer ke rekening bisnis lalu kirim bukti pembayaran."
-}
-```
-
-### System prompt dan gaya balasan
-
-- **Gaya Balasan** mengelola `prompt.builder.json`.
-- Menekan tombol simpan secara eksplisit menghasilkan `config/system-prompt.txt` baru.
-- Membuka atau me-refresh halaman Prompt tidak mengubah system prompt aktif.
-- Aturan khusus produk sebaiknya ditempatkan dalam Knowledge Base, bukan hardcode source code.
-
-Sebelum perubahan besar, unduh backup konfigurasi melalui **Koneksi Sistem → Backup & Pemulihan**.
-
-## Knowledge Base
-
-### Format yang didukung
-
-| Jenis | Ekstensi |
-| --- | --- |
-| Teks | `.txt`, `.md`, `.csv` |
-| Dokumen | `.pdf`, `.docx` |
-| Spreadsheet | `.xlsx` |
-| Gambar/OCR | `.png`, `.jpg`, `.jpeg` |
-
-### Alur ingestion
-
-1. File diunggah melalui Admin UI.
-2. Sistem membuat ingestion job persisten.
-3. Konten diekstrak dan dinormalisasi.
-4. Dokumen dipecah menjadi chunk dengan metadata dan checksum.
-5. Corpus baru diaktifkan secara atomik jika seluruh proses berhasil.
-6. Jika gagal, corpus sebelumnya tetap menjadi sumber aktif.
-
-Operator dapat melihat error dan menjalankan retry pada halaman Katalog & Informasi.
-
-### Pedoman isi
-
-- Gunakan nama produk, variasi, harga, dan kebijakan yang eksplisit.
-- Pertahankan header tabel dan arah relasi antar-kolom.
-- Hindari beberapa harga ambigu untuk nama produk yang sama.
-- Jangan memasukkan API key, password, atau data pribadi customer.
-- Pisahkan dokumen berdasarkan domain agar retrieval lebih presisi.
-
-## Database
-
-### SQLite
-
-SQLite adalah default dan cocok untuk satu instance:
-
-```dotenv
-DB_DRIVER=sqlite
-SQLITE_PATH=./data/voidlark.db
-```
-
-Runtime menggunakan WAL, busy timeout, migration ledger, transaction serialization, dan savepoint untuk nested transaction.
-
-### PostgreSQL
-
-```dotenv
-DB_DRIVER=postgres
-DATABASE_URL=postgres://voidlark:strong-password@localhost:5432/voidlark
-```
-
-PostgreSQL menggunakan connection pool, transaksi per client, nested savepoint, dan migration yang sama secara semantik.
-
-### Migration
-
-Migration berjalan otomatis saat startup. Setiap migration memiliki versi dan checksum. Jangan mengedit migration yang sudah pernah diterapkan pada database production; tambahkan migration baru.
-
-## Admin UI
-
-Default development URL:
-
-```text
-http://127.0.0.1:3000/admin
-```
-
-Development dapat berpindah ke port berikutnya jika port sedang digunakan. Production menggunakan fixed port dan gagal startup jika port tidak tersedia.
-
-Security controls Admin UI:
-
-- password login dan rate limiting,
-- signed session dengan expiry,
-- `HttpOnly`, `SameSite=Strict`, dan secure cookie pada production HTTPS,
-- CSRF token untuk request mutasi,
-- Fetch Metadata checks,
-- Helmet security headers,
-- same-origin multipart validation,
-- logout eksplisit.
-
-## Endpoint Operasional
-
-| Endpoint | Tujuan | Status sehat |
-| --- | --- | --- |
-| `GET /health/live` | Memastikan proses hidup | `200` |
-| `GET /health/ready` | Memastikan dependency siap menerima traffic | `200` |
-| `GET /health` | Status detail database, WhatsApp, AI, shipping, lookup | `200`, dapat `degraded` |
-| `GET /metrics` | Prometheus exposition format | `200` |
-| `POST /webhooks/payment` | Webhook payment idempotent dengan HMAC | `200`/`4xx` |
-
-Contoh:
-
-```powershell
-Invoke-RestMethod "http://127.0.0.1:3000/health/live"
-Invoke-RestMethod "http://127.0.0.1:3000/health/ready"
-Invoke-WebRequest "http://127.0.0.1:3000/metrics"
-```
-
-Readiness dapat mengembalikan `503` ketika database, AI, backup freshness, atau antrean melewati batas operasional. Status WhatsApp tersedia pada `GET /health`, tetapi tidak menjadi gate readiness saat ini.
-
-## Backup dan Pemulihan
-
-### Backup database manual
-
-```powershell
-npm run db:backup
-```
-
-Backup menggunakan temporary file dan atomic rename, lalu menyimpan checksum serta metadata run.
-
-### Restore drill
-
-```powershell
-npm run db:backup:drill -- "backups/database/nama-backup.db"
-```
-
-Restore drill memvalidasi checksum dan membuka salinan disposable. Perintah ini tidak menimpa database aktif.
-
-### Backup konfigurasi
-
-Admin UI dapat mengekspor dan memulihkan:
-
-- `business.config.json`,
-- `config/system-prompt.txt`,
-- `prompt.builder.json`,
-- seluruh file `knowledge_base/`.
-
-Backup konfigurasi tidak menyertakan `.env`, API key, sesi WhatsApp, atau database customer.
-
-> [!CAUTION]
-> Simpan salinan backup terverifikasi di luar host. Backup pada disk/volume yang sama tidak melindungi dari kehilangan server atau volume.
-
-## Pengujian
-
-Jalankan seluruh suite:
-
-```powershell
+# Jalankan seluruh test suite (153 tests)
 npm test
-```
 
-Build dan type-check:
-
-```powershell
+# Jalankan type checking dan verifikasi build dist
 npm run build
 ```
 
-Suite saat ini mencakup 153 test untuk:
+### Cakupan Verifikasi Test (153 Passing Tests):
+* **Security & Auth Guard**: Validasi CSRF, sanitasi session cookie, rate limiter, dan proteksi password.
+* **Pipeline Integrity**: Deduplikasi antrean, penanganan transaksi berurutan per-JID, eksklusivitas lease, dan penanganan *dead-letter*.
+* **AI Policy Engine**: Validasi claim validator, sanitasi prompt injection, dan universal domain matcher.
+* **Knowledge Retrieval**: Accuracy test chunking, checksum dedupe, dan *atomic corpus activation*.
+* **Database & Migration**: Transaksi savepoint, idempotensi skema migrasi, dan portabilitas SQLite/Postgres.
+* **Multi-Number WhatsApp Rotation**: Pengujian algoritma alokasi lead (*Round Robin*, *Least Busy*, *Sticky Assignment*).
+* **Backup & Restore Drill**: Verifikasi integritas checksum backup, pencegahan restore korup, dan automatisasi rotasi file.
 
-- security, auth, CSRF, dan konfigurasi,
-- prompt preservation,
-- database portability dan transaction rollback,
-- migration idempotence dan checksum,
-- order/payment state machine,
-- queue dedupe, ordering, concurrency, retry, replay, restart, dan dead-letter,
-- media security dan deterministic failure handling,
-- business hours, consent, handoff assignment, SLA, dan race handling,
-- knowledge chunking, retrieval, atomic activation, dan restart recovery,
-- backup checksum, retention, corrupt restore rejection, dan drill,
-- metrics, readiness, dan operational retry behavior,
-- rotasi WhatsApp dan alokasi lead multi-nomor (Round Robin, Least Busy, Sticky Assignment),
-- pencocokan multi-domain (Digital, Fashion, Elektronik, Parfum, dan Umum),
-- hybrid retrieval, citation visualizer, dan klaim validator.
+---
 
-Test runner menjalankan setiap file dalam proses terisolasi dengan timeout agar stabil pada Windows dan mencegah resource leak antar-test.
+## Deployment Production
 
-## Deployment
+### Menggunakan Docker Compose (Direkomendasikan)
 
-### Docker Compose
-
-Buat `.env` production dan isi minimal:
-
-```dotenv
-ADMIN_PASSWORD=gunakan-password-kuat-minimal-16-karakter
-AI_API_BASE_URL=https://gateway.example.com/v1
-AI_API_KEY=secret
-AI_MODEL=provider/model
-```
-
-Jalankan:
+1. Pastikan `.env` production sudah disesuaikan dengan credential aman.
+2. Jalankan perintah containerization:
 
 ```powershell
 docker compose up -d --build
 ```
 
-Verifikasi:
-
+3. Verifikasi kontainer dan status layanan:
 ```powershell
 docker compose ps
-docker compose logs --tail=200 voidlark
-Invoke-RestMethod "http://127.0.0.1:3000/health/live"
 Invoke-RestMethod "http://127.0.0.1:3000/health/ready"
 ```
 
-Compose menyediakan persistent volume untuk:
+Volume terisolasi secara otomatis dibuat untuk menjaga data sensitif:
+* `voidlark_data`: Database SQLite / data runtime
+* `voidlark_backups`: Arsip backup terenkripsi & terjadwal
+* `voidlark_kb`: Dokumen Knowledge Base bisnis
 
-- database,
-- backup,
-- Knowledge Base.
+---
 
-Runtime image menggunakan user non-root dan resource limit. Sesi WhatsApp disimpan pada tabel `auth_keys`, sehingga ikut persisten bersama volume database.
+## Keamanan & Praktek Terbaik
 
-### Native service
+1. **Proteksi Admin UI**: Jangan mengekspos port Admin UI langsung ke internet publik tanpa HTTPS reverse proxy (Nginx / Caddy / Cloudflare Tunnel) dan autentikasi tambahan.
+2. **Keamanan Kredensial**: Rotasi API Key dan `ADMIN_PASSWORD` secara berkala. Hindari menyimpan secret di repositori Git.
+3. **Data Privacy**: PII (Personally Identifiable Information) pelanggan secara otomatis di-redact dari structured log Pino.
+4. **Isolasi Sesi**: Jangan menjalankan dua instance Voidlark menggunakan sesi nomor WhatsApp yang sama untuk menghindari konflik status WebSocket Baileys.
 
-```powershell
-npm ci
-npm run build
-$env:ADMIN_PASSWORD="password-production-kuat"
-npm start
-```
+---
 
-Gunakan process supervisor seperti systemd, NSSM, Docker, atau orchestrator lain. Pastikan hanya satu instance memiliki nomor/sesi WhatsApp yang sama.
-
-### CI
-
-Workflow GitHub Actions berada di `.github/workflows/ci.yml` dan menjalankan instalasi, build, full tests, audit dependency, dan secret scanning tanpa credential production.
-
-## Keamanan
-
-- Jangan mengekspos Admin UI langsung ke internet tanpa HTTPS, firewall, dan access control tambahan.
-- Bind ke `127.0.0.1` bila hanya digunakan lokal atau melalui SSH tunnel.
-- Gunakan reverse proxy dengan TLS pada production.
-- Rotasi AI, shipping, lookup, database, dan admin credentials secara berkala.
-- Jangan menulis isi pesan, JID mentah, token, cookie, atau secret ke log.
-- Batasi permission direktori `data/`, `backups/`, `knowledge_base/`, dan auth WhatsApp.
-- Uji restore backup secara berkala, bukan hanya pembuatan backup.
-- Jangan menjalankan lebih dari satu instance pada sesi WhatsApp yang sama.
-- Tinjau dead-letter queue dan audit trail setiap hari.
-
-## Struktur Project
+## Struktur Repositori
 
 ```text
-.
+cs-automation/
 ├── src/
-│   ├── admin/          # Admin UI, auth, CSRF, settings, operator controls
-│   ├── ai/             # Agent, tool calling, extraction, chunking, retrieval
-│   ├── api/            # Shipping, lookup, dan integrasi eksternal
-│   ├── chat/           # History, state, lead, order, consent, handoff, business hours
-│   ├── config/         # Database, migration, logging, backup, instance lock
-│   ├── operations/     # Metrics, health/readiness, retry dan SLO helpers
-│   ├── payments/       # Payment lifecycle dan webhook
-│   ├── whatsapp/       # Connection, media input, durable store dan worker
-│   └── index.ts        # Bootstrap dan graceful shutdown
-├── tests/              # Test suite offline dan deterministic
-├── docs/operations.md  # Runbook incident dan prosedur operasi
-├── knowledge_base/     # Dokumen sumber bisnis
-├── .project/           # Dokumen manajemen proyek (PRD, CHANGELOG, NEXTPLAN)
-├── business.config.json
-├── prompt.builder.json
-├── config/
-│   └── system-prompt.txt
-├── Dockerfile
-├── compose.yml
-└── package.json
+│   ├── admin/          # Express Admin UI, auth session, CSRF, operator view
+│   ├── ai/             # Agent logic, tool validation, policy engine, claim validator
+│   ├── api/            # Integrasi eksternal (RajaOngkir, Tavily, Brave)
+│   ├── chat/           # Business hours, consent, handoff workflow, lead management
+│   ├── config/         # Database drivers, migrations, backup storage, logger
+│   ├── operations/     # Health check, readiness gates, Prometheus metrics
+│   ├── payments/       # Payment lifecycle & webhook handler
+│   ├── whatsapp/       # Baileys engine wrapper, inbound queue, outbox worker
+│   └── index.ts        # Bootstrap entrypoint & graceful shutdown
+├── tests/              # 153 deterministic test suite files
+├── docs/               # Dokumentasi operasional & asset brandkit
+│   ├── assets/         # Visual assets & brandkit diagrams
+│   └── operations.md   # Incident runbook & operational manual
+├── .project/           # PRD, CHANGELOG, dan NEXTPLAN proyek
+├── business.config.json # Konfigurasi profil & alur bisnis aktif
+└── compose.yml         # Container production deployment spec
 ```
-
-## Troubleshooting
-
-### Admin tidak bisa dibuka
-
-- Periksa URL aktual di terminal; development mungkin berpindah dari port `3000`.
-- Periksa `HOST` dan `PORT`.
-- Pastikan hanya satu process memegang `data/voidlark.lock`.
-- Gunakan `/health/live` untuk memastikan proses hidup.
-
-### Login selalu gagal
-
-- Pastikan `ADMIN_PASSWORD` sudah dimuat dari `.env`.
-- Restart aplikasi setelah mengubah `.env`.
-- Production menolak password default, berulang, berurutan, atau terlalu lemah.
-- Tunggu rate-limit window jika terjadi terlalu banyak percobaan.
-
-### QR WhatsApp tidak muncul atau koneksi conflict
-
-- Pastikan tidak ada instance lain menggunakan sesi/nomor yang sama.
-- Hentikan process duplikat sebelum membersihkan sesi.
-- Jangan menghapus file sesi ketika proses masih berjalan.
-- Setelah login ulang, verifikasi status WhatsApp `open` dan kirim satu pesan kontrol.
-
-### AI tidak merespons
-
-- Periksa `AI_API_BASE_URL`, `AI_API_KEY`, dan `AI_MODEL`.
-- Uji endpoint melalui tombol test pada Koneksi Sistem tanpa mencetak key.
-- Periksa quota, timeout, DNS, dan status provider/gateway.
-- Gunakan Simulasi Percakapan untuk memisahkan masalah AI dari WhatsApp.
-
-### Database SQLite terkunci
-
-- Pastikan hanya satu instance aplikasi aktif.
-- Hentikan maintenance atau backup eksternal yang membuka DB terlalu lama.
-- Jangan menghapus file `-wal` atau `-shm` ketika aplikasi berjalan.
-- Periksa kapasitas disk dan permission direktori `data/`.
-
-### Pesan tertahan atau gagal
-
-- Buka **Koneksi Sistem → Antrean pesan bermasalah**.
-- Periksa error terakhir, attempts, dan status dead-letter.
-- Pulihkan dependency sebelum menekan retry.
-- Buka **Perlu Ditangani → Antrean pesan bermasalah**, lalu pantau `voidlark_queue_depth` dan `/health/ready`.
-
-### Knowledge baru tidak aktif
-
-- Buka Katalog & Informasi dan periksa ingestion job.
-- Perbaiki format atau ukuran file yang gagal.
-- Jalankan retry job.
-- Corpus lama sengaja tetap aktif sampai seluruh corpus baru berhasil.
-
-Runbook lengkap tersedia di [`docs/operations.md`](docs/operations.md).
-
-## Batasan
-
-- Integrasi WhatsApp melalui Baileys bukan WhatsApp Business Cloud API resmi.
-- Payment provider production harus dikonfigurasi sesuai PSP yang digunakan bisnis.
-- Backup harus direplikasi ke storage off-host secara terpisah.
-- PostgreSQL backup memerlukan tool `pg_dump` yang kompatibel di host.
-- OCR dan transkripsi dipengaruhi kualitas media serta ketersediaan AI provider.
-- Browser/admin runtime QA pada target production tetap diperlukan setelah deployment.
-
-## Status Project
-
-Voidlark saat ini memiliki fondasi production-oriented: durable messaging, transaksi data, operator workflow, knowledge ingestion atomik, observability, backup/restore, CI, dan container deployment. Langkah sebelum go-live adalah mengisi ulang konfigurasi bisnis yang benar, memasukkan secret production, menjalankan restore drill, menghubungkan nomor WhatsApp terkontrol, dan melakukan acceptance test end-to-end pada host target.
 
 ---
 
 <div align="center">
 
-**Voidlark** — percakapan otomatis yang tetap bisa diawasi, dipulihkan, dan dipertanggungjawabkan.
+**VOIDLARK** — *Engine Otomasi WhatsApp Berorientasi Sistem: Resilien, Terukur, dan Terkendali.*
 
 </div>
