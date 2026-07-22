@@ -117,7 +117,7 @@ flowchart TD
 
     subgraph Management ["Observability & Interface"]
         UI[Express Admin UI] <--> DB
-        UI <--> Management
+        UI <--> Core
         Metrics[Prometheus /metrics & /health] <--> Core
     end
 ```
