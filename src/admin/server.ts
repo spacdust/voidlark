@@ -1332,10 +1332,9 @@ const page = (title: string, body: string, active: string, options: { refreshSec
             </svg>
             <div class="brand-title">
               <strong>Voidlark</strong>
-              <span class="brand-sub">AI Engine</span>
             </div>
           </div>
-          <span class="badge">Quiet AI. Precise Service.</span>
+          <span class="badge">WA Bot CS Otomatis</span>
         </div>
         <button type="button" class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="admin-nav">Menu</button>
       </div>
