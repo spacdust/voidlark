@@ -43,20 +43,9 @@ export const renderLoginPage = (error = '') => `<!doctype html>
 <body>
   <header class="topbar">
     <div class="brand-logo-wrap">
-      <svg class="brand-logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="url(#vl-bg-login)" stroke="rgba(255,255,255,0.12)"/>
-        <path d="M7 20L14 12L20 17L25 10" stroke="url(#vl-accent-login)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="25" cy="10" r="2" fill="#00F5D4"/>
-        <defs>
-          <linearGradient id="vl-bg-login" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#1E293B"/>
-            <stop offset="1" stop-color="#0F172A"/>
-          </linearGradient>
-          <linearGradient id="vl-accent-login" x1="7" y1="20" x2="25" y2="10" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#00E5FF"/>
-            <stop offset="1" stop-color="#00F5D4"/>
-          </linearGradient>
-        </defs>
+      <svg class="brand-logo-svg" viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 14.5C5 12.5 9.5 6.5 14 2C14.3 1.7 14.8 2.1 14.6 2.5C13.3 5.5 12.3 9 10.7 11.2C14 9.5 18 6 20.5 3.5C20.8 3.2 21.3 3.6 21 4C18.5 7.5 14.3 12.5 11 15.5C14.7 15 19 14.2 22 13.5C22.4 13.4 22.6 13.9 22.3 14.2C19 17.5 13 20.5 7 23C5 23.8 3 24 1 23.5C0.6 23.4 0.5 22.9 0.9 22.7C3 21 5 18 6.3 16.2C4.7 16.5 3 16 1.7 15.2C1.4 15 1.6 14.6 2 14.5Z" fill="#00F5D4"/>
+        <path d="M15.5 17.5L20 21L15.5 24.5" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="brand">VOIDLARK ADMIN</span>
     </div>
