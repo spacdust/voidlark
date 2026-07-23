@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="docs/assets/voidlark-logo-clean.svg" alt="Voidlark" width="220">
+<h1>VOIDLARK</h1>
+
+<img src="docs/assets/voidlark-logo-clean.svg" alt="Voidlark app icon" width="96">
 
 ### Customer Sales Support untuk WhatsApp
 
