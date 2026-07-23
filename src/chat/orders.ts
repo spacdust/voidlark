@@ -174,6 +174,31 @@ export const markOrderPaid = async (jid: string, orderId?: number, database: Dat
     return { ok: true as const, order: rows[0], summary: buildOrderSummary(rows[0]) };
 };
 
+export const advanceOrderStatus = async (orderId: number, status: 'shipped' | 'completed' | 'cancelled', actor = 'admin', details: Record<string, unknown> = {}, database: Database = pool) => {
+    const current = await database.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+    const order = current.rows[0];
+    if (!order) return { ok: false as const, error: 'Pesanan tidak ditemukan.' };
+    const trackingNumber = String(details.trackingNumber || '').trim();
+    const shippingCarrier = String(details.shippingCarrier || '').trim();
+    const cancellationReason = String(details.cancellationReason || '').trim();
+    if (status === 'shipped' && !trackingNumber) return { ok: false as const, error: 'Nomor resi wajib diisi.' };
+    await database.transaction(async (transaction) => {
+        await transitionOrder(transaction, order, status);
+        if (status === 'shipped') await transaction.query(
+            'UPDATE orders SET tracking_number = $1, shipping_carrier = $2, shipped_at = NOW() WHERE id = $3',
+            [trackingNumber, shippingCarrier || null, order.id],
+        );
+        if (status === 'completed') await transaction.query('UPDATE orders SET completed_at = NOW() WHERE id = $1', [order.id]);
+        if (status === 'cancelled') await transaction.query(
+            'UPDATE orders SET cancelled_at = NOW(), cancellation_reason = $1 WHERE id = $2',
+            [cancellationReason || null, order.id],
+        );
+        await appendAuditEvent(transaction, `order.${status}`, order, actor, { from: order.status, to: status, ...details });
+        await appendOutboundIntent(transaction, `order:${order.id}:${status}`, order.jid, `order.${status}`, { orderId: order.id, ...details });
+    });
+    return { ok: true as const, order: (await database.query('SELECT * FROM orders WHERE id = $1', [orderId])).rows[0] };
+};
+
 const toSnake = (order: DraftOrder) => ({
     product_name: order.productName,
     aroma: order.aroma,

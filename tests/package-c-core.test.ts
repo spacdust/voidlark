@@ -21,7 +21,7 @@ test('migrations are idempotent and reject checksum drift', async () => {
     try {
         await initSchema(database);
         const applied = await database.query('SELECT * FROM schema_migrations ORDER BY version');
-        assert.deepEqual(applied.rows.map((row) => Number(row.version)), [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert.deepEqual(applied.rows.map((row) => Number(row.version)), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
         await database.query("UPDATE schema_migrations SET checksum = 'tampered' WHERE version = 1");
         await assert.rejects(initSchema(database), /checksum mismatch/);
     } finally {

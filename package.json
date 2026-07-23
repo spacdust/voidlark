@@ -2,11 +2,13 @@
   "name": "voidlark",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:restart": "node scripts/restart-dev.mjs",
     "build": "tsc",
     "test": "node tests/run-tests.mjs",
+    "ops:smoke": "node scripts/deployment-smoke.mjs",
     "start": "node dist/index.js",
     "db:backup": "tsx src/config/backup-cli.ts create",
     "db:backup:drill": "tsx src/config/backup-cli.ts drill"

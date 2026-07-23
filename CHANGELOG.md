@@ -4,6 +4,16 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 
 ## [Unreleased]
 
+- **Changed:** README, PRD, dan roadmap disinkronkan dengan live code, script, Admin UI, deployment spec, serta status staging/pilot. Klaim jumlah test dan production-ready yang cepat basi dihapus.
+- **Removed:** Eksperimen Admin React/Vite/Tailwind dibatalkan dan compatibility host dihapus; seluruh route Admin kembali memakai Express server-rendered HTML/CSS/JS tanpa dependency frontend tersebut.
+- **Changed:** Admin dan login memakai satu lapisan UI native terinspirasi shadcn/ui: Inter Variable, IBM Plex Mono untuk data teknis, token semantik light/dark, surface satu border, radius konsisten, kontrol ringkas, focus ring, tabel responsif, dialog/toast elevated, safe-area sticky action, serta reduced motion.
+- **Changed:** `docs/ROADMAP.md` dirapikan menjadi status gate-based dan tiga sprint prioritas: deployment proof, reliability/privacy proof, lalu security/operator hardening. Persentase readiness historis tidak lagi dipakai sebagai status aktif.
+- **Added:** Sprint 1 deployment gates: Compose grace period 60 detik, backup/readiness env passthrough, non-root/no-new-privileges runtime, dan `npm run ops:smoke` untuk health/metrics smoke check.
+- **Added:** Sprint 2 bounded shutdown drain untuk worker inbound/outbound dengan timeout `SHUTDOWN_DRAIN_TIMEOUT_MS`.
+- **Added:** Sprint 2 privacy retention policy guard; `PRIVACY_RETENTION_DAYS=0` menjaga auto-purge tetap nonaktif sampai kebijakan legal disetujui.
+- **Changed:** Sprint 3 mengaktifkan per-response CSP nonce untuk inline script Admin dan menghapus inline event handler pada safety metrics; inline style masih pending ekstraksi.
+- **Changed:** `docs/PRD.md` disinkronkan dengan implementasi live: migration/transaction, metrics, tests, knowledge retrieval, media path, dan WhatsApp multi-number tidak lagi dicatat sebagai fitur yang belum ada.
+- **Changed:** Dokumentasi kanonis dipindahkan ke `docs/PRD.md`, `docs/ROADMAP.md`, dan `CHANGELOG.md` di root. Semua update berikutnya wajib memakai lokasi ini.
 - **Added:** Mengintegrasikan pembuatan QR Code lokal secara asynchronous dengan format Base64 PNG Data-URL menggunakan modul `qrcode` untuk memotong ketergantungan API pihak ketiga (`api.qrserver.com`) yang terblokir CORS/adblocker di browser.
 - **Fixed:** Memperbaiki TransformError syntax `await` pada `src/whatsapp/connection.ts` dengan mengubah signature penanganan event `connection.update` menjadi async callback (`async (update) => { ... }`).
 - **Fixed:** Menyesuaikan logika deteksi kredensial di `checkWhatsAppCredentialsExist` agar memverifikasi objek `data.me.id` (bukan sekadar baris creds kosong), mencegah terminal memunculkan QR Code otomatis saat startup jika sesi belum login.
@@ -35,8 +45,8 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 - **Fixed:** Logika AI dalam mengekstrak nama pelanggan pada agen AI disesuaikan agar tidak menangkap keluhan atau luapan amarah panjang pelanggan sebagai entri nama.
 - **Fixed:** CSP (Content-Security-Policy) kini mengizinkan Google Fonts. Directive `font-src` ditambahkan dengan whitelist `https://fonts.googleapis.com` dan `https://fonts.gstatic.com`, serta `style-src` diperluas untuk mengizinkan `https://fonts.googleapis.com`. IBM Plex Sans dan Mono dari `@import` admin dan login tidak lagi diblokir browser.
 - **Changed:** Pemisahan bubble untuk numbered list kini menggunakan logika yang lebih sederhana: text intro (sebelum list) menjadi bubble terpisah, lalu setiap item numbered list (`1.`, `2.`, dst) langsung dijadikan bubble tersendiri. Orphaned list markers (pattern `"tersebut: 1."` diikuti paragraph break) otomatis digabung dengan konten berikutnya. Hasil: rekomendasi produk dengan list tidak akan terpotong lagi antara nomor dan deskripsinya.
-- **Changed:** Folder dokumentasi project dipindahkan dari `.agents/` ke `.project/`; `AGENTS.md` berganti nama menjadi `PRD.md`.
-- **Changed:** Semua pembaruan dokumentasi berikutnya wajib ditulis ke `.project/CHANGELOG.md`, `.project/PRD.md`, dan `.project/nextplan.md` sesuai jenis perubahannya.
+- **Changed:** Dokumentasi project dikonsolidasikan ke struktur kanonis `docs/` dan root repository; `AGENTS.md` berganti nama menjadi `PRD.md`.
+- **Changed:** Semua pembaruan dokumentasi berikutnya wajib ditulis ke `CHANGELOG.md`, `docs/PRD.md`, dan `docs/ROADMAP.md` sesuai jenis perubahannya.
 - **Fixed:** Fitur `Rapikan dengan AI` kini meminta respons non-stream secara eksplisit dan tetap dapat membaca provider yang mengembalikan SSE `data: {...}`; error `Unexpected token 'd'` tidak lagi terjadi.
 - **Improved:** `Rapikan dengan AI` kini menghitung kolom yang benar-benar berubah, menyorot setiap field hasil AI, dan menjelaskan jika tidak ada perubahan; pengguna tidak lagi mendapat pesan sukses generik ketika hasil terlihat sama.
 - **Fixed:** Instruksi `Rapikan dengan AI` tidak lagi membatasi penyuntingan ke beberapa field. AI kini wajib menyunting setiap kolom, memperbaiki typo/ejaan/struktur, mempertahankan fakta bisnis, menggabungkan duplikasi, dan mengembalikan semua key builder; respons tidak lengkap ditolak.
@@ -213,7 +223,7 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 
 ### Audit Production Readiness
 
-- **Added:** `.project/nextplan.md` berisi roadmap production hardening lengkap.
+- **Added:** `docs/ROADMAP.md` berisi roadmap production hardening lengkap.
 - **Audited:** Product workflow, security, reliability, observability, testing, backup, deployment, dan failure modes.
 - **Assessed:** Production readiness keseluruhan saat ini sekitar 35-40% ketika reliability, security, tests, monitoring, dan deployment ikut dihitung.
 - **Identified:** Prioritas utama adalah admin auth/CSRF, durable inbound queue, message deduplication, per-JID ordering, outbound outbox, transactional state, versioned migrations, automated tests, database backup, structured logs, dan observability.
@@ -222,9 +232,9 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 
 ### Documentation
 
-- **Changed:** `.project/PRD.md` diperbarui dengan arsitektur, prompt model, UI, AI health, simulator, Knowledge, order, backup, batasan production, dan workflow terbaru.
-- **Added:** `.project/nextplan.md` sebagai roadmap utama pekerjaan berikutnya.
-- **Changed:** `.project/CHANGELOG.md` dirapikan agar kondisi final hari ini tidak bercampur dengan implementasi sementara yang sudah diganti.
+- **Changed:** `docs/PRD.md` diperbarui dengan arsitektur, prompt model, UI, AI health, simulator, Knowledge, order, backup, batasan production, dan workflow terbaru.
+- **Added:** `docs/ROADMAP.md` sebagai roadmap utama pekerjaan berikutnya.
+- **Changed:** `CHANGELOG.md` dirapikan agar kondisi final hari ini tidak bercampur dengan implementasi sementara yang sudah diganti.
 
 ## [2026-07-11]
 
@@ -239,7 +249,7 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 
 ## [2026-07-10]
 
-- **Added:** Dokumentasi project awal untuk pedoman arsitektur, sistem prompt, dan progres project; sekarang disimpan sebagai `.project/PRD.md` dan `.project/CHANGELOG.md`.
+- **Added:** Dokumentasi project awal untuk pedoman arsitektur, sistem prompt, dan progres project; sekarang disimpan sebagai `docs/PRD.md` dan `CHANGELOG.md`.
 # 2026-07-16 - Package D operational handoff, hours, and consent
 
 - Added migration v5 for handoff ownership/SLA fields and persisted communication preferences.
@@ -247,3 +257,34 @@ Semua perubahan penting dan kemajuan proyek CS AI WhatsApp dicatat di sini.
 - Added configurable timezone-aware business hours, overnight ranges, holidays, deterministic out-of-hours replies, and handoff policy.
 - Added opt-out/opt-in keyword handling before AI and outbound suppression for marketing/proactive messages while preserving transactional replies.
 - Extended the authenticated, CSRF-protected handoff and business configuration admin forms with minimal controls.
+# 2026-07-22 - Operational sprint execution
+
+- Hardened customer privacy lifecycle, outbound intent projection, WhatsApp counter reset, handoff actions, order fulfillment UI, and local backup storage.
+- Disabled fake cloud-backup success responses; unsupported providers now fail closed.
+- Updated README and next-plan runtime claims.
+- Added migration v10 for persistent order tracking, carrier, shipped/completed/cancelled timestamps, and cancellation reason.
+- Removed external font origins from Admin CSP and added deterministic tests for local backup, outbound intent idempotency, and WhatsApp daily counter reset.
+
+# 2026-07-23 - WhatsApp inbound filtering
+
+- Ignored group and broadcast JIDs before durable customer processing, preventing unsupported group payloads from creating retries and handoffs.
+- Added migration v11 to complete existing group pipeline failures and resolve group handoffs created by the old behavior.
+- Permanent inbound failures now display their real attempt count instead of being reported as `5 / 5`.
+- Suppressed only libsignal session lifecycle console messages that exposed ratchet session objects despite silent Baileys logging.
+
+# 2026-07-23 - True multi-number WhatsApp runtime
+
+- Added isolated Baileys auth namespaces, socket generations, reconnect timers, QR status, and inbound workers per registered phone number.
+- Added one shared outbound dispatcher that selects an online socket using persistent sticky customer assignment.
+- Isolated session reset/delete so one phone no longer clears every WhatsApp credential.
+- Added safe legacy credential claiming when stored account phone matches a registered number.
+- Admin QR flow now starts and polls the selected number, rejects mismatched scanned accounts, and shows runtime status per number.
+
+# 2026-07-23 - New-number QR false positive
+
+- Fixed new-number registration incorrectly showing the primary session as connected.
+- New number starts in isolated `connecting` state and requires per-number QR scan.
+- Status endpoint without a phone no longer returns primary session state.
+- QR endpoint rejects unregistered numbers; connected badge only accepts matching phone.
+- Corrected onboarding order: open Add Number to create pending QR first, scan QR, auto-fill detected phone, then save CS label and quota.
+- Activated anti-ban delay in real outbound dispatcher, persisted sent counters, enforced daily lead hard limits, restricted sticky routing to online numbers, and validated rotation mode input.

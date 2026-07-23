@@ -102,8 +102,10 @@ export class HandoffRepository {
 
     async listActive(limit = 100) {
         const result = await this.database.query(
-            `SELECT *, CASE WHEN sla_due_at IS NOT NULL AND sla_due_at <= $1 THEN 1 ELSE 0 END AS sla_breached
-             FROM handoff_log WHERE ${this.unresolved}
+            `SELECT h.*, 
+                    (SELECT c.content FROM chat_history c WHERE c.jid = h.jid AND c.role = 'user' ORDER BY c.created_at DESC, c.id DESC LIMIT 1) AS last_message,
+                    CASE WHEN h.sla_due_at IS NOT NULL AND h.sla_due_at <= $1 THEN 1 ELSE 0 END AS sla_breached
+             FROM handoff_log h WHERE ${this.unresolved}
              ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END, sla_due_at, created_at LIMIT $2`,
             [this.now().toISOString(), limit],
         );

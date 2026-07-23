@@ -55,6 +55,18 @@ test('durable workers enqueue batches, dedupe, serialize, retry, dead-letter, an
             assert.equal(Number((await pool.query('SELECT COUNT(*) AS count FROM inbound_messages WHERE provider_message_id LIKE $1', ['batch-%'])).rows[0].count), 2);
         });
 
+        await t.test('group and broadcast messages never enter customer pipeline', async () => {
+            const worker = new DurableInboundWorker(async () => assert.fail('unsupported JID handled'), 1, { store, pollIntervalMs: 5, activePollMs: 2 });
+            await worker.enqueue([
+                message('group-message', '120363403779425408@g.us'),
+                message('status-message', 'status@broadcast'),
+            ]);
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            worker.stop();
+            assert.equal(await row('inbound_messages', 'group-message'), undefined);
+            assert.equal(await row('inbound_messages', 'status-message'), undefined);
+        });
+
         await t.test('same JID is serialized while different JIDs run concurrently', async () => {
             const started: string[] = [];
             const releases = new Map<string, () => void>();
@@ -146,7 +158,7 @@ test('durable workers enqueue batches, dedupe, serialize, retry, dead-letter, an
             await eventually(async () => (await row('inbound_messages', 'classified-permanent'))?.status === 'dead_letter');
             worker.stop();
             assert.equal(attempts, 1);
-            assert.equal(Number((await row('inbound_messages', 'classified-permanent')).attempts), 5);
+            assert.equal(Number((await row('inbound_messages', 'classified-permanent')).attempts), 1);
         });
 
         await t.test('queued inbound work recovers after worker restart', async () => {

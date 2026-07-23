@@ -111,7 +111,7 @@ export class MessageStore {
     async deadLetterInbound(id: number, error: unknown, leaseToken?: string): Promise<StoredMessage | null> {
         const now = this.now().toISOString();
         const result = await this.database.query(
-            `UPDATE inbound_messages SET status = 'dead_letter', attempts = max_attempts, lease_until = NULL,
+            `UPDATE inbound_messages SET status = 'dead_letter', attempts = attempts + 1, lease_until = NULL,
              lease_token = NULL, last_error = $1, updated_at = $2
              WHERE id = $3 AND status = 'processing'${leaseToken ? ' AND lease_token = $4' : ''} RETURNING *`,
             [this.errorText(error), now, id, ...(leaseToken ? [leaseToken] : [])],

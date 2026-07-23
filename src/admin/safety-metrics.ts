@@ -69,10 +69,11 @@ export const renderSafetyMetricsHTML = () => {
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>AI Safety Metrics - Voidlark</title>
+            <link rel="stylesheet" href="/admin/assets/admin.css?v=20260723-3">
             <style>
                 * { box-sizing: border-box; }
                 body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
                     margin: 0;
                     padding: 20px;
                     background: #f5f5f5;
@@ -150,7 +151,7 @@ export const renderSafetyMetricsHTML = () => {
                 <p class="subtitle">
                     Status: ${healthStatus} | 
                     Last Updated: ${new Date(metrics.timestamp).toLocaleString('id-ID')}
-                    <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
+                    <button class="refresh-btn" type="button" data-refresh>🔄 Refresh</button>
                 </p>
                 
                 <div class="section">
@@ -208,6 +209,7 @@ export const renderSafetyMetricsHTML = () => {
                     </div>
                 </div>
             </div>
+        <script>document.querySelector('[data-refresh]')?.addEventListener('click',()=>location.reload());</script>
         </body>
         </html>
     `;

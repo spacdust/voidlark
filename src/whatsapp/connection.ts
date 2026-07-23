@@ -10,25 +10,12 @@ import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
 import QRCode from 'qrcode';
-import { usePostgresAuthState } from './auth.js';
+import { aliasAuthState, claimLegacyAuthState, clearAuthAlias, clearAuthState, hasAuthState, renameAuthState, usePostgresAuthState } from './auth.js';
 import { pool } from '../config/db.js';
-import { setWaStatus } from './status.js';
+import { getWaSessionStatus, removeWaSessionStatus, setWaSessionStatus } from './status.js';
+import { globalWhatsAppManager } from './whatsapp-manager.js';
+import { calculateRandomDelayMs } from './anti-ban-delay.js';
 
-export const checkWhatsAppCredentialsExist = async (): Promise<boolean> => {
-    try {
-        const { rows } = await pool.query("SELECT data FROM auth_keys WHERE id = 'creds'");
-        if (rows.length > 0) {
-            const data = rows[0].data;
-            // Jika sudah ada object `me` (berisi nomor telepon/ID), berarti sudah pernah login sukses.
-            if (data && data.me && data.me.id) {
-                return true;
-            }
-        }
-        return false;
-    } catch {
-        return false;
-    }
-};
 import { DurableInboundWorker, DurableOutboundWorker } from './message-worker.js';
 import { PermanentInboundError } from './message-worker.js';
 import { messageStore } from './message-store.js';
@@ -43,8 +30,28 @@ import { operationalMetrics } from '../operations/metrics.js';
 import { appLogger } from '../config/logger.js';
 import { openai } from '../ai/agent.js';
 import { toFile } from 'openai/uploads';
+import { PerNumberQueue } from './per-number-queue.js';
 
 const logger = pino({ level: 'silent' });
+
+const installLibsignalConsoleFilter = () => {
+    const blocked = new Set(['Closing session:', 'Opening session:', 'Session already closed', 'Session already open']);
+    for (const level of ['info', 'warn'] as const) {
+        const original = console[level];
+        if ((original as any).__voidlarkSignalFilter) continue;
+        const filtered = (...args: unknown[]) => {
+            if (!blocked.has(String(args[0] || ''))) original(...args);
+        };
+        Object.defineProperty(filtered, '__voidlarkSignalFilter', { value: true });
+        console[level] = filtered;
+    }
+};
+
+export const selectOutboundSessionId = (jid: string, onlineSessionIds: string[]) => {
+    const sticky = globalWhatsAppManager.getStickyAssignment(jid);
+    const assigned = sticky && onlineSessionIds.includes(sticky) ? sticky : globalWhatsAppManager.assignNumberForLead(jid)?.phone;
+    return assigned && onlineSessionIds.includes(assigned) ? assigned : null;
+};
 
 const mediaRoot = process.env.INBOUND_MEDIA_ROOT || 'data/inbound-media';
 const transcriptionConfigured = () => Boolean(process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY);
@@ -58,17 +65,23 @@ const transcribeVoiceNote = async (buffer: Buffer, mimeType: string, fileName: s
     return result.text;
 };
 
-let activeSocket: WASocket | null = null;
-let starting = false;
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let generation = 0;
+const activeSockets = new Map<string, WASocket>();
+// Pending socket keeps listener identity while its runtime phone key is adopted.
+const sessionAliases = new Map<string, string>();
+const startingSessions = new Set<string>();
+const reconnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const generations = new Map<string, number>();
 const socketWorkerStops = new WeakMap<WASocket, () => void>();
+const inboundWorkers = new Set<DurableInboundWorker>();
 let shuttingDown = false;
+let sharedOutboundWorker: DurableOutboundWorker | null = null;
+const perNumberOutboundQueue = new PerNumberQueue();
 
-const clearReconnectTimer = () => {
-    if (!reconnectTimer) return;
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
+const clearReconnectTimer = (sessionId: string) => {
+    const timer = reconnectTimers.get(sessionId);
+    if (!timer) return;
+    clearTimeout(timer);
+    reconnectTimers.delete(sessionId);
 };
 
 const endSocket = async (sock: WASocket | null) => {
@@ -89,44 +102,48 @@ const endSocket = async (sock: WASocket | null) => {
     } catch {}
 };
 
-const scheduleReconnect = (delayMs: number, reason: string) => {
+const scheduleReconnect = (sessionId: string, delayMs: number, reason: string) => {
     if (shuttingDown) return;
-    clearReconnectTimer();
-    setWaStatus({ state: 'connecting', detail: `Reconnect: ${reason}` });
+    clearReconnectTimer(sessionId);
+    setWaSessionStatus(sessionId, { state: 'connecting', detail: `Reconnect: ${reason}` });
     operationalMetrics.waReconnect(reason.includes('logged out') ? 'logged_out' : reason.includes('conflict') ? 'conflict' : reason.includes('stream') ? 'stream_restart' : reason.includes('expired') ? 'timeout' : 'other');
     appLogger.info({ component: 'whatsapp', delayMs, reason }, 'whatsapp.reconnect_scheduled');
-    reconnectTimer = setTimeout(() => {
-        reconnectTimer = null;
-        startWhatsAppConnection().catch((error) => {
+    reconnectTimers.set(sessionId, setTimeout(() => {
+        reconnectTimers.delete(sessionId);
+        startWhatsAppConnection(sessionId).catch((error) => {
             appLogger.error({ component: 'whatsapp', err: error }, 'whatsapp.reconnect_failed');
-            scheduleReconnect(5000, 'retry gagal start');
+            scheduleReconnect(sessionId, 5000, 'retry gagal start');
         });
-    }, delayMs);
+    }, delayMs));
 };
 
-export const startWhatsAppConnection = async () => {
+export const startWhatsAppConnection = async (sessionId = 'legacy') => {
+    installLibsignalConsoleFilter();
     shuttingDown = false;
-    if (starting) {
+    if (startingSessions.has(sessionId)) {
         appLogger.debug({ component: 'whatsapp' }, 'whatsapp.start_skipped');
-        return activeSocket;
+        return activeSockets.get(sessionId) || null;
     }
 
-    starting = true;
-    const myGen = ++generation;
-    clearReconnectTimer();
+    startingSessions.add(sessionId);
+    sessionAliases.delete(sessionId);
+    clearAuthAlias(sessionId);
+    const myGen = (generations.get(sessionId) || 0) + 1;
+    generations.set(sessionId, myGen);
+    clearReconnectTimer(sessionId);
 
     try {
-        const prev = activeSocket;
-        activeSocket = null;
+        const prev = activeSockets.get(sessionId) || null;
+        activeSockets.delete(sessionId);
         await endSocket(prev);
 
-        setWaStatus({ state: 'connecting', detail: 'Menyiapkan sesi Baileys' });
-        const { state, saveCreds } = await usePostgresAuthState();
+        setWaSessionStatus(sessionId, { state: 'connecting', detail: 'Menyiapkan sesi Baileys' });
+        const { state, saveCreds } = await usePostgresAuthState(sessionId);
         const { version, isLatest } = await fetchLatestBaileysVersion();
 
-        if (myGen !== generation) return null;
+        if (myGen !== generations.get(sessionId)) return null;
 
-        appLogger.info({ component: 'whatsapp', version: version.join('.'), isLatest }, 'whatsapp.version_selected');
+        appLogger.info({ component: 'whatsapp', sessionId, version: version.join('.'), isLatest }, 'whatsapp.version_selected');
 
         const sock = makeWASocket({
             version,
@@ -143,9 +160,23 @@ export const startWhatsAppConnection = async () => {
             getMessage: async () => undefined,
         });
 
-        activeSocket = sock;
-        const outboundWorker = new DurableOutboundWorker(async (jid, payload) => {
-            const sent = await sock.sendMessage(jid, payload as any);
+        activeSockets.set(sessionId, sock);
+        if (!sharedOutboundWorker) sharedOutboundWorker = new DurableOutboundWorker(async (jid, payload) => {
+            const onlineIds = [...activeSockets.keys()].filter((id) => getWaSessionStatus(id).state === 'open');
+            const selectedId = selectOutboundSessionId(jid, onlineIds);
+            const selected = selectedId ? activeSockets.get(selectedId) : undefined;
+            if (!selected) throw new Error('No active WhatsApp socket');
+            const config = globalWhatsAppManager.getConfig();
+            const delayMs = calculateRandomDelayMs({ minDelaySeconds: config.minDelaySeconds, maxDelaySeconds: config.maxDelaySeconds, typingSpeedMsPerChar: 8 });
+            setWaSessionStatus(selectedId!, { outboundQueueDepth: perNumberOutboundQueue.depth(selectedId!) + 1 });
+            let sent;
+            try {
+                sent = await perNumberOutboundQueue.enqueue(selectedId!, delayMs, () => selected.sendMessage(jid, payload as any));
+            } finally {
+                setWaSessionStatus(selectedId!, { outboundQueueDepth: perNumberOutboundQueue.depth(selectedId!) });
+            }
+            const phone = [...activeSockets].find(([, socket]) => socket === selected)?.[0];
+            if (phone) globalWhatsAppManager.recordMessageSent(phone);
             return sent?.key?.id || null;
         }, {
             postSendHandler: async (action) => {
@@ -158,14 +189,24 @@ export const startWhatsAppConnection = async () => {
                     await messageStore.enqueueOutbound(operatorJid, {
                         text: `🚨 *HANDOFF REQUEST*\n\nDari: ${phone ? `wa.me/${phone}` : 'nomor tidak tersedia'}\nJID: ${pending.jid}\nAlasan: ${pending.reason}\n\nBot sudah berhenti auto-reply untuk customer ini.\nBalas "#resolve ${pending.jid}" untuk mengaktifkan bot kembali.`,
                     }, { dedupeKey: pending.notificationDedupeKey || `handoff-after-send:${pending.jid}` });
+                } else {
+                    await messageStore.enqueuePermanentOutboundFailure('ADMIN_WA_JID', {
+                        notificationType: 'handoff',
+                        customerJid: pending.jid,
+                        reason: pending.reason,
+                    }, 'Operator notification not sent: ADMIN_WA_JID is not configured', {
+                        dedupeKey: pending.notificationDedupeKey || `handoff-after-send:${pending.jid}`,
+                    });
+                    appLogger.warn({ component: 'whatsapp', jid: pending.jid }, 'whatsapp.handoff_notification_skipped_no_admin_configured');
                 }
             },
         });
-        outboundWorker.wake();
+        const outboundWorker = sharedOutboundWorker;
         sock.ev.on('creds.update', saveCreds);
 
         sock.ev.on('connection.update', async (update) => {
-            if (myGen !== generation || activeSocket !== sock) return;
+            const runtimeSessionId = sessionAliases.get(sessionId) || sessionId;
+            if (myGen !== generations.get(sessionId) || activeSockets.get(runtimeSessionId) !== sock) return;
 
             const { connection, lastDisconnect, qr } = update;
 
@@ -174,13 +215,12 @@ export const startWhatsAppConnection = async () => {
                 try {
                     qrUrl = await QRCode.toDataURL(qr, { margin: 1, width: 260 });
                 } catch {}
-                setWaStatus({ state: 'qr', detail: 'Scan QR di web admin', qr, qrUrl });
-                appLogger.info({ component: 'whatsapp' }, 'whatsapp.qr_ready');
+                setWaSessionStatus(runtimeSessionId, { state: 'qr', detail: 'Scan QR di web admin', qr, qrUrl });
+                appLogger.info({ component: 'whatsapp', sessionId: runtimeSessionId }, 'whatsapp.qr_ready');
                 qrcode.generate(qr, { small: true });
             }
 
             if (connection === 'close') {
-                outboundWorker.stop();
                 const boom = lastDisconnect?.error as Boom | undefined;
                 const statusCode = boom?.output?.statusCode;
                 const conflictType = (boom as any)?.data?.attrs?.type as string | undefined;
@@ -190,27 +230,27 @@ export const startWhatsAppConnection = async () => {
                     || conflictType === 'replaced';
 
                 if (statusCode === 408) {
-                    setWaStatus({ state: 'qr', detail: 'QR expired, generate ulang' });
+                    setWaSessionStatus(runtimeSessionId, { state: 'qr', detail: 'QR expired, generate ulang' });
                     appLogger.info({ component: 'whatsapp' }, 'whatsapp.qr_expired');
-                    scheduleReconnect(1000, 'QR expired');
+                    scheduleReconnect(sessionId, 1000, 'QR expired');
                     return;
                 }
 
                 if (statusCode === 515) {
                     appLogger.info({ component: 'whatsapp' }, 'whatsapp.restart_requested');
-                    scheduleReconnect(2000, 'restart stream');
+                    scheduleReconnect(sessionId, 2000, 'restart stream');
                     return;
                 }
 
                 if (loggedOut) {
-                    setWaStatus({ state: 'logged_out', detail: 'Logged out' });
+                    setWaSessionStatus(runtimeSessionId, { state: 'logged_out', detail: 'Logged out' });
                     appLogger.warn({ component: 'whatsapp' }, 'whatsapp.session_logged_out');
                     import('../config/db.js').then(async ({ pool }) => {
-                        await pool.query('DELETE FROM auth_keys');
-                        scheduleReconnect(1500, 'logged out');
+                        await clearAuthState(runtimeSessionId);
+                        scheduleReconnect(runtimeSessionId, 1500, 'logged out');
                     }).catch((err) => {
                         appLogger.error({ component: 'whatsapp', err }, 'whatsapp.session_cleanup_failed');
-                        scheduleReconnect(3000, 'gagal hapus sesi');
+                        scheduleReconnect(sessionId, 3000, 'gagal hapus sesi');
                     });
                     return;
                 }
@@ -218,33 +258,48 @@ export const startWhatsAppConnection = async () => {
                 if (replaced) {
                     // Instance lain / reconnect tumpang tindih ganti sesi ini.
                     // Jangan langsung reconnect agresif — biar instance tunggal menang.
-                    setWaStatus({ state: 'close', detail: 'Session diganti (conflict replaced)' });
+                    setWaSessionStatus(runtimeSessionId, { state: 'close', detail: 'Session diganti (conflict replaced)' });
                     appLogger.warn({ component: 'whatsapp' }, 'whatsapp.session_replaced');
-                    scheduleReconnect(8000, 'conflict replaced');
+                    scheduleReconnect(runtimeSessionId, 8000, 'conflict replaced');
                     return;
                 }
 
-                setWaStatus({
+                setWaSessionStatus(runtimeSessionId, {
                     state: 'close',
                     detail: `Terputus (${statusCode ?? 'unknown'})`,
                 });
+                if (runtimeSessionId !== 'legacy') globalWhatsAppManager.setSessionStatus(runtimeSessionId, 'disconnected');
                 appLogger.warn({ component: 'whatsapp', statusCode, ...(boom ? { err: boom } : {}) }, 'whatsapp.connection_closed');
-                scheduleReconnect(3000, `close ${statusCode ?? 'unknown'}`);
+                scheduleReconnect(runtimeSessionId, 3000, `close ${statusCode ?? 'unknown'}`);
             } else if (connection === 'open') {
                 const meId = sock.user?.id || '';
                 const phone = meId.split(':')[0].split('@')[0];
-                setWaStatus({ state: 'open', detail: 'Terhubung', phone });
-                appLogger.info({ component: 'whatsapp', phone }, 'whatsapp.connection_open');
+                if (sessionId === 'pending' && !sessionAliases.has(sessionId)) {
+                    await renameAuthState('pending', phone);
+                    setWaSessionStatus(sessionId, { state: 'open', detail: 'Nomor terbaca. Isi label CS lalu simpan.', phone, qr: undefined, qrUrl: undefined });
+                    appLogger.info({ component: 'whatsapp', sessionId, phone }, 'whatsapp.pending_phone_detected');
+                } else if (runtimeSessionId !== 'legacy' && phone !== runtimeSessionId) {
+                    setWaSessionStatus(runtimeSessionId, { state: 'close', detail: `Nomor QR +${phone} tidak cocok dengan +${runtimeSessionId}` });
+                    await stopWhatsAppSession(runtimeSessionId, true);
+                    appLogger.error({ component: 'whatsapp', sessionId: runtimeSessionId, connectedPhone: phone }, 'whatsapp.session_phone_mismatch');
+                    return;
+                }
+                setWaSessionStatus(runtimeSessionId, { state: 'open', detail: 'Terhubung', phone, qr: undefined, qrUrl: undefined });
+                if (runtimeSessionId !== 'legacy') globalWhatsAppManager.updateSession(runtimeSessionId, { phone, status: 'online' });
+                outboundWorker.wake();
+                appLogger.info({ component: 'whatsapp', sessionId: runtimeSessionId, phone }, 'whatsapp.connection_open');
             } else if (connection === 'connecting') {
-                setWaStatus({ state: 'connecting', detail: 'Menghubungkan...' });
+                setWaSessionStatus(runtimeSessionId, { state: 'connecting', detail: 'Menghubungkan...' });
             }
         });
 
         const processInboundMessage = async (msg: WAMessage) => {
-            if (myGen !== generation || activeSocket !== sock) throw new Error('Stale WhatsApp socket generation');
+            const runtimeSessionId = sessionAliases.get(sessionId) || sessionId;
+            if (myGen !== generations.get(sessionId) || activeSockets.get(runtimeSessionId) !== sock) throw new Error('Stale WhatsApp socket generation');
             if (!msg.message || msg.key.fromMe) return;
 
             const jid = msg.key.remoteJid!;
+            if (runtimeSessionId !== 'legacy' && runtimeSessionId !== 'pending') globalWhatsAppManager.setStickyAssignment(jid, runtimeSessionId);
             appLogger.info({ component: 'whatsapp', messageId: msg.key.id || undefined }, 'whatsapp.message_received');
 
             try {
@@ -328,7 +383,11 @@ export const startWhatsAppConnection = async () => {
                 const chatState = await getChatState(jid);
                 const draftOrder = await getDraftOrder(jid);
                 const knowledgeContext = `${getKnowledgeBase()}\n\nCUSTOMER STATE:\n${JSON.stringify({ state: chatState, draftOrder }, null, 2)}`;
-                const result = await askAgent(text, knowledgeContext, previousHistory, jid);
+                const defaultCsName = (await import('../config/business.js')).getBusinessConfig().csName;
+                const effectiveCsName = runtimeSessionId === 'legacy' || runtimeSessionId === 'pending'
+                    ? defaultCsName
+                    : globalWhatsAppManager.getEffectiveCsName(runtimeSessionId, defaultCsName);
+                const result = await askAgent(text, knowledgeContext, previousHistory, jid, effectiveCsName);
 
                 await saveMessage(jid, 'assistant', result.text);
                 await outboundWorker.enqueue(jid, { text: result.text }, `reply:${msg.key.id}`, 'transactional', result.postPaymentHandoff ? {
@@ -406,13 +465,15 @@ export const startWhatsAppConnection = async () => {
         };
 
         const inboundWorker = new DurableInboundWorker(processInboundMessage);
+        inboundWorkers.add(inboundWorker);
         socketWorkerStops.set(sock, () => {
             inboundWorker.stop();
-            outboundWorker.stop();
+            inboundWorkers.delete(inboundWorker);
         });
         inboundWorker.wake();
         sock.ev.on('messages.upsert', async (m) => {
-            if (myGen !== generation || activeSocket !== sock) return;
+            const runtimeSessionId = sessionAliases.get(sessionId) || sessionId;
+            if (myGen !== generations.get(sessionId) || activeSockets.get(runtimeSessionId) !== sock) return;
             await inboundWorker.enqueue(m.messages);
         });
         sock.ev.on('messages.update', async (updates) => {
@@ -427,16 +488,68 @@ export const startWhatsAppConnection = async () => {
         });
 
         return sock;
+    } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        setWaSessionStatus(sessionId, { state: 'error', detail: `Gagal menyiapkan WhatsApp: ${detail}` });
+        appLogger.error({ component: 'whatsapp', sessionId, err: error }, 'whatsapp.session_start_failed');
+        throw error;
     } finally {
-        starting = false;
+        startingSessions.delete(sessionId);
     }
+};
+
+export const stopWhatsAppSession = async (sessionId: string, clearAuth = false) => {
+    generations.set(sessionId, (generations.get(sessionId) || 0) + 1);
+    clearReconnectTimer(sessionId);
+    const socket = activeSockets.get(sessionId) || null;
+    activeSockets.delete(sessionId);
+    for (const [source, target] of sessionAliases) if (source === sessionId || target === sessionId) sessionAliases.delete(source);
+    await endSocket(socket);
+    removeWaSessionStatus(sessionId);
+    if (clearAuth) await clearAuthState(sessionId);
+};
+
+export const adoptPendingWhatsAppSession = (phone: string) => {
+    const pending = activeSockets.get('pending');
+    if (!pending) return false;
+    activeSockets.delete('pending');
+    activeSockets.set(phone, pending);
+    sessionAliases.set('pending', phone);
+    aliasAuthState('pending', phone);
+    generations.set(phone, generations.get('pending') || 1);
+    return true;
+};
+
+export const startConfiguredWhatsAppConnections = async () => {
+    const sessions = globalWhatsAppManager.getSessions();
+    if (!sessions.length) {
+        if (await hasAuthState('legacy')) await startWhatsAppConnection('legacy');
+        return;
+    }
+    const ready: string[] = [];
+    for (const session of sessions) {
+        if (await claimLegacyAuthState(session.phone) || await hasAuthState(session.phone)) ready.push(session.phone);
+    }
+    await Promise.allSettled(ready.map((phone) => startWhatsAppConnection(phone)));
+};
+
+export const checkWhatsAppCredentialsExist = async () => {
+    try {
+        return (await Promise.all([hasAuthState('legacy'), ...globalWhatsAppManager.getSessions().map((session) => hasAuthState(session.phone))])).some(Boolean);
+    } catch { return false; }
 };
 
 export const stopWhatsAppConnection = async () => {
     shuttingDown = true;
-    generation += 1;
-    clearReconnectTimer();
-    const socket = activeSocket;
-    activeSocket = null;
-    await endSocket(socket);
+    sharedOutboundWorker?.stop();
+    sharedOutboundWorker = null;
+    await Promise.all([...activeSockets.keys()].map((sessionId) => stopWhatsAppSession(sessionId)));
+};
+
+export const drainWhatsAppWorkers = async (timeoutMs = 15_000) => {
+    const deadline = Date.now() + timeoutMs;
+    const remaining = () => Math.max(1, deadline - Date.now());
+    const inbound = [...inboundWorkers].map((worker) => worker.drain(remaining()));
+    const outbound = sharedOutboundWorker ? [sharedOutboundWorker.drain(remaining())] : [];
+    return (await Promise.all([...inbound, ...outbound])).every(Boolean);
 };

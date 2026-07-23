@@ -26,3 +26,18 @@ test('active prompt uses the dedicated config path', async () => {
     const prompt = await readFile(new URL('../config/system-prompt.txt', import.meta.url), 'utf8');
     assert.match(prompt, /KONTEKS BISNIS/);
 });
+
+test('simple reply preferences preserve intelligence policy fields', async () => {
+    const source = await readFile(new URL('../src/admin/server.ts', import.meta.url), 'utf8');
+    for (const field of ['replyLength', 'sellingStyle', 'salutation', 'emojiLevel']) {
+        assert.match(source, new RegExp(`name="${field}"`));
+    }
+    assert.match(source, /promptPreferenceRules/);
+    assert.match(source, /Pengaturan bahasa lanjutan/);
+    for (const policy of ['identityRules', 'consultationRules', 'productRules', 'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules']) {
+        assert.match(source, new RegExp(`name="${policy}"`));
+        assert.match(source, new RegExp(`DEFAULT_PROMPT_BUILDER\\.${policy}`));
+    }
+    assert.match(source, /buildSystemPrompt\(builder/);
+    assert.match(source, /promptPreferenceRules\(builder\)/);
+});

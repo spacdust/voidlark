@@ -4,10 +4,11 @@ import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
+import { randomBytes } from 'node:crypto';
 import dotenv from 'dotenv';
 import { pool } from '../config/db.js';
 import { clearChatHistory, getFullChatHistory } from '../chat/history.js';
-import { clearOrderState, getOrderById, markOrderPaid, buildOrderSummary } from '../chat/orders.js';
+import { clearOrderState, getOrderById, markOrderPaid, buildOrderSummary, advanceOrderStatus } from '../chat/orders.js';
 import { getKnowledgeBase, knowledgeWorker, loadKnowledgeBase } from '../ai/knowledge.js';
 import { knowledgeStore, type KnowledgeJob } from '../ai/knowledge-store.js';
 import { previewAgentReply } from '../ai/agent.js';
@@ -20,8 +21,9 @@ import { renderLoginPage } from './login-page.js';
 import { getConversationSummary, listConversationSummaries, renderTranscript } from './conversation-history.js';
 import { checkAiHealth, invalidateAiHealth, type AiHealth } from '../ai/health.js';
 import { handoffRepository, resolveHandoff, unresolvedHandoffPredicate } from '../chat/handoff.js';
-import { getWaStatus } from '../whatsapp/status.js';
-import { startWhatsAppConnection } from '../whatsapp/connection.js';
+import { getWaSessionStatus, getWaStatus, isWaSessionStaleConnecting, setWaSessionStatus } from '../whatsapp/status.js';
+import { adoptPendingWhatsAppSession, startWhatsAppConnection, stopWhatsAppSession } from '../whatsapp/connection.js';
+import { VOIDLARK_LOGO_SVG } from './logo.js';
 import QRCode from 'qrcode';
 import { getBusinessConfig, type BusinessConfig } from '../config/business.js';
 import { validateBusinessHoursConfig } from '../chat/business-hours.js';
@@ -33,6 +35,8 @@ import { metricsRegistry, operationalMetrics } from '../operations/metrics.js';
 import { globalWhatsAppManager, type RotationMode } from '../whatsapp/whatsapp-manager.js';
 import { globalAiQueueLimiter } from '../ai/ai-queue-limiter.js';
 import { liveness, readiness } from '../operations/health.js';
+import { appLogger } from '../config/logger.js';
+import { ADMIN_STYLES } from './admin-styles.js';
 
 const KNOWLEDGE_DIR = path.resolve('knowledge_base');
 const CONFIG_PATH = path.resolve('business.config.json');
@@ -143,11 +147,21 @@ const PROMPT_PRESETS = {
         role: 'CS virtual support yang menjawab berdasarkan knowledge base.',
         style: 'Tenang, jelas, membantu, tidak agresif menjual.',
     },
+    consultative: {
+        label: 'Konsultatif',
+        description: 'Menggali kebutuhan lalu memberi pilihan paling relevan.',
+        role: 'CS virtual konsultatif yang memahami kebutuhan sebelum merekomendasikan produk.',
+        style: 'Hangat, terarah, membantu memilih, dan tidak membanjiri customer dengan pilihan.',
+    },
 } as const;
 const DEFAULT_PROMPT_BUILDER = {
     preset: 'friendly',
     role: PROMPT_PRESETS.friendly.role,
     style: PROMPT_PRESETS.friendly.style,
+    replyLength: 'balanced',
+    sellingStyle: 'balanced',
+    salutation: 'Kak',
+    emojiLevel: 'light',
     greeting: 'Sapaan Kak. Perkenalkan nama CS virtual dari Config. Emoji secukupnya. Jangan bilang "Ada yang bisa [nama bisnis] bantu?".',
     identityRules: [
         'Perkenalkan diri memakai nama CS virtual dan nama bisnis dari Profil & Alur.',
@@ -305,7 +319,7 @@ const badge = (label: unknown, tone: 'neutral' | 'ok' | 'warn' | 'danger' | 'inf
 
 const ICON_NAMES: Record<string, string> = {
     dashboard: 'squares-four',
-    alert: 'warning-diamond',
+    alert: 'warning-circle',
     payment: 'credit-card',
     users: 'users-three',
     orders: 'package',
@@ -319,6 +333,7 @@ const ICON_NAMES: Record<string, string> = {
     moon: 'moon',
     desktop: 'desktop',
     send: 'paper-plane-right',
+    retry: 'arrows-clockwise',
     logout: 'sign-out',
 };
 
@@ -406,24 +421,35 @@ const page = (title: string, body: string, active: string, options: { refreshSec
      })();
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
     :root {
       color-scheme: light;
-      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --ink: #0f172a;
-      --muted: #64748b;
-      --line: rgba(15, 23, 42, 0.08);
-      --soft: #f1f5f9;
-      --primary: #0284c7;
-      --primary-hover: #0369a1;
-      --primary-weak: rgba(2, 132, 199, 0.08);
-      --accent: #0d9488;
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      --canvas: #f3f6f7;
+      --surface: #ffffff;
+      --surface-raised: #ffffff;
+      --surface-subtle: #e9eff0;
+      --text: #172326;
+      --text-muted: #5d6c70;
+      --border: #d7e0e1;
+      --border-strong: #b7c6c8;
+      --accent: #087f83;
+      --accent-hover: #06686b;
+      --accent-soft: #dceff0;
+      --bg: var(--canvas);
+      --panel: var(--surface);
+      --ink: var(--text);
+      --muted: var(--text-muted);
+      --line: var(--border);
+      --soft: var(--surface-subtle);
+      --primary: var(--accent);
+      --primary-hover: var(--accent-hover);
+      --primary-weak: var(--accent-soft);
       --success: #10b981;
       --danger: #ef4444;
       --warn: #f59e0b;
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+      --focus-ring: 0 0 0 3px rgba(8, 127, 131, .2);
+      --shadow-raised: 0 16px 36px rgba(21, 43, 46, .14);
+      --shadow: none;
       --sidebar: 224px;
       --radius: 12px;
       --radius-sm: 8px;
@@ -438,20 +464,32 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     }
     html[data-theme="dark"] {
       color-scheme: dark;
-      --bg: #0b0f17;
-      --panel: #111827;
-      --ink: #f3f4f6;
-      --muted: #9ca3af;
-      --line: rgba(255, 255, 255, 0.08);
-      --soft: #1f2937;
-      --primary: #00e5ff;
-      --primary-hover: #38bdf8;
-      --primary-weak: rgba(0, 229, 255, 0.1);
-      --accent: #00f5d4;
+      --canvas: #172123;
+      --surface: #202c2e;
+      --surface-raised: #283638;
+      --surface-subtle: #263335;
+      --text: #edf4f3;
+      --text-muted: #a9b9b8;
+      --border: #3b4b4d;
+      --border-strong: #607476;
+      --accent: #72c8c1;
+      --accent-hover: #94ddd6;
+      --accent-soft: #294a4a;
+      --bg: var(--canvas);
+      --panel: var(--surface);
+      --ink: var(--text);
+      --muted: var(--text-muted);
+      --line: var(--border);
+      --soft: var(--surface-subtle);
+      --primary: var(--accent);
+      --primary-hover: var(--accent-hover);
+      --primary-weak: var(--accent-soft);
       --success: #10b981;
       --danger: #ef4444;
       --warn: #f59e0b;
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+      --focus-ring: 0 0 0 3px rgba(114, 200, 193, .25);
+      --shadow-raised: 0 18px 44px rgba(0, 0, 0, .28);
+      --shadow: none;
       --label: #e2e8f0;
     }
     * { box-sizing: border-box; }
@@ -476,19 +514,22 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .badge { width: max-content; color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-sm); padding: 2px 0; font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
     .theme-panel { flex: 0 0 auto; display: grid; gap: 10px; padding: 14px 8px 0; border-top: 1px solid var(--line); }
     .logout-form { margin: 12px 8px 0; }
-    .logout-button { width: 100%; min-height: 40px; display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: var(--muted); font: 600 13px "IBM Plex Sans", sans-serif; cursor: pointer; }
+    .logout-button { width: 100%; min-height: 40px; display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: var(--muted); font: 600 13px "Inter", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
     .logout-button:hover { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); color: var(--danger); }
     .logout-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
     .theme-label { color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-    .theme-options { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius-sm); background: transparent; overflow: hidden; }
+    .theme-options { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: 3px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--soft); overflow: hidden; }
     .theme-options::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: calc(100% / 3); border-radius: var(--radius-sm); background: var(--primary); box-shadow: none; transform: translateX(calc(var(--theme-index, 2) * 100%)); transition: transform .16s ease; }
-    .theme-options button { position: relative; z-index: 1; min-height: 40px; padding: 8px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--muted); font-size: var(--text-xs); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-    .theme-options button:last-child { border-right: 0; }
+    .theme-options button { position: relative; z-index: 1; min-height: 38px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: var(--text-xs); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .theme-options button:hover { background: var(--soft); color: var(--ink); box-shadow: none; transform: none; }
     .theme-options button:focus-visible { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--primary); outline: none; transform: none; }
     .theme-options button[aria-pressed="true"] { color: #fff; }
     .theme-options button[aria-pressed="true"]:hover,
     .theme-options button[aria-pressed="true"]:focus-visible { background: transparent; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: var(--radius-sm); }
+    ::-webkit-scrollbar-corner { background: transparent; }
     nav { flex: 1 1 auto; min-height: 0; display: grid; align-content: start; gap: 4px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--line) transparent; padding-right: 4px; }
     nav::-webkit-scrollbar { width: 5px; }
     nav::-webkit-scrollbar-thumb { background: var(--line); }
@@ -500,7 +541,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       padding: 12px 14px;
       border-radius: var(--radius-sm);
       border: 1px solid transparent;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color .15s ease, border-color .15s ease, color .15s ease;
     }
     nav a:hover, nav a:focus-visible { background: var(--soft); color: var(--ink); outline: none; border-color: var(--line); transform: translateX(3px); }
     nav a.active { background: var(--soft); color: var(--ink); border-color: var(--line); box-shadow: inset 4px 0 0 var(--primary); }
@@ -516,7 +557,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         0 0 0 5px var(--soft),
         0 0 0 6px var(--line),
         var(--shadow);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
     }
     form > p:last-child { margin-top: 20px; margin-bottom: 0; }
     .sticky-actions { position: sticky; bottom: 12px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 26px -1px -1px; padding: 12px 14px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(10px); }
@@ -542,11 +583,11 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .date-stack span { display: grid; gap: 1px; }
     .date-stack small { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
     h1, h2, h3 { margin: 0 0 12px; line-height: 1.25; letter-spacing: -.02em; }
-    h1 { font-family: "IBM Plex Sans", sans-serif; font-size: 36px; font-weight: 600; letter-spacing: -.04em; line-height: 1.15; }
+    h1 { font-family: "Inter", "Segoe UI", system-ui, sans-serif; font-size: 36px; font-weight: 680; letter-spacing: -.035em; line-height: 1.15; }
     h2 { font-size: 20px; font-weight: 600; letter-spacing: -.03em; }
     h3 { font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
     p { margin: 0 0 14px; }
-    .grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 28px; border: 0; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; border: 0; }
     .stat { 
       display: grid; 
       grid-template-columns: 32px minmax(0, 1fr); 
@@ -562,7 +603,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         0 0 0 4px var(--soft), 
         0 0 0 5px var(--line), 
         var(--shadow); 
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
     }
     .stat:hover, .stat:focus-visible { 
       background: var(--primary-weak); 
@@ -607,7 +648,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       border-radius: var(--radius-sm);
       background: var(--panel);
       color: var(--ink);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
     }
     input::placeholder, textarea::placeholder { color: var(--muted); opacity: .85; }
     input:focus-visible, textarea:focus-visible, select:focus-visible { 
@@ -617,7 +658,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     }
     input[type="file"] { cursor: pointer; }
     input[type="checkbox"] { width: auto; accent-color: var(--primary); }
-    textarea { min-height: 460px; border-radius: var(--radius-sm) !important; font-family: Consolas, "Fira Code", monospace; font-size: var(--text-sm); line-height: 1.6; }
+    textarea { min-height: 112px; border-radius: var(--radius-sm) !important; font-family: "Inter", "Segoe UI", system-ui, sans-serif; font-size: var(--text-sm); line-height: 1.6; }
     .prompt-editor { min-height: 68vh; font-family: "JetBrains Mono", Consolas, monospace; font-size: var(--text-sm); line-height: 1.7; }
     button {
       border: 0;
@@ -629,7 +670,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       cursor: pointer;
       font-weight: 600;
       white-space: nowrap;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease;
     }
     button:hover, button:focus-visible { 
       background: var(--primary-hover); 
@@ -722,7 +763,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .prompt-builder { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: 18px; align-items: start; }
     .prompt-stack { display: grid; gap: 16px; }
     .prompt-card { background: var(--soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
-    .prompt-card textarea, textarea[data-prompt-field] { min-height: 64px; resize: vertical; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; font-size: 14px; line-height: 1.55; }
+    .prompt-card textarea, textarea[data-prompt-field] { min-height: 64px; resize: vertical; font-family: "Inter", "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
     .prompt-card .compact-area, textarea.compact-area[data-prompt-field] { min-height: 42px; }
     .textarea-sm { min-height: 60px; resize: vertical; }
     .textarea-md { min-height: 72px; resize: vertical; }
@@ -737,7 +778,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .builder-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .prompt-preview-shell { position: sticky; top: 24px; display: grid; gap: 14px; }
     .prompt-preview { max-height: 620px; overflow: auto; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #0f172a; color: #e2e8f0; }
-    .reply-style-intro { margin-bottom: 18px; padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(135deg, var(--primary-weak), var(--panel) 68%); }
+    .reply-style-intro { margin-bottom: 18px; padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--soft); }
     .reply-style-intro h2 { margin: 0 0 5px; font-size: 16px; }
     .reply-style-intro p { margin: 0; color: var(--muted); font-size: 13px; }
     .reply-style-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, .78fr); gap: 20px; align-items: start; }
@@ -806,16 +847,21 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .settings-zone-head { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 18px; align-items: baseline; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
     .settings-zone-head span { color: var(--primary); font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 600; letter-spacing: .08em; }
     .settings-zone-head h2 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; }
-    .env-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
-    .env-column { display: grid; align-content: start; }
-    .env-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.03); margin-bottom: 24px; }
+    .settings-zone-head-primary { display: block; }
+    .settings-zone-head-primary h2 { font-size: 17px; text-transform: none; letter-spacing: 0; }
+    .env-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+    .env-grid-single { grid-template-columns: minmax(0, 1fr); }
+    .env-column { display: grid; align-content: start; gap: 20px; min-width: 0; }
+    .env-card { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.03); margin: 0; }
     .env-grid > .env-card { margin-top: 0; }
     .env-column .env-card:first-child { margin-top: 0; }
     .env-card h2 { margin-top: 0; margin-bottom: 24px; font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--line); padding-bottom: 14px; }
     .env-card .field { margin-bottom: 20px; }
     .env-card .field:last-child { margin-bottom: 0; }
+    .ai-env-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; align-items: start; }
+    .ai-env-fields .field { min-width: 0; }
     .env-card label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
-    .env-card input:not([type="hidden"]), .env-card select, .env-card textarea { width: 100%; box-sizing: border-box; height: 42px; border-radius: 10px; padding: 0 14px; font-size: 14px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); transition: all 0.2s ease; outline: none; }
+    .env-card input:not([type="hidden"]), .env-card select, .env-card textarea { width: 100%; box-sizing: border-box; height: 42px; border-radius: 8px; padding: 0 14px; font-size: 14px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; outline: none; }
     .env-card input:focus, .env-card select:focus, .env-card textarea:focus { border-color: var(--primary); background: var(--panel); box-shadow: 0 0 0 3px var(--primary-weak); }
     .env-card .muted { margin-top: 8px; font-size: 12.5px; line-height: 1.5; }
     .env-card .connection-test { margin-top: 12px; }
@@ -860,7 +906,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .simulator-contact-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .simulator-contact-copy span { color: var(--muted); font-size: 11px; }
     .simulator-shell { max-width: 920px; margin: 0 auto; border: 1px solid var(--line); border-radius: var(--radius); background: #e7e2d8; overflow: hidden; }
-    .simulator-chat { min-height: 420px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; padding: 28px 24px; background-color: #e5ddd5; background-image: radial-gradient(rgba(20,64,56,.08) .7px, transparent .7px); background-size: 13px 13px; }
+    .simulator-chat { min-height: 420px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; padding: 28px 24px; background: #e5ddd5; }
     .sim-message { max-width: min(76%, 680px); padding: 9px 12px 7px; color: #111; border-radius: 7px; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
     .sim-message.customer { align-self: flex-end; background: #dcf8c6; border-top-right-radius: 2px; }
     .sim-message.bot { align-self: flex-start; background: #fff; border-top-left-radius: 2px; }
@@ -880,11 +926,11 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .simulator-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; padding: 10px 14px; border-top: 1px solid #d2d2d2; background: #f7f7f7; color: #656b69; font-size: 11px; }
     .simulator-reset { min-height: auto; padding: 0; border: 0; background: transparent; color: inherit; font-size: 11px; font-weight: 700; box-shadow: none; }
     .simulator-reset:hover, .simulator-reset:focus-visible { background: transparent; color: var(--primary); box-shadow: none; transform: none; text-decoration: underline; }
-    .simulator-toolbar { max-width: 920px; display: flex; justify-content: flex-end; margin: -12px auto 10px; }
+    .simulator-toolbar { max-width: 920px; display: flex; justify-content: flex-end; margin: 0 auto 10px; }
     .simulator-toolbar .simulator-reset { min-height: 40px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); color: var(--ink); font-size: 12px; }
     .simulator-toolbar .simulator-reset:hover, .simulator-toolbar .simulator-reset:focus-visible { background: var(--primary-weak); border-color: var(--primary); text-decoration: none; }
     html[data-theme="dark"] .simulator-shell { border-color: #34413e; }
-    html[data-theme="dark"] .simulator-chat { background-color: #17201e; background-image: radial-gradient(rgba(125,190,173,.09) .7px, transparent .7px); }
+    html[data-theme="dark"] .simulator-chat { background: #17201e; }
     html[data-theme="dark"] .simulator-compose, html[data-theme="dark"] .simulator-foot { background: #202826; border-color: #34413e; color: #aeb9b5; }
     html[data-theme="dark"] .simulator-compose textarea { background: #2a3331; color: #f0f4f2; border-color: #3d4946; }
     html[data-theme="dark"] .sim-message.bot { background: #26312e; color: #eef2ef; }
@@ -906,6 +952,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       padding: 0 !important;
       max-width: 500px !important;
       width: 90% !important;
+      max-height: calc(100dvh - 24px) !important;
       background: var(--panel) !important;
       color: var(--ink) !important;
       box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
@@ -913,6 +960,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       margin: auto !important;
       outline: none !important;
     }
+    dialog#waQrModal > .wa-qr-modal-body { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }
     dialog#waQrModal::backdrop {
       background: rgba(15, 23, 20, 0.75) !important;
       backdrop-filter: blur(8px) !important;
@@ -1097,7 +1145,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         0 0 0 4px var(--soft), 
         0 0 0 5px var(--line), 
         var(--shadow); 
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
     }
     .status-card:hover {
       transform: translateY(-2px);
@@ -1196,7 +1244,8 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .conversation-metadata { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .conversation-metadata span { display: grid; gap: 3px; color: var(--muted); font-size: 11px; }
     .conversation-metadata small { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
-    .empty-state { display: grid; gap: 10px; place-items: start; padding: 28px 22px; background: var(--panel); border: 1px dashed var(--line); border-radius: 14px; }
+    .empty-state { display: grid; gap: 10px; place-items: start; min-width: 0; max-width: 100%; padding: 28px 22px; background: var(--panel); border: 1px dashed var(--line); border-radius: 14px; overflow: hidden; }
+    .empty-state p { max-width: 64ch; margin: 0; overflow-wrap: anywhere; }
     .empty-state-icon { display: grid; place-items: center; width: 38px; height: 38px; color: var(--success); }
     .empty-state-icon .ui-icon { width: 28px; height: 28px; }
     .button-link, a.button-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border-radius: var(--radius-sm); background: var(--primary); color: #fff; text-decoration: none; font-weight: 700; }
@@ -1246,19 +1295,78 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     html[data-theme="dark"] .table-tools { background: var(--soft); }
     html[data-theme="dark"] .config-section { background: transparent; border-color: var(--line); }
     html[data-theme="dark"] .config-section > summary { color: var(--ink); }
+    /* Operational UI refresh: semantic tokens above keep legacy components compatible. */
+    body { min-height: 100dvh; }
+    header { background: var(--surface); border-color: var(--border); }
+    .topbar { padding: 20px 14px 16px; gap: 16px; }
+    .brand { padding-inline: 10px; }
+    nav { gap: 2px; padding-right: 0; }
+    .nav-group { display: grid; gap: 2px; }
+    .nav-group + .nav-group { margin-top: 14px; }
+    .nav-group-label { padding: 0 12px 5px; color: var(--text-muted); font-size: 11px; font-weight: 600; }
+    nav a { min-height: 42px; display: flex; align-items: center; gap: 10px; padding: 9px 12px; transition: background-color .15s ease, color .15s ease, border-color .15s ease; }
+    nav a:hover, nav a:focus-visible { transform: none; border-color: transparent; }
+    nav a.active { color: var(--text); border-color: transparent; box-shadow: inset 3px 0 0 var(--accent); }
+    .theme-options::before { background: var(--accent); }
+    .theme-options button[aria-pressed="true"] { color: #fff; }
+    html[data-theme="dark"] .theme-options button[aria-pressed="true"] { color: #102426; }
+    main { width: min(calc(100% - var(--sidebar)), 1440px); max-width: none; padding: 36px 40px 64px; }
+    .page-title { grid-template-columns: 1fr; gap: 0; padding-bottom: 18px; margin-bottom: 24px; border-bottom-color: var(--border-strong); }
+    .coordinate { display: none; }
+    .simulator-page-head { grid-template-columns: minmax(0, 1fr) auto; }
+    h1 { font-size: 30px; letter-spacing: -.035em; }
+    h2 { font-size: 20px; }
+    .panel, form.surface-form, form[data-unsaved], form.advanced, form.upload-card { border-color: var(--border); box-shadow: none; }
+    .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .stat { padding: 16px; border-color: var(--border); box-shadow: none; transition: background-color .15s ease, border-color .15s ease, transform .15s ease; }
+    .stat:hover, .stat:focus-visible { box-shadow: none; transform: translateY(-1px); }
+    .stat.urgent { border-color: var(--border); border-left: 3px solid var(--danger); box-shadow: none; }
+    .stat span { text-transform: none; letter-spacing: 0; font-size: 12px; }
+    .stat strong { font-size: 28px; }
+    .status-card, .attention-panel, .setup-shell { box-shadow: none; }
+    .table-shell { border-color: var(--border); box-shadow: none; }
+    .table-tools, th { background: var(--surface-subtle); }
+    th { text-transform: none; letter-spacing: 0; }
+    th, td { padding: 13px 16px; }
+    tr:hover td { background: var(--accent-soft); }
+    input, textarea, select { background: var(--surface); border-color: var(--border-strong); transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: var(--focus-ring); }
+    textarea { min-height: 112px; font-family: "Inter", "Segoe UI", system-ui, sans-serif; }
+    textarea[data-prompt-field], .compact-area { min-height: 192px; }
+    .prompt-editor, textarea[name="rawPrompt"], textarea[name="prompt"] { min-height: 60vh; font-family: Consolas, "JetBrains Mono", monospace; }
+    button, .button-link, .ghost-btn { transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease; }
+    button:focus-visible, .button-link:focus-visible, .ghost-btn:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .sticky-actions { padding-bottom: calc(12px + env(safe-area-inset-bottom)); border-radius: var(--radius); box-shadow: var(--shadow-raised); }
+    .toast, .modal, dialog { background: var(--surface-raised); box-shadow: var(--shadow-raised); }
+    .modal { border-radius: var(--radius); }
+    html[data-theme="dark"] header,
+    html[data-theme="dark"] .panel,
+    html[data-theme="dark"] form,
+    html[data-theme="dark"] .stat,
+    html[data-theme="dark"] .table-shell,
+    html[data-theme="dark"] .guide,
+    html[data-theme="dark"] .guide-card,
+    html[data-theme="dark"] .env-card { background: var(--surface); border-color: var(--border); }
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] textarea,
+    html[data-theme="dark"] select { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+    html[data-theme="dark"] tr:hover td { background: var(--accent-soft); }
     @media (max-width: 920px) {
       .menu-toggle { display: inline-flex; align-items: center; gap: 8px; }
-      header { position: sticky; width: auto; height: auto; border-right: 0; border-bottom: 1px solid #343b33; }
+      header { position: sticky; width: auto; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
       .topbar { height: auto; padding: 12px 14px; display: block; }
       .brand-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
       .brand { padding: 0; border: 0; }
-      nav { margin-top: 12px; display: none; flex-wrap: wrap; gap: 6px; overflow: visible; padding-right: 0; }
-      header.nav-open nav { display: flex; }
+      nav { position: fixed; inset: 69px 0 0 auto; z-index: 20; width: min(340px, 88vw); margin: 0; padding: 18px; display: none; align-content: start; overflow-y: auto; background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-raised); }
+      header.nav-open nav { display: grid; }
+      header.nav-open::after { content: ""; position: fixed; inset: 69px 0 0; z-index: 19; background: rgba(10, 24, 26, .45); }
+      .nav-group + .nav-group { margin-top: 12px; }
       nav a { min-height: 44px; padding: 10px 12px; }
       .theme-panel { margin-top: 12px; }
       .theme-options { max-width: 280px; }
-      main { margin-left: 0; padding: 28px 18px 44px; }
+      main { width: 100%; margin-left: 0; padding: 28px 18px 44px; }
       .grid, .actions, .form-grid, .config-layout, .env-grid, .guide, .prompt-builder, .builder-grid, .preset-grid, .status-grid, .split-grid, .maintenance-grid, .backup-grid, .knowledge-intro { grid-template-columns: 1fr; }
+      .ai-env-fields { grid-template-columns: 1fr; }
       .settings-zone-head { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; }
       .env-grid > .env-card + .env-card { border-top: 1px solid var(--line); padding-top: 22px; }
       .key-row { grid-template-columns: 40px minmax(0, 1fr); padding: 14px 12px; }
@@ -1271,8 +1379,9 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       .simulator-chat { min-height: 360px; padding: 20px 12px; }
       .conversation-list { grid-template-columns: 1fr; }
       .sim-message { max-width: 88%; }
-      .simulator-page-head { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; }
-      .simulator-contact { grid-column: 2; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+      .simulator-page-head { grid-template-columns: 1fr; gap: 12px; align-items: start; }
+      .simulator-contact { grid-column: 1; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+      .simulator-toolbar .simulator-reset { width: auto; }
       .ops-grid { grid-template-columns: 1fr; }
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .repeat-row, .weekday-grid { grid-template-columns: 1fr; }
@@ -1297,10 +1406,10 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       .row-actions button, .ghost-btn, a.ghost-btn { min-height: 44px; }
       .sticky-actions { bottom: 8px; margin-inline: 0; }
       .toast { left: 14px; right: 14px; top: 12px; }
-      .desktop-only { display: table !important; }
-      .mobile-cards { display: none !important; }
+      .desktop-only { display: none !important; }
+      .mobile-cards { display: grid !important; gap: 12px; padding: 12px; }
       .table-wrap { -webkit-overflow-scrolling: touch; }
-      table { min-width: 680px; }
+      table { min-width: 0; }
     }
     @media (min-width: 921px) and (max-width: 1180px) {
       main { padding: 36px 30px 56px; }
@@ -1310,47 +1419,72 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       .reply-style-layout { grid-template-columns: 1fr; }
       .reply-style-preview { position: static; }
     }
+    @media (max-height: 760px) {
+      dialog#waQrModal > .wa-qr-modal-body { padding: 18px !important; }
+      #liveQrContainer { min-height: 176px !important; }
+      #liveQrImage { width: 168px !important; height: 168px !important; }
+    }
     @media (min-width: 921px) {
       .mobile-cards { display: none !important; }
+    }
+    @media (max-width: 640px) {
+      main { padding: 22px 14px 40px; }
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 27px; }
+      .panel, form.surface-form, form[data-unsaved], form.advanced, form.upload-card { padding: 18px; }
+      .sticky-actions { align-items: stretch; flex-direction: column; }
+      .sticky-actions button { width: 100%; }
+      .table-wrap > table:not(.desktop-only), .table-shell > table:not(.desktop-only) { display: block; }
+      .table-wrap > table:not(.desktop-only) thead, .table-shell > table:not(.desktop-only) thead { display: none; }
+      .table-wrap > table:not(.desktop-only) tbody, .table-shell > table:not(.desktop-only) tbody { display: grid; gap: 12px; padding: 12px; }
+      .table-wrap > table:not(.desktop-only) tr, .table-shell > table:not(.desktop-only) tr { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+      .table-wrap > table:not(.desktop-only) td, .table-shell > table:not(.desktop-only) td { display: block; padding: 0; border: 0; white-space: normal; }
+      .table-wrap > table:not(.desktop-only) td + td, .table-shell > table:not(.desktop-only) td + td { padding-top: 8px; border-top: 1px solid var(--border); }
+      .row-actions { align-items: stretch; flex-direction: column; }
+      .row-actions > *, .row-actions form, .row-actions button, .row-actions a { width: 100%; }
     }
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; scroll-behavior: auto !important; animation: none !important; }
       .session-spinner { animation: none !important; border-color: var(--primary); }
     }
   </style>
+  <link rel="stylesheet" href="/admin/assets/admin.css?v=20260723-3">
 </head>
-<body>
+<body class="admin-app">
   <a class="skip-link" href="#main">Lewati ke konten utama</a>
   <header>
     <div class="topbar">
       <div class="brand-row">
         <div class="brand">
           <div class="brand-header">
-            <svg class="brand-logo-svg" viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 14.5C5 12.5 9.5 6.5 14 2C14.3 1.7 14.8 2.1 14.6 2.5C13.3 5.5 12.3 9 10.7 11.2C14 9.5 18 6 20.5 3.5C20.8 3.2 21.3 3.6 21 4C18.5 7.5 14.3 12.5 11 15.5C14.7 15 19 14.2 22 13.5C22.4 13.4 22.6 13.9 22.3 14.2C19 17.5 13 20.5 7 23C5 23.8 3 24 1 23.5C0.6 23.4 0.5 22.9 0.9 22.7C3 21 5 18 6.3 16.2C4.7 16.5 3 16 1.7 15.2C1.4 15 1.6 14.6 2 14.5Z" fill="#00F5D4"/>
-              <path d="M15.5 17.5L20 21L15.5 24.5" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            ${VOIDLARK_LOGO_SVG}
             <div class="brand-title">
               <strong>Voidlark</strong>
             </div>
           </div>
-          <span class="badge">WA Bot CS Otomatis</span>
+          <span class="badge">Customer Sales Support</span>
         </div>
         <button type="button" class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="admin-nav">Menu</button>
       </div>
       <nav id="admin-nav">
         ${[
-            ['dashboard', '/admin', 'Ringkasan', 'dashboard'],
-            ['config', '/admin/config', 'Profil & Alur', 'settings'],
-            ['prompt', '/admin/prompt', 'Gaya Balasan', 'prompt'],
-            ['knowledge', '/admin/knowledge', 'Katalog & Informasi', 'knowledge'],
-            ['sandbox', '/admin/sandbox', 'Simulasi Percakapan', 'chat'],
-            ['handoff', '/admin/handoff', 'Perlu Ditangani', 'alert'],
-            ['leads', '/admin/leads', 'Pelanggan & Chat', 'users'],
-            ['orders', '/admin/orders', 'Pesanan', 'orders'],
-            ['whatsapp', '/admin/whatsapp', 'Manajemen WA', 'chat'],
-            ['settings', '/admin/settings', 'Koneksi Sistem', 'settings'],
-        ].map(([key, href, label, iconName]) => `<a href="${href}" class="${active === key ? 'active' : ''}" ${active === key ? 'aria-current="page"' : ''}>${icon(iconName, 'nav-icon')}${label}</a>`).join('')}
+            ['Operasional', [
+                ['dashboard', '/admin', 'Ringkasan', 'dashboard'],
+                ['handoff', '/admin/handoff', 'Perlu Ditangani', 'alert'],
+                ['leads', '/admin/leads', 'Pelanggan & Chat', 'users'],
+                ['orders', '/admin/orders', 'Pesanan', 'orders'],
+            ]],
+            ['Bot', [
+                ['config', '/admin/config', 'Profil & Alur', 'settings'],
+                ['prompt', '/admin/prompt', 'Gaya Balasan', 'prompt'],
+                ['knowledge', '/admin/knowledge', 'Katalog & Informasi', 'knowledge'],
+                ['sandbox', '/admin/sandbox', 'Simulasi Percakapan', 'chat'],
+            ]],
+            ['Sistem', [
+                ['whatsapp', '/admin/whatsapp', 'Manajemen WA', 'chat'],
+                ['settings', '/admin/settings', 'Koneksi Sistem', 'settings'],
+            ]],
+        ].map(([group, items]) => `<section class="nav-group" aria-labelledby="nav-${String(group).toLowerCase()}"><span class="nav-group-label" id="nav-${String(group).toLowerCase()}">${group}</span>${(items as string[][]).map(([key, href, label, iconName]) => `<a href="${href}" class="${active === key ? 'active' : ''}" ${active === key ? 'aria-current="page"' : ''}>${icon(iconName, 'nav-icon')}${label}</a>`).join('')}</section>`).join('')}
       </nav>
       <div class="theme-panel">
         <span class="theme-label">Tampilan</span>
@@ -1391,6 +1525,15 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     document.querySelectorAll('textarea[data-prompt-field], textarea.compact-area').forEach((el) => {
       el.addEventListener('input', () => autoResize(el));
       requestAnimationFrame(() => autoResize(el));
+    });
+    document.querySelectorAll('[data-file-picker]').forEach((picker) => {
+      const input = picker.querySelector('input[type="file"]');
+      const name = picker.querySelector('[data-file-name]');
+      input?.addEventListener('change', () => {
+        const files = Array.from(input.files || []);
+        if (name) name.textContent = files.length ? files.map((file) => file.name).join(', ') : 'Belum ada file dipilih';
+        picker.dataset.hasFile = String(files.length > 0);
+      });
     });
     document.addEventListener('toggle', (e) => {
       if (e.target.tagName === 'DETAILS' && e.target.open) {
@@ -1435,6 +1578,40 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     };
     productType?.addEventListener('change', syncProductHelp);
     syncProductHelp();
+    const configForm = document.querySelector('[data-config-form]');
+    const configScope = document.querySelector('[data-config-scope]');
+    const configModeButtons = [...document.querySelectorAll('[data-config-mode-button]')];
+    const configModeKey = 'voidlark-config-mode';
+    const applyConfigMode = (mode) => {
+      const selected = mode === 'advanced' ? 'advanced' : 'basic';
+      configForm?.setAttribute('data-config-mode', selected);
+      configScope?.setAttribute('data-config-mode', selected);
+      document.body.setAttribute('data-config-mode', selected);
+      localStorage.setItem(configModeKey, selected);
+      for (const button of configModeButtons) button.setAttribute('aria-pressed', String(button.dataset.configModeButton === selected));
+    };
+    for (const button of configModeButtons) button.addEventListener('click', () => applyConfigMode(button.dataset.configModeButton));
+    applyConfigMode(localStorage.getItem(configModeKey) || 'basic');
+    const applyBusinessPreset = (preset) => {
+      if (!configForm) return;
+      const physical = preset === 'physical';
+      const productTypeInput = configForm.querySelector('[name="productType"]');
+      if (productTypeInput) {
+        productTypeInput.value = physical ? 'physical' : 'digital';
+        productTypeInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      const checkoutDefaults = physical ? ['name', 'phone', 'address'] : ['name', 'phone', 'email'];
+      const orderDefaults = physical ? ['productName', 'variant', 'quantity'] : ['productName', 'variant', 'quantity'];
+      for (const input of configForm.querySelectorAll('input[name="checkoutFields"]')) input.checked = checkoutDefaults.includes(input.value);
+      for (const input of configForm.querySelectorAll('input[name="orderFields"]')) input.checked = orderDefaults.includes(input.value);
+      const checkoutCustom = configForm.querySelector('[name="checkoutFieldsCustom"]');
+      const orderCustom = configForm.querySelector('[name="orderFieldsCustom"]');
+      if (checkoutCustom) checkoutCustom.value = '';
+      if (orderCustom) orderCustom.value = '';
+      configForm.dispatchEvent(new Event('input', { bubbles: true }));
+      configForm.querySelector('[name="businessName"]')?.focus();
+    };
+    document.querySelectorAll('[data-business-preset]').forEach((button) => button.addEventListener('click', () => applyBusinessPreset(button.dataset.businessPreset)));
     const weightList = document.querySelector('[data-weight-list]');
     const addWeight = document.querySelector('[data-add-weight]');
     const bindWeightRemove = (button) => button?.addEventListener('click', () => {
@@ -1522,6 +1699,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     const promptExampleBot = document.querySelector('[data-prompt-example-bot]');
     const promptValidator = document.querySelector('[data-prompt-validator]');
     const promptValue = (name) => promptForm?.querySelector('[name="' + name + '"]')?.value.trim() || '';
+    const checkedPromptValue = (name) => promptForm?.querySelector('[name="' + name + '"]:checked')?.value || promptValue(name);
     const promptLines = (value) => {
       const rawLines = String(value || '').split(/\\r?\\n/);
       const items = [];
@@ -1550,6 +1728,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       'GAYA BAHASA',
       promptValue('style'),
       promptValue('greeting'),
+      'Panjang: ' + checkedPromptValue('replyLength') + '. Cara menjual: ' + checkedPromptValue('sellingStyle') + '. Sapaan: ' + promptValue('salutation') + '. Emoji: ' + promptValue('emojiLevel') + '.',
       '',
       'ATURAN IDENTITAS',
       promptLines(promptValue('identityRules')),
@@ -1595,20 +1774,22 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       }
       promptPreview.textContent = promptText;
       if (promptDeveloperPreview) promptDeveloperPreview.textContent = promptText;
-      if (promptSummaryRole) promptSummaryRole.textContent = promptValue('role') || 'Belum diisi';
-      if (promptSummaryStyle) promptSummaryStyle.textContent = promptValue('style') || 'Belum diisi';
-      if (promptSummaryGreeting) promptSummaryGreeting.textContent = promptValue('greeting') || 'Belum diisi';
+      const preset = checkedPromptValue('preset') || 'friendly';
+      if (promptSummaryRole) promptSummaryRole.textContent = window.promptPresetValues?.[preset]?.label || preset;
+      if (promptSummaryStyle) promptSummaryStyle.textContent = checkedPromptValue('replyLength') + ' · ' + checkedPromptValue('sellingStyle');
+      if (promptSummaryGreeting) promptSummaryGreeting.textContent = (promptValue('salutation') || 'Kak') + ' · emoji ' + promptValue('emojiLevel');
       if (promptExampleBot) {
-        const preset = promptForm?.querySelector('[name="preset"]:checked')?.value || 'friendly';
         const name = promptConfig.csName || 'Anin';
         const business = promptConfig.businessName || 'bisnis kami';
-        promptExampleBot.textContent = preset === 'formal'
-          ? 'Selamat datang di ' + business + '. Saya ' + name + ', dengan senang hati akan membantu Kakak memilih produk yang sesuai.'
+        const salutation = promptValue('salutation') || 'Kak';
+        const suffix = promptValue('emojiLevel') === 'expressive' ? ' 🙂' : '';
+        promptExampleBot.textContent = preset === 'support'
+          ? 'Halo ' + salutation + ', saya ' + name + ' dari ' + business + '. Ceritakan kendalanya, nanti saya bantu cek satu per satu.' + suffix
           : preset === 'concise'
-            ? 'Halo Kak, saya ' + name + ' dari ' + business + '. Sampaikan kebutuhannya, nanti saya bantu secara singkat dan langsung.'
-            : preset === 'support'
-              ? 'Halo Kak, saya ' + name + ' dari ' + business + '. Ceritakan kendalanya, nanti saya bantu cek satu per satu.'
-              : 'Halo Kak! Aku ' + name + ' dari ' + business + '. Ceritakan yang Kakak cari, nanti aku bantu pilihkan yang paling sesuai.';
+            ? 'Halo ' + salutation + ', saya ' + name + ' dari ' + business + '. Sampaikan kebutuhannya, nanti saya bantu langsung.' + suffix
+            : preset === 'consultative'
+              ? 'Halo ' + salutation + ', aku ' + name + ' dari ' + business + '. Boleh ceritakan kebutuhan utamanya? Nanti aku bantu pilihkan yang paling sesuai.' + suffix
+              : 'Halo ' + salutation + ', aku ' + name + ' dari ' + business + '. Ceritakan yang dicari, nanti aku bantu pilihkan.' + suffix;
       }
     };
     if (promptForm) {
@@ -1619,7 +1800,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       });
       const promptAiButton = promptForm.querySelector('[data-prompt-ai]');
       const promptAiStatus = promptForm.querySelector('[data-prompt-ai-status]');
-      const promptFieldNames = ['preset', 'role', 'style', 'greeting', 'identityRules', 'consultationRules', 'productRules', 'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules', 'extraRules'];
+      const promptFieldNames = ['preset', 'replyLength', 'sellingStyle', 'salutation', 'emojiLevel', 'role', 'style', 'greeting', 'identityRules', 'consultationRules', 'productRules', 'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules', 'extraRules'];
       const collectPromptBuilder = () => Object.fromEntries(promptFieldNames.map((name) => {
         const field = promptForm.querySelector('[name="' + name + '"]:checked') || promptForm.querySelector('[name="' + name + '"]');
         return [name, field?.value || ''];
@@ -1721,15 +1902,29 @@ const page = (title: string, body: string, active: string, options: { refreshSec
 
     const menuToggle = document.querySelector('[data-menu-toggle]');
     const headerEl = document.querySelector('header');
+    const closeMenu = () => {
+      headerEl?.classList.remove('nav-open');
+      menuToggle?.setAttribute('aria-expanded', 'false');
+    };
     menuToggle?.addEventListener('click', () => {
       const open = headerEl?.classList.toggle('nav-open');
       menuToggle.setAttribute('aria-expanded', String(Boolean(open)));
+      if (open) headerEl?.querySelector('nav a')?.focus();
     });
+    headerEl?.querySelectorAll('nav a').forEach((link) => link.addEventListener('click', closeMenu));
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && headerEl?.classList.contains('nav-open')) {
-        headerEl.classList.remove('nav-open');
-        menuToggle?.setAttribute('aria-expanded', 'false');
+        closeMenu();
         menuToggle?.focus();
+        return;
+      }
+      if (event.key === 'Tab' && headerEl?.classList.contains('nav-open')) {
+        const focusable = [...headerEl.querySelectorAll('button:not([disabled]), a[href], input:not([disabled])')];
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
       }
     });
 
@@ -1818,13 +2013,16 @@ const page = (title: string, body: string, active: string, options: { refreshSec
           if (status) status.textContent = 'Model sedang sibuk, mohon tunggu sebentar...';
         }, 25_000);
         try {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
           const response = await fetch('/admin/sandbox/reply', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': csrfToken },
             body: JSON.stringify({ message, history: priorHistory }),
             signal: activeRequest.signal,
           });
-          const data = await response.json();
+          const raw = await response.text();
+          let data;
+          try { data = JSON.parse(raw); } catch { data = { error: raw || ('Simulasi gagal (' + response.status + ').') }; }
           await wait(Math.max(0, 650 - (Date.now() - typingStartedAt)));
           typing.remove();
           if (!response.ok) throw new Error(data.error || 'Simulasi gagal.');
@@ -2184,6 +2382,7 @@ const leadActions = (row: any) => `
   <div class="row-actions">
     <button type="button" class="ghost-btn" data-edit-customer="${escapeHtml(JSON.stringify(row))}">Edit</button>
     <a class="ghost-btn" href="/admin/chat?jid=${encodeURIComponent(String(row.jid || ''))}">Lihat percakapan</a>
+    <a class="ghost-btn" href="/admin/customer/export?jid=${encodeURIComponent(String(row.jid || ''))}">Ekspor data</a>
     <form method="post" action="/admin/customer/clear" data-confirm="Hapus semua data customer ini (chat, lead, order draft, handoff)?">
       <input type="hidden" name="jid" value="${escapeHtml(row.jid)}">
       <button class="danger" type="submit">Hapus data</button>
@@ -2255,7 +2454,7 @@ const statusDropdown = (row: any) => {
     const tone = statusTone(s);
     return `<form method="post" action="/admin/customer/update-status" style="margin: 0; display: inline-block;">
       <input type="hidden" name="jid" value="${escapeHtml(row.jid)}">
-      <select name="status" data-auto-submit class="badge-pill tone-${tone}" style="cursor: pointer; border: none; padding-right: 24px; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22currentColor%22 viewBox=%220 0 24 24%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position: right 4px center; background-size: 16px;">
+      <select name="status" data-auto-submit class="badge-pill tone-${tone}">
         <option value="new" class="tone-${statusTone('new')}" ${s === 'new' ? 'selected' : ''}>Baru</option>
         <option value="interested" class="tone-${statusTone('interested')}" ${s === 'interested' ? 'selected' : ''}>Tertarik</option>
         <option value="checkout" class="tone-${statusTone('checkout')}" ${s === 'checkout' ? 'selected' : ''}>Checkout</option>
@@ -2396,6 +2595,8 @@ const leadsTable = (rows: any[], sort: ReturnType<typeof resolveLeadSort>, searc
       });
       let waPollInterval = null;
       window.startWaStatusPolling = function startWaStatusPolling() {
+        return;
+        /* legacy global QR poller disabled; per-number poller below owns this modal.
         if (waPollInterval) return;
         const updateStatus = async () => {
           try {
@@ -2432,6 +2633,7 @@ const leadsTable = (rows: any[], sort: ReturnType<typeof resolveLeadSort>, searc
         };
         updateStatus();
         waPollInterval = setInterval(updateStatus, 2000);
+        */
       }
 
       document.addEventListener('click', (e) => {
@@ -2441,7 +2643,6 @@ const leadsTable = (rows: any[], sort: ReturnType<typeof resolveLeadSort>, searc
           const modal = document.getElementById(modalId);
           if (modal) {
             modal.showModal();
-            if (modalId === 'addNumberModal') startWaStatusPolling();
           }
           return;
         }
@@ -2548,21 +2749,32 @@ const handoffTable = (rows: any[]) => tableShell(
     rows.length,
     `<table>
       <caption class="sr-only">Daftar customer dengan handoff aktif</caption>
-      <thead><tr><th scope="col">Customer</th><th scope="col">Alasan</th><th scope="col">Prioritas / SLA</th><th scope="col">Aksi</th></tr></thead>
+      <thead><tr><th scope="col">Customer</th><th scope="col">Alasan & Pesan Terakhir</th><th scope="col">Prioritas / SLA</th><th scope="col">Lama Menunggu</th><th scope="col">Aksi</th></tr></thead>
       <tbody>
       ${rows.map((row) => `<tr>
         <td>
           <a class="ghost-btn mono" href="/admin/chat?jid=${encodeURIComponent(String(row.jid || ''))}">${shortJid(row.jid)}</a>
         </td>
-        <td>${escapeHtml(row.reason || '—')}</td>
-        <td>${badge(String(row.priority || 'normal'), row.sla_breached ? 'danger' : 'neutral')}<div class="cell-muted">${row.sla_breached ? 'SLA terlewati' : `Due ${fmtTime(row.sla_due_at)}`}</div></td>
-        <td class="row-actions">
-          ${whatsappNumber(row.jid) ? `<a class="ghost-btn" href="https://wa.me/${whatsappNumber(row.jid)}" target="_blank" rel="noreferrer">Hubungi di WhatsApp</a>` : ''}
-          <form method="post" action="/admin/handoff/resolve" data-confirm="Kembalikan customer ini ke bot auto-reply?">
-            <input type="hidden" name="id" value="${escapeHtml(row.id)}">
-            <input type="hidden" name="jid" value="${escapeHtml(row.jid)}">
-            <button type="submit">Selesai — aktifkan bot</button>
-          </form>
+        <td>
+          <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(row.reason || 'Perlu bantuan admin')}</div>
+          ${row.last_message ? `<div style="font-size: 13px; color: var(--muted); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-left: 2px solid var(--line); padding-left: 8px;">"${escapeHtml(row.last_message)}"</div>` : ''}
+        </td>
+        <td>${badge(String(row.priority || 'normal'), row.sla_breached ? 'danger' : 'neutral')}<div class="cell-muted" style="margin-top: 4px;">${row.sla_breached ? 'SLA terlewati' : `Due ${fmtTime(row.sla_due_at)}`}</div></td>
+        <td>
+          <div style="font-weight: 600;">${fmtTime(row.created_at)}</div>
+          <div class="cell-muted" style="font-size: 11px; margin-top: 2px;">Sejak ${(() => { const date = parseDbDate(row.created_at); return date ? date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'; })()}</div>
+        </td>
+        <td>
+          <div class="cell-muted">${row.assigned_operator ? `Operator: ${escapeHtml(row.assigned_operator)}` : 'Belum diambil'}</div>
+          <div class="row-actions">
+            ${whatsappNumber(row.jid) ? `<a class="ghost-btn" href="https://wa.me/${whatsappNumber(row.jid)}" target="_blank" rel="noreferrer">Hubungi di WhatsApp</a>` : ''}
+            ${row.assigned_operator ? `<form method="post" action="/admin/handoff/handling"><input type="hidden" name="id" value="${escapeHtml(row.id)}"><button type="submit">Mulai tangani</button></form>` : `<form method="post" action="/admin/handoff/assign"><input type="hidden" name="id" value="${escapeHtml(row.id)}"><button type="submit">Ambil</button></form>`}
+            <form method="post" action="/admin/handoff/resolve" data-confirm="Kembalikan customer ini ke bot auto-reply?">
+              <input type="hidden" name="id" value="${escapeHtml(row.id)}">
+              <input type="hidden" name="jid" value="${escapeHtml(row.jid)}">
+              <button type="submit">Selesai — aktifkan bot</button>
+            </form>
+          </div>
         </td>
       </tr>`).join('')}
       </tbody>
@@ -2580,11 +2792,13 @@ const knowledgeTable = (files: Array<{ name: string; size: number; updated: stri
         <td><strong>${escapeHtml(file.name)}</strong></td>
         <td class="cell-muted">${escapeHtml((file.size / 1024).toFixed(file.size < 1024 ? 0 : 1))} KB</td>
         <td class="cell-muted">${fmtTime(file.updated)}</td>
-        <td class="row-actions">
-          <form method="post" action="/admin/knowledge/delete" data-confirm="Hapus file ${escapeHtml(file.name)}? Knowledge perlu reload setelah hapus.">
-            <input type="hidden" name="name" value="${escapeHtml(file.name)}">
-            <button class="danger" type="submit">Hapus</button>
-          </form>
+        <td>
+          <div class="row-actions">
+            <form method="post" action="/admin/knowledge/delete" data-confirm="Hapus file ${escapeHtml(file.name)}? Knowledge perlu reload setelah hapus.">
+              <input type="hidden" name="name" value="${escapeHtml(file.name)}">
+              <button class="danger" type="submit">Hapus</button>
+            </form>
+          </div>
         </td>
       </tr>`).join('')}
       </tbody>
@@ -2628,6 +2842,11 @@ const waLabel = (state: string) => {
         unknown: 'Belum diketahui',
     };
     return map[state] || state;
+};
+
+const waRuntimeLabel = (runtime: ReturnType<typeof getWaSessionStatus>) => {
+    if (isWaSessionStaleConnecting(runtime)) return 'Menghubungkan terlalu lama';
+    return waLabel(runtime.state);
 };
 
 const parseList = (value: unknown) => String(value || '')
@@ -2756,6 +2975,14 @@ const renderEnvGroup = (group: typeof ENV_GROUPS[number], values: Record<string,
     `).join('')}
   </section>`;
 
+const renderAiEnvGroup = (values: Record<string, string>) => {
+    const group = ENV_GROUPS.find((candidate) => candidate.title === 'AI');
+    if (!group) return '';
+    const fieldOrder = ['AI_API_BASE_URL', 'AI_API_KEY', 'AI_MODEL', 'OPENROUTER_API_KEY'];
+    const fields = fieldOrder.map((key) => group.fields.find((field) => field.key === key)).filter((field): field is typeof group.fields[number] => Boolean(field));
+    return `<section class="env-card env-card-ai"><div class="ai-env-fields">${fields.map((field) => `<div class="field"><label for="${field.key}">${escapeHtml(field.label)}</label>${renderEnvField(field, values)}</div>`).join('')}</div></section>`;
+};
+
 const renderConnectionTest = (kind: 'ai' | 'shipping' | 'lookup') => {
     const labels = {
         ai: ['Tes koneksi AI', 'Pastikan API key dan model dapat digunakan.'],
@@ -2792,10 +3019,10 @@ const orderDetailHtml = (order: any) => {
     return `<section class="order-detail"><div class="detail-grid">${detailRows.map(([label, value]) => `<div class="detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}${extraRows.map(([label, value]) => `<div class="detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(typeof value === 'object' ? JSON.stringify(value) : value)}</strong></div>`).join('')}</div><pre class="sr-only">${escapeHtml(buildOrderSummary(order))}</pre></section>`;
 };
 
-const sandboxHtml = (options: { message?: string; reply?: string; error?: string; usedTools?: string[]; aiHealth?: AiHealth } = {}) => {
+const sandboxHtml = (options: { message?: string; reply?: string; error?: string; usedTools?: string[]; aiHealth?: AiHealth; csName?: string } = {}) => {
     const health = options.aiHealth;
     const configured = health ? aiHealthReady(health) : Boolean(process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY);
-    const csName = getBusinessConfig().csName || 'CS Virtual';
+    const csName = options.csName || getBusinessConfig().csName || 'CS Virtual';
     const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     return `<section class="simulator-page-head"><span class="coordinate">TS-05</span><div class="simulator-page-copy"><h1>Simulasi Percakapan</h1><p>Coba pengalaman customer tanpa mengirim WhatsApp atau menyimpan data.</p></div><div class="simulator-contact"><span class="simulator-avatar">${escapeHtml(csName.charAt(0).toUpperCase())}</span><div class="simulator-contact-copy"><strong>${escapeHtml(csName)}</strong><span>${configured ? 'siap membalas simulasi' : escapeHtml(health?.label || 'AI belum terhubung')}</span></div></div></section>
 <div class="simulator-toolbar"><button type="button" class="simulator-reset" data-simulator-reset>Mulai ulang percakapan</button></div>
@@ -2857,6 +3084,25 @@ const labelFromOptions = (value: string, options: Array<{ value: string; label: 
 const labelsFromValues = (values: string[] = [], options: Array<{ value: string; label: string }>) =>
     values.map((value) => labelFromOptions(value, options)).filter(Boolean).join('\n');
 
+const promptPreferenceRules = (builder: PromptBuilder) => {
+    const length = builder.replyLength === 'concise'
+        ? 'Balasan ringkas, umumnya 1-2 kalimat, kecuali customer meminta detail.'
+        : builder.replyLength === 'detailed'
+            ? 'Berikan detail yang membantu, tetapi tetap bertahap dan jangan membanjiri customer.'
+            : 'Balasan seimbang, umumnya 2-4 kalimat dan satu fokus utama.';
+    const selling = builder.sellingStyle === 'soft'
+        ? 'Utamakan membantu. Tawarkan produk hanya setelah kebutuhan customer cukup jelas.'
+        : builder.sellingStyle === 'proactive'
+            ? 'Aktif arahkan customer ke pilihan dan langkah pembelian tanpa memaksa.'
+            : 'Konsultasi singkat lalu arahkan ke pembelian ketika kebutuhan sudah jelas.';
+    const emoji = builder.emojiLevel === 'none'
+        ? 'Jangan gunakan emoji.'
+        : builder.emojiLevel === 'expressive'
+            ? 'Emoji boleh digunakan secara ekspresif, tetapi tetap relevan dan tidak memenuhi balasan.'
+            : 'Gunakan emoji sedikit dan hanya jika membantu nada percakapan.';
+    return `${length}\n${selling}\nSapa customer dengan "${builder.salutation || 'Kak'}".\n${emoji}`;
+};
+
 const buildPromptConfigData = () => {
     const config = readBusinessConfig();
     const productType = String(config.productType || 'physical');
@@ -2894,6 +3140,7 @@ ${renderPromptLines(configData.context)}
 GAYA BAHASA
 ${builder.style}
 ${builder.greeting}
+${promptPreferenceRules(builder)}
 
 ATURAN IDENTITAS
 ${renderPromptLines(builder.identityRules)}
@@ -2921,9 +3168,13 @@ ${builder.extraRules}`.trim();
 };
 
 const promptBuilderFromBody = (body: Record<string, unknown>): PromptBuilder => ({
-    preset: String(body.preset || DEFAULT_PROMPT_BUILDER.preset),
+    preset: Object.hasOwn(PROMPT_PRESETS, String(body.preset || '')) ? String(body.preset) : DEFAULT_PROMPT_BUILDER.preset,
     role: String(body.role || DEFAULT_PROMPT_BUILDER.role).trim(),
     style: String(body.style || DEFAULT_PROMPT_BUILDER.style).trim(),
+    replyLength: ['concise', 'balanced', 'detailed'].includes(String(body.replyLength)) ? String(body.replyLength) : DEFAULT_PROMPT_BUILDER.replyLength,
+    sellingStyle: ['soft', 'balanced', 'proactive'].includes(String(body.sellingStyle)) ? String(body.sellingStyle) : DEFAULT_PROMPT_BUILDER.sellingStyle,
+    salutation: String(body.salutation || DEFAULT_PROMPT_BUILDER.salutation).replace(/[^\p{L}\p{N} .'-]/gu, '').trim().slice(0, 24) || DEFAULT_PROMPT_BUILDER.salutation,
+    emojiLevel: ['none', 'light', 'expressive'].includes(String(body.emojiLevel)) ? String(body.emojiLevel) : DEFAULT_PROMPT_BUILDER.emojiLevel,
     greeting: String(body.greeting || DEFAULT_PROMPT_BUILDER.greeting).trim(),
     identityRules: String(body.identityRules || DEFAULT_PROMPT_BUILDER.identityRules).trim(),
     consultationRules: String(body.consultationRules || DEFAULT_PROMPT_BUILDER.consultationRules).trim(),
@@ -3219,7 +3470,11 @@ export const startAdminServer = async () => {
     const loginLimiter = rateLimit({ windowMs: 15 * 60_000, limit: 5, standardHeaders: true, legacyHeaders: false, message: 'Terlalu banyak percobaan login. Coba lagi nanti.' });
     const apiLimiter = rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: true, legacyHeaders: false });
     app.disable('x-powered-by');
-    app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", "'unsafe-inline'"], styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'], fontSrc: ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], objectSrc: ["'none'"], baseUri: ["'self'"], frameAncestors: ["'none'"] } } }));
+    app.use((req, res, next) => {
+        res.locals.cspNonce = randomBytes(16).toString('base64');
+        const nonce = String(res.locals.cspNonce);
+        helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", `'nonce-${nonce}'`], styleSrc: ["'self'", "'unsafe-inline'"], fontSrc: ["'self'"], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], objectSrc: ["'none'"], baseUri: ["'self'"], frameAncestors: ["'none'"] } } })(req, res, next);
+    });
     app.use((req, res, next) => {
         const started = process.hrtime.bigint();
         res.once('finish', () => operationalMetrics.http(req.method, req.path, res.statusCode, Number(process.hrtime.bigint() - started) / 1e9));
@@ -3234,12 +3489,39 @@ export const startAdminServer = async () => {
         next();
     });
 
+    app.get('/admin/assets/admin.css', (_req, res) => {
+        res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate');
+        res.type('text/css; charset=utf-8').send(ADMIN_STYLES);
+    });
+    app.get('/admin/assets/fonts/:file', (req, res) => {
+        const allowedFonts = new Set(['InterVariable.woff2', 'IBMPlexMono-Regular.woff2', 'IBMPlexMono-SemiBold.woff2']);
+        const file = String(req.params.file || '');
+        if (!allowedFonts.has(file)) {
+            res.sendStatus(404);
+            return;
+        }
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.type('font/woff2').sendFile(path.resolve('docs', 'assets', 'fonts', file));
+    });
+    app.get('/admin/assets/voidlark-logo-clean.svg', (_req, res) => {
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.type('image/svg+xml').sendFile(path.resolve('docs', 'assets', 'voidlark-logo-clean.svg'));
+    });
+    app.get('/admin/assets/voidlark-logo.svg', (_req, res) => {
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.type('image/svg+xml').send(VOIDLARK_LOGO_SVG
+            .replace('class="brand-logo-svg"', 'width="40" height="40" aria-label="Voidlark" role="img"')
+            .replaceAll('fill="currentColor"', 'fill="#172022"'));
+    });
+
     app.get('/', (req, res) => {
         const sessionId = parseCookies(req.headers.cookie)[adminSecurity.cookieName] || '';
         res.redirect(adminEntryPath(adminSecurity.isAuthenticated(sessionId)));
     });
 
-    app.get('/admin/login', (_req, res) => res.send(renderLoginPage()));
+    app.get('/admin/login', (_req, res) => {
+        res.send(renderLoginPage());
+    });
     app.post('/admin/login', loginLimiter, (req, res) => {
         const login = adminSecurity.login(String(req.body.password || ''));
         if (!login.ok || !login.session) return res.status(401).send(renderLoginPage('Password tidak valid.'));
@@ -3257,8 +3539,10 @@ export const startAdminServer = async () => {
         res.send = ((body: unknown) => {
             if (typeof body !== 'string' || !body.includes('<html')) return originalSend(body);
             const token = escapeHtml(res.locals.csrfToken);
+            const nonce = escapeHtml(res.locals.cspNonce);
             const csrfQuery = `_csrf=${encodeURIComponent(res.locals.csrfToken)}`;
             const secured = body
+                .replace(/<script(?![^>]*\bnonce=)/gi, `<script nonce="${nonce}"`)
                 .replace(/<form(?=[^>]*method="post")(?=[^>]*enctype="multipart\/form-data")([^>]*)action="([^"]+)"([^>]*)>/gi, (_match, before, action, after) => `<form${before}action="${action}${action.includes('?') ? '&' : '?'}${csrfQuery}"${after}>`)
                 .replace(/<form([^>]*method="post"[^>]*)>/gi, `<form$1><input type="hidden" name="_csrf" value="${token}">`)
                 .replace('</head>', `<meta name="csrf-token" content="${token}"><script>document.addEventListener('DOMContentLoaded',()=>{const t=document.querySelector('meta[name="csrf-token"]')?.content;const f=window.fetch;window.fetch=(u,o={})=>f(u,{...o,headers:{...(o.headers||{}),'X-CSRF-Token':t||''}})});</script></head>`);
@@ -3349,6 +3633,100 @@ export const startAdminServer = async () => {
         }
     });
 
+    app.get('/admin/api/dashboard', async (_req, res) => {
+        fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });
+        const wa = getWaStatus();
+        const env = readEnvValues();
+        const aiHealth = await checkAiHealth();
+        const aiReady = aiHealthReady(aiHealth);
+        const [leads, orders, draftOrders, awaitingPayment, paidOrders, handoffs, recentHandoffs, inboundFailures, outboundFailures] = await Promise.all([
+            pool.query('SELECT COUNT(*) AS count FROM leads'),
+            pool.query('SELECT COUNT(*) AS count FROM orders'),
+            pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'draft'"),
+            pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'awaiting_payment'"),
+            pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'paid'"),
+            pool.query(`SELECT COUNT(*) AS count FROM handoff_log WHERE ${unresolvedHandoffPredicate()}`),
+            pool.query(`SELECT jid, reason, created_at FROM handoff_log WHERE ${unresolvedHandoffPredicate()} ORDER BY created_at ASC LIMIT 4`),
+            messageStore.listInboundFailures(20),
+            messageStore.listOutboundFailures(20),
+        ]);
+        const knowledgeCount = fs.readdirSync(KNOWLEDGE_DIR).length;
+        const businessConfig = getBusinessConfig();
+        const profileReady = businessConfig.businessName.trim().length > 1 && businessConfig.csName.trim().length > 1;
+        const handoffCount = Number(handoffs.rows[0]?.count || 0);
+        const orderCount = Number(orders.rows[0]?.count || 0);
+        const draftCount = Number(draftOrders.rows[0]?.count || 0);
+        const waitingCount = Number(awaitingPayment.rows[0]?.count || 0);
+        const paidCount = Number(paidOrders.rows[0]?.count || 0);
+        const pipelineCount = inboundFailures.length + outboundFailures.length;
+        const configReady = fs.existsSync(CONFIG_PATH);
+        const setupSteps = [
+            { done: configReady, title: 'Isi profil dan alur bisnis', text: 'Nama bisnis, tipe produk, pembayaran, dan data pelanggan.', href: '/admin/config' },
+            { done: aiReady, title: 'Hubungkan layanan AI', text: 'Bot membutuhkan koneksi AI untuk menulis balasan.', href: '/admin/settings' },
+            { done: knowledgeCount > 0, title: 'Unggah katalog atau FAQ', text: 'Sumber informasi produk, harga, dan pertanyaan umum.', href: '/admin/knowledge' },
+            { done: wa.state === 'open', title: 'Hubungkan WhatsApp', text: 'Scan QR hingga status menjadi terhubung.', href: '/admin/whatsapp' },
+        ];
+        const attention = [
+            handoffCount > 0 ? { title: `${handoffCount} pelanggan menunggu admin`, text: 'Tangani percakapan yang dialihkan oleh bot.', href: '/admin/handoff', action: 'Tangani sekarang' } : null,
+            waitingCount > 0 ? { title: `${waitingCount} pembayaran perlu diperiksa`, text: 'Pastikan transfer diterima sebelum menandai pesanan lunas.', href: '/admin/orders?status=awaiting_payment', action: 'Periksa pembayaran' } : null,
+            !aiReady ? { title: `Layanan AI: ${aiHealth.label}`, text: aiHealth.detail, href: '/admin/settings', action: 'Periksa koneksi' } : null,
+            knowledgeCount === 0 ? { title: 'Katalog dan informasi masih kosong', text: 'Unggah sumber informasi agar jawaban bot sesuai bisnis.', href: '/admin/knowledge', action: 'Unggah informasi' } : null,
+            wa.state !== 'open' ? { title: 'WhatsApp belum terhubung', text: 'Hubungkan nomor agar bot dapat menerima pesan.', href: '/admin/whatsapp', action: 'Kelola WhatsApp' } : null,
+        ].filter(Boolean);
+        const sessions = globalWhatsAppManager.getSessions();
+        const online = sessions.filter(session => session.status === 'online').length;
+        res.json({
+            metrics: [
+                { label: 'Perlu ditangani', value: handoffCount, href: '/admin/handoff', tone: handoffCount ? 'danger' : 'neutral', icon: 'alert' },
+                { label: 'Verifikasi bayar', value: waitingCount, href: '/admin/orders?status=awaiting_payment', tone: waitingCount ? 'warn' : 'neutral', icon: 'payment' },
+                { label: 'Calon pelanggan', value: Number(leads.rows[0]?.count || 0), href: '/admin/leads', tone: 'neutral', icon: 'users' },
+                { label: 'Total pesanan', value: orderCount, href: '/admin/orders', tone: 'neutral', icon: 'orders' },
+                ...(pipelineCount ? [{ label: 'Pesan perlu retry', value: pipelineCount, href: '/admin/handoff#pipeline-failures', tone: 'danger', icon: 'retry' }] : []),
+            ],
+            setup: { done: setupSteps.filter(step => step.done).length, total: setupSteps.length, steps: setupSteps },
+            attention,
+            services: [
+                { label: 'WhatsApp', value: online ? `${online} / ${Math.max(sessions.length, 1)} online` : waLabel(wa.state), detail: `Rotasi ${globalWhatsAppManager.getConfig().rotationMode}`, tone: online || wa.state === 'open' ? 'ok' : 'warn' },
+                { label: 'AI engine', value: aiHealth.label, detail: aiHealth.detail, tone: aiReady ? 'ok' : 'danger' },
+                { label: 'Ongkir', value: env.RAJAONGKIR_API_KEY ? 'Siap' : 'Belum dikonfigurasi', detail: env.STORE_CITY_NAME || 'Lokasi toko belum diisi', tone: env.RAJAONGKIR_API_KEY ? 'ok' : 'warn' },
+            ],
+            recentHandoffs: recentHandoffs.rows.map((row: any) => ({ jid: shortJid(row.jid), reason: row.reason || 'Perlu admin', time: fmtTime(row.created_at) })),
+            orders: { total: orderCount, draft: draftCount, waiting: waitingCount, paid: paidCount },
+        });
+    });
+
+    app.get('/admin/api/leads', async (req, res) => {
+        const sort = resolveLeadSort(req.query.sort, req.query.direction);
+        const search = String(req.query.q || '').trim();
+        let sql = `SELECT leads.*, COALESCE(chat_stats.msg_count, 0) AS msg_count FROM leads LEFT JOIN (SELECT jid, COUNT(*) AS msg_count FROM chat_history GROUP BY jid) AS chat_stats ON chat_stats.jid = leads.jid`;
+        const params: any[] = [];
+        if (search) { params.push(`%${search.toLowerCase()}%`); sql += ` WHERE LOWER(leads.name) LIKE $1 OR LOWER(leads.phone) LIKE $1 OR LOWER(leads.jid) LIKE $1 OR LOWER(leads.preferences) LIKE $1`; }
+        sql += ` ORDER BY ${sort.orderBy} LIMIT 100`;
+        const result = await pool.query(sql, params);
+        res.json({ rows: result.rows, sort, search });
+    });
+
+    app.get('/admin/api/orders', async (req, res) => {
+        const requested = String(req.query.status || 'all').toLowerCase();
+        const active = new Set(['all', 'draft', 'awaiting_payment', 'paid']).has(requested) ? requested : 'all';
+        const [rows, all, draft, awaiting, paid] = await Promise.all([
+            active === 'all' ? pool.query('SELECT * FROM orders ORDER BY updated_at DESC LIMIT 100') : pool.query('SELECT * FROM orders WHERE status = $1 ORDER BY updated_at DESC LIMIT 100', [active]),
+            pool.query('SELECT COUNT(*) AS count FROM orders'), pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'draft'"), pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'awaiting_payment'"), pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'paid'"),
+        ]);
+        res.json({ rows: rows.rows, active, counts: { all: Number(all.rows[0]?.count || 0), draft: Number(draft.rows[0]?.count || 0), awaiting_payment: Number(awaiting.rows[0]?.count || 0), paid: Number(paid.rows[0]?.count || 0) } });
+    });
+
+    app.get('/admin/api/handoff', async (_req, res) => {
+        const [rows, inbound, outbound] = await Promise.all([handoffRepository.listActive(100), messageStore.listInboundFailures(20), messageStore.listOutboundFailures(20)]);
+        res.json({ rows, failures: [...inbound.map(item => ({ ...item, direction: 'Masuk', route: 'inbound' })), ...outbound.map(item => ({ ...item, direction: 'Keluar', route: 'outbound' }))] });
+    });
+
+    app.get('/admin/api/knowledge', async (_req, res) => {
+        fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });
+        const files = fs.readdirSync(KNOWLEDGE_DIR).map(name => { const stat = fs.statSync(path.join(KNOWLEDGE_DIR, name)); return { name, size: stat.size, updated: stat.mtime.toISOString() }; });
+        res.json({ files, jobs: await knowledgeStore.listJobs(20) });
+    });
+
     app.get('/admin', async (req, res) => {
         fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });
         const wa = getWaStatus();
@@ -3370,6 +3748,8 @@ export const startAdminServer = async () => {
             messageStore.listOutboundFailures(20),
         ]);
         const knowledgeCount = fs.readdirSync(KNOWLEDGE_DIR).length;
+        const dashboardConfig = getBusinessConfig();
+        const profileReady = dashboardConfig.businessName.trim().length > 1 && dashboardConfig.csName.trim().length > 1;
         const handoffCount = Number(handoffs.rows[0]?.count || 0);
         const orderCount = Number(orders.rows[0]?.count || 0);
         const draftOrderCount = Number(draftOrders.rows[0]?.count || 0);
@@ -3382,7 +3762,10 @@ export const startAdminServer = async () => {
         const draftPercent = visibleBarPercent(draftOrderCount);
         const waitingPercent = visibleBarPercent(awaitingPaymentCount);
         const paidPercent = visibleBarPercent(paidOrderCount);
-        const setupChecks = [wa.state === 'open', aiReady, knowledgeCount > 0, fs.existsSync(CONFIG_PATH)];
+        const waSessions = globalWhatsAppManager.getSessions();
+        const onlineWaCount = waSessions.filter((session) => getWaSessionStatus(session.phone).state === 'open').length;
+        const whatsappReady = onlineWaCount > 0 || wa.state === 'open';
+        const setupChecks = [profileReady, knowledgeCount > 0, aiReady, whatsappReady];
         const setupDone = setupChecks.filter(Boolean).length;
         const setupPercent = Math.round((setupDone / setupChecks.length) * 100);
         const attentionItems = [
@@ -3390,31 +3773,34 @@ export const startAdminServer = async () => {
             awaitingPaymentCount > 0 ? { title: `${awaitingPaymentCount} pembayaran perlu diperiksa`, text: 'Pastikan transfer diterima sebelum menandai pesanan lunas.', href: '/admin/orders?status=awaiting_payment', action: 'Periksa pembayaran' } : null,
             !aiReady ? { title: `Layanan AI: ${aiHealth.label}`, text: aiHealth.detail, href: '/admin/settings', action: 'Periksa koneksi' } : null,
             knowledgeCount === 0 ? { title: 'Katalog dan informasi masih kosong', text: 'Unggah sumber informasi agar jawaban bot sesuai bisnis.', href: '/admin/knowledge', action: 'Unggah informasi' } : null,
-            wa.state !== 'open' ? { title: 'WhatsApp belum terhubung', text: 'Periksa terminal dan scan QR untuk mulai menerima pesan.', href: '/admin/settings', action: 'Lihat koneksi' } : null,
+            !whatsappReady ? { title: 'WhatsApp belum terhubung', text: 'Scan QR untuk mulai menerima pesan customer.', href: '/admin/whatsapp', action: 'Hubungkan WhatsApp' } : null,
         ].filter(Boolean) as Array<{ title: string; text: string; href: string; action: string }>;
         const setupSteps = [
-            { done: fs.existsSync(CONFIG_PATH), title: 'Isi profil dan alur bisnis', text: 'Nama bisnis, tipe produk, pembayaran, dan data pelanggan.', href: '/admin/config' },
-            { done: aiReady, title: 'Hubungkan layanan AI', text: 'Bot membutuhkan koneksi AI untuk menulis balasan.', href: '/admin/settings' },
+            { done: profileReady, title: 'Isi profil bisnis', text: 'Nama bisnis, nama CS, tipe produk, dan data pesanan.', href: '/admin/config' },
             { done: knowledgeCount > 0, title: 'Unggah katalog atau FAQ', text: 'Sumber informasi produk, harga, dan pertanyaan umum.', href: '/admin/knowledge' },
-            { done: wa.state === 'open', title: 'Hubungkan WhatsApp', text: 'Scan QR dari terminal hingga status menjadi Terhubung.', href: '/admin' },
+            { done: aiReady, title: 'Hubungkan layanan AI', text: 'Bot membutuhkan koneksi AI untuk menulis balasan.', href: '/admin/settings' },
+            { done: whatsappReady, title: 'Hubungkan WhatsApp', text: 'Scan QR hingga satu nomor berstatus terhubung.', href: '/admin/whatsapp' },
         ];
-        const waSessions = globalWhatsAppManager.getSessions();
-        const onlineWaCount = waSessions.filter((s) => s.status === 'online').length;
+        const nextSetupStep = setupSteps.find((step) => !step.done);
         const totalWaCount = waSessions.length || 1;
         res.send(page('Ringkasan', `
 ${pageHeader('Ringkasan', 'Lihat kesiapan bot dan pekerjaan yang perlu diselesaikan.', 'OP-01')}
-${attentionItems.length > 0 ? `<section class="attention-panel"><div class="attention-head"><h2>Perlu dilakukan sekarang</h2><span>${attentionItems.length} tindakan</span></div><div class="attention-list">${attentionItems.map((item, index) => `<div class="attention-item"><span class="attention-index">${String(index + 1).padStart(2, '0')}</span><div class="attention-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text)}</span></div><a class="ghost-btn" href="${item.href}">${escapeHtml(item.action)}</a></div>`).join('')}</div></section>` : ''}
+<section class="guided-setup" aria-labelledby="guided-setup-title">
+  <div><h2 id="guided-setup-title">${setupDone === setupChecks.length ? 'Bot siap diuji' : 'Selesaikan setup utama'}</h2><p class="muted">${setupDone === setupChecks.length ? 'Semua koneksi utama siap. Jalankan simulasi sebelum menerima chat customer.' : 'Ikuti satu langkah berikutnya. Pengaturan teknis dapat disesuaikan nanti.'}</p></div>
+  <div class="guided-next"><div class="guided-next-copy"><span>${setupDone} dari ${setupChecks.length} selesai</span><strong>${escapeHtml(nextSetupStep?.title || 'Tes percakapan bot')}</strong></div><a class="button-link" href="${nextSetupStep?.href || '/admin/sandbox'}">${nextSetupStep ? 'Lanjutkan setup' : 'Buka simulasi'}</a></div>
+</section>
 <button type="button" class="ghost-btn setup-reveal" data-setup-reveal>Lihat kesiapan bot</button>
 <div class="setup-shell" data-setup-shell>
   <div class="setup-heading"><section class="section-head"><div><h2>Kesiapan bot</h2><p class="muted">${setupDone} dari ${setupChecks.length} langkah utama selesai.</p></div></section><button type="button" class="ghost-btn setup-toggle" data-setup-hide>Tutup</button></div>
   <div class="setup-list">${setupSteps.map((step) => `<div class="setup-step ${step.done ? 'done' : ''}"><span class="setup-mark">${step.done ? icon('check') : '—'}</span><div><strong>${escapeHtml(step.title)}</strong><span>${escapeHtml(step.text)}</span></div><a class="ghost-btn" href="${step.href}">${step.done ? 'Periksa' : 'Atur sekarang'}</a></div>`).join('')}</div>
 </div>
+${attentionItems.length > 0 ? `<section class="attention-panel"><div class="attention-head"><h2>Perlu dilakukan sekarang</h2><span>${attentionItems.length} tindakan</span></div><div class="attention-list">${attentionItems.map((item, index) => `<div class="attention-item"><span class="attention-index">${String(index + 1).padStart(2, '0')}</span><div class="attention-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text)}</span></div><a class="ghost-btn" href="${item.href}">${escapeHtml(item.action)}</a></div>`).join('')}</div></section>` : ''}
 <div class="grid" aria-label="Ringkasan operasional">
   <a class="stat ${handoffCount > 0 ? 'urgent' : ''}" href="/admin/handoff"><span class="stat-icon">${icon('alert')}</span><span class="stat-copy"><span>Perlu ditangani</span><strong>${escapeHtml(handoffCount)}</strong></span></a>
   <a class="stat ${awaitingPaymentCount > 0 ? 'urgent' : ''}" href="/admin/orders?status=awaiting_payment"><span class="stat-icon">${icon('payment')}</span><span class="stat-copy"><span>Verifikasi bayar</span><strong>${escapeHtml(awaitingPaymentCount)}</strong></span></a>
   <a class="stat" href="/admin/leads"><span class="stat-icon">${icon('users')}</span><span class="stat-copy"><span>Calon pelanggan</span><strong>${escapeHtml(leads.rows[0]?.count || 0)}</strong></span></a>
   <a class="stat" href="/admin/orders"><span class="stat-icon">${icon('orders')}</span><span class="stat-copy"><span>Total pesanan</span><strong>${escapeHtml(orderCount)}</strong></span></a>
-  <a class="stat ${pipelineFailureCount > 0 ? 'urgent' : ''}" href="/admin/handoff#pipeline-failures"><span class="stat-icon">${icon('alert')}</span><span class="stat-copy"><span>Pesan perlu retry</span><strong>${escapeHtml(pipelineFailureCount)}</strong></span></a>
+  <a class="stat ${pipelineFailureCount > 0 ? 'urgent' : ''}" href="/admin/handoff#pipeline-failures"><span class="stat-icon">${icon('retry')}</span><span class="stat-copy"><span>Pesan perlu retry</span><strong>${escapeHtml(pipelineFailureCount)}</strong></span></a>
 </div>
 <div class="status-grid">
   <div class="status-card">
@@ -3468,8 +3854,12 @@ ${errorCount > 0 ? `<p class="muted">Monitoring mencatat ${errorCount} hasil loo
         const weekdayLabels: Record<string, string> = { monday: 'Senin', tuesday: 'Selasa', wednesday: 'Rabu', thursday: 'Kamis', friday: 'Jumat', saturday: 'Sabtu', sunday: 'Minggu' };
         const shippingWeightRows = Object.entries(config.shippingWeights || {});
         res.send(page('Config', `
-${pageHeader('Profil & Alur Bisnis', 'Atur identitas bisnis dan cara bot melayani pelanggan.', 'CF-02')}
-<form method="post" action="/admin/config" data-unsaved>
+${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis tetap tersedia saat dibutuhkan.', 'CF-02')}
+<div class="config-mode-bar"><div class="config-mode-copy"><strong>Tingkat pengaturan</strong><span>Mode Dasar menampilkan hal yang dibutuhkan agar bot cepat siap.</span></div><div class="segmented-control" aria-label="Tingkat pengaturan"><button type="button" data-config-mode-button="basic" aria-pressed="true">Dasar</button><button type="button" data-config-mode-button="advanced" aria-pressed="false">Lanjutan</button></div></div>
+<div class="config-preset-bar"><div class="config-preset-copy"><strong>Mulai dengan preset</strong><span>Preset mengisi field umum. Periksa hasil sebelum menyimpan.</span></div><div class="preset-actions"><button type="button" class="secondary-button" data-business-preset="physical">Produk fisik</button><button type="button" class="secondary-button" data-business-preset="digital">Produk digital</button></div></div>
+<div data-config-scope data-config-mode="basic">
+<form method="post" action="/admin/config" data-unsaved data-config-form data-config-mode="basic">
+  <p class="basic-note">Empat bagian teknis disembunyikan. Pilih Lanjutan jika perlu mengatur referensi web, bobot ongkir, jam kerja, SLA, atau consent.</p>
   <details class="config-section" data-persist-collapse="config-business-identity" open>
     <summary><span>1. Identitas & alur<span class="config-section-copy">Pengaturan dasar yang menentukan cara bot melayani customer.</span></span></summary>
     <div class="config-section-body config-layout">
@@ -3496,7 +3886,7 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur identitas bisnis dan cara bot melayan
         <div><span class="badge-pill ${config.productType === 'digital' ? 'tone-neutral' : 'tone-ok'}" data-shipping-state>${config.productType === 'digital' ? 'Nonaktif otomatis' : 'Aktif otomatis'}</span></div>
         <p class="muted">Mengikuti tipe produk: otomatis aktif untuk fisik dan nonaktif untuk digital. API key, lokasi toko, dan kurir diatur di Settings.</p>
       </div>
-      <div class="field">
+      <div class="field" data-config-advanced>
         <label>Pencarian referensi web</label>
         <div class="switchbox">
           <label class="switchline">
@@ -3532,7 +3922,7 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur identitas bisnis dan cara bot melayan
   <details class="config-section" data-persist-collapse="config-payments" open>
     <summary><span>3. Pengiriman & pembayaran<span class="config-section-copy">Pengaturan lanjutan untuk estimasi berat dan instruksi bayar.</span></span></summary>
     <div class="config-section-body">
-    <div class="field full">
+    <div class="field full" data-config-advanced>
       <label>Bobot ongkir per pilihan produk</label>
       <div class="repeat-list" data-weight-list>
         ${(shippingWeightRows.length ? shippingWeightRows : [['', '']]).map(([label, grams]) => `<div class="repeat-row" data-weight-row><label><span>Label pilihan</span><input name="shippingWeightLabel" value="${escapeHtml(label)}" placeholder="contoh: 30ml"></label><label><span>Berat (gram)</span><input name="shippingWeightGrams" type="number" min="1" step="1" value="${escapeHtml(grams)}" placeholder="110"></label><button type="button" class="secondary-button" data-remove-weight>Hapus</button></div>`).join('')}
@@ -3551,7 +3941,7 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur identitas bisnis dan cara bot melayan
     </div>
     </div>
   </details>
-  <details class="config-section" data-persist-collapse="config-operations" open>
+  <details class="config-section" data-persist-collapse="config-operations" data-config-advanced>
     <summary><span>4. Jam operasional & consent<span class="config-section-copy">Atur timezone, jadwal, hari libur, SLA, dan keyword opt-out.</span></span></summary>
     <div class="config-section-body">
       <div class="field full">
@@ -3578,7 +3968,7 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur identitas bisnis dan cara bot melayan
   </details>
   <div class="sticky-actions"><span class="save-state">Tersimpan</span><button>Simpan Config</button></div>
 </form>
-<form class="advanced" method="post" action="/admin/config/raw">
+<form class="advanced" method="post" action="/admin/config/raw" data-config-advanced>
 <details class="advanced" data-persist-collapse="config-advanced-json">
   <summary>Pengaturan teknis untuk developer</summary>
   <p class="muted">Editor JSON dapat merusak konfigurasi jika formatnya salah. Gunakan hanya jika memahami struktur data.</p>
@@ -3586,7 +3976,8 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur identitas bisnis dan cara bot melayan
   <textarea id="rawConfig" name="config" spellcheck="false">${escapeHtml(configText)}</textarea>
   <p><button>Simpan JSON Mentah</button></p>
   </details>
-</form>`, 'config', { toastHtml: toastFromQuery(req.query as Record<string, unknown>) }));
+</form>
+</div>`, 'config', { toastHtml: toastFromQuery(req.query as Record<string, unknown>) }));
     });
 
     app.post('/admin/config', (req, res) => {
@@ -3649,7 +4040,8 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
   <div class="reply-style-layout">
     <div class="reply-style-sections">
       <details class="reply-style-section" data-persist-collapse="prompt-response-style" open>
-        <summary><span class="reply-step">1</span><span class="reply-style-section-title"><strong>Gaya respons</strong><small>Pilih karakter dasar yang paling mendekati bisnis.</small></span></summary><div class="reply-style-body">
+        <summary><span class="reply-step">1</span><span class="reply-style-section-title"><strong>Preferensi balasan</strong><small>Lima pilihan ini cukup untuk mengatur cara bot berbicara.</small></span></summary><div class="reply-style-body">
+        <div class="field full"><label>Karakter CS</label>
         <div class="preset-grid">
           ${Object.entries(PROMPT_PRESETS).map(([key, preset]) => `<label class="preset-card">
             <input type="radio" name="preset" value="${escapeHtml(key)}" ${builder.preset === key ? 'checked' : ''} data-prompt-preset>
@@ -3658,7 +4050,27 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
           </label>`).join('')}
         </div>
         </div>
+        <div class="simple-style-grid">
+          <fieldset class="simple-style-group"><legend>Panjang balasan</legend>
+            <label><input type="radio" name="replyLength" value="concise" ${builder.replyLength === 'concise' ? 'checked' : ''}><span><strong>Ringkas</strong><small>Umumnya 1-2 kalimat</small></span></label>
+            <label><input type="radio" name="replyLength" value="balanced" ${builder.replyLength === 'balanced' ? 'checked' : ''}><span><strong>Seimbang</strong><small>Umumnya 2-4 kalimat</small></span></label>
+            <label><input type="radio" name="replyLength" value="detailed" ${builder.replyLength === 'detailed' ? 'checked' : ''}><span><strong>Detail</strong><small>Lebih lengkap saat dibutuhkan</small></span></label>
+          </fieldset>
+          <fieldset class="simple-style-group"><legend>Cara menjual</legend>
+            <label><input type="radio" name="sellingStyle" value="soft" ${builder.sellingStyle === 'soft' ? 'checked' : ''}><span><strong>Lembut</strong><small>Membantu sebelum menawarkan</small></span></label>
+            <label><input type="radio" name="sellingStyle" value="balanced" ${builder.sellingStyle === 'balanced' ? 'checked' : ''}><span><strong>Seimbang</strong><small>Konsultasi lalu arahkan order</small></span></label>
+            <label><input type="radio" name="sellingStyle" value="proactive" ${builder.sellingStyle === 'proactive' ? 'checked' : ''}><span><strong>Proaktif</strong><small>Aktif membantu closing</small></span></label>
+          </fieldset>
+        </div>
+        <div class="simple-style-grid compact">
+          <div class="field"><label for="promptSalutation">Sapaan customer</label><input id="promptSalutation" name="salutation" maxlength="24" value="${escapeHtml(builder.salutation)}" placeholder="Kak"></div>
+          <div class="field"><label for="promptEmojiLevel">Penggunaan emoji</label><select id="promptEmojiLevel" name="emojiLevel"><option value="none" ${builder.emojiLevel === 'none' ? 'selected' : ''}>Tidak digunakan</option><option value="light" ${builder.emojiLevel === 'light' ? 'selected' : ''}>Sedikit</option><option value="expressive" ${builder.emojiLevel === 'expressive' ? 'selected' : ''}>Ekspresif</option></select></div>
+        </div>
+        </div>
       </details>
+      <details class="reply-style-advanced-shell" data-persist-collapse="prompt-advanced-settings">
+        <summary><span>Pengaturan bahasa lanjutan</span><small>Editor aturan lama untuk kebutuhan khusus. Intelligence inti tetap dijaga sistem.</small></summary>
+        <div class="reply-style-advanced-body">
       <details class="reply-style-section" data-persist-collapse="prompt-speaking-guidelines">
         <summary><span class="reply-step">2</span><span class="reply-style-section-title"><strong>Karakter dan gaya bahasa</strong><small>Tentukan identitas, nada bicara, dan sapaan.</small></span></summary><div class="reply-style-body">
         <div class="builder-grid">
@@ -3716,6 +4128,8 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
         </div>
         </div>
       </details>
+        </div>
+      </details>
       <div class="prompt-actions sticky-actions">
         <span class="save-state">Tersimpan</span>
         <button>Simpan gaya balasan</button>
@@ -3727,9 +4141,9 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
       <section class="prompt-card">
         <h2>Ringkasan Gaya Aktif</h2>
         <div class="prompt-summary">
-          <div class="prompt-summary-row"><span>Peran bot</span><strong data-prompt-summary-role>${escapeHtml(builder.role)}</strong></div>
-          <div class="prompt-summary-row"><span>Gaya bahasa</span><strong data-prompt-summary-style>${escapeHtml(builder.style)}</strong></div>
-          <div class="prompt-summary-row"><span>Sapaan</span><strong data-prompt-summary-greeting>${escapeHtml(builder.greeting)}</strong></div>
+          <div class="prompt-summary-row"><span>Karakter</span><strong data-prompt-summary-role>${escapeHtml(PROMPT_PRESETS[builder.preset as keyof typeof PROMPT_PRESETS]?.label || 'Ramah santai')}</strong></div>
+          <div class="prompt-summary-row"><span>Panjang dan penjualan</span><strong data-prompt-summary-style>${escapeHtml(builder.replyLength)} · ${escapeHtml(builder.sellingStyle)}</strong></div>
+          <div class="prompt-summary-row"><span>Sapaan dan emoji</span><strong data-prompt-summary-greeting>${escapeHtml(builder.salutation)} · ${escapeHtml(builder.emojiLevel)}</strong></div>
         </div>
         <div class="reply-example"><div class="reply-example-user">Kak, bisa bantu rekomendasikan yang cocok?</div><div class="reply-example-bot" data-prompt-example-bot>${escapeHtml(replyStyleExample)}</div></div>
         <div class="prompt-next"><span class="muted">Setelah menyimpan, uji hasilnya sebagai customer.</span><a class="button-link" href="/admin/sandbox">Buka Simulasi Percakapan</a></div>
@@ -3782,28 +4196,24 @@ ${pageHeader('Koneksi Sistem', 'Hubungkan layanan yang digunakan bot.', 'ST-04')
 <form method="post" action="/admin/settings/env" data-unsaved>
   <div class="settings-stack">
     <section class="settings-zone">
-      <div class="settings-zone-head"><span>01 / DASAR</span><h2>Koneksi utama</h2></div>
-      <div class="env-grid">
-        ${ENV_GROUPS.filter((group) => ['Database', 'AI'].includes(group.title)).map((group) => renderEnvGroup(group, envValues)).join('')}
+      <div class="settings-zone-head settings-zone-head-primary"><h2>Hubungkan AI</h2></div>
+      <div class="env-grid env-grid-single">
+        ${renderAiEnvGroup(envValues)}
       </div>
     </section>
-    <section class="settings-zone">
-      <div class="settings-zone-head"><span>02 / LAYANAN</span><h2>Fitur pendukung</h2></div>
-      <div class="env-grid">
-        <div class="env-column">
-          ${ENV_GROUPS.filter((group) => group.title === 'Ongkir').map((group) => renderEnvGroup(group, envValues)).join('')}
-        </div>
-        <div class="env-column">
-          ${['Lookup eksternal', 'Handoff'].map((title) => ENV_GROUPS.find((group) => group.title === title)).filter((group): group is typeof ENV_GROUPS[number] => Boolean(group)).map((group) => renderEnvGroup(group, envValues)).join('')}
-        </div>
-      </div>
-    </section>
+    <details class="config-section" data-persist-collapse="settings-advanced-services">
+      <summary><span>Pengaturan koneksi lanjutan<span class="config-section-copy">Database, ongkir, referensi web, dan notifikasi admin.</span></span></summary>
+      <div class="config-section-body"><div class="env-grid">
+        <div class="env-column">${['Ongkir', 'Handoff'].map((title) => ENV_GROUPS.find((group) => group.title === title)).filter((group): group is typeof ENV_GROUPS[number] => Boolean(group)).map((group) => renderEnvGroup(group, envValues)).join('')}</div>
+        <div class="env-column">${['Lookup eksternal', 'Database'].map((title) => ENV_GROUPS.find((group) => group.title === title)).filter((group): group is typeof ENV_GROUPS[number] => Boolean(group)).map((group) => renderEnvGroup(group, envValues)).join('')}</div>
+      </div></div>
+    </details>
   </div>
   <div class="sticky-actions"><span class="save-state">Tersimpan</span><button>Simpan Settings</button></div>
 </form>
 <div class="maintenance-layout">
   <section class="maintenance-block"><div class="maintenance-heading"><span class="maintenance-index">02</span><div><h2>Backup & pemulihan</h2><p class="muted">Pindahkan konfigurasi dan katalog tanpa membawa credential atau data pelanggan.</p></div></div>
-    <div class="backup-grid"><article class="backup-card"><h3>Unduh backup terbaru</h3><p>Simpan Profil & Alur, Gaya Balasan, dan seluruh file Katalog & Informasi.</p><a class="button-link" href="/admin/backup/export">Unduh file backup</a></article><article class="backup-card"><h3>Periksa sebelum memulihkan</h3><p>Pilih file JSON. Isi backup ditampilkan untuk ditinjau sebelum diterapkan.</p><form method="post" action="/admin/backup/preview" enctype="multipart/form-data"><label class="sr-only" for="backupFile">Pilih file backup JSON</label><input id="backupFile" type="file" name="backup" accept="application/json,.json" required><button type="submit" class="secondary-button">Periksa file backup</button></form></article></div>
+    <div class="backup-grid"><article class="backup-card"><h3>Unduh backup terbaru</h3><p>Simpan Profil & Alur, Gaya Balasan, dan seluruh file Katalog & Informasi.</p><a class="button-link" href="/admin/backup/export">Unduh file backup</a></article><article class="backup-card"><h3>Periksa sebelum memulihkan</h3><p>Pilih file JSON. Isi backup ditampilkan untuk ditinjau sebelum diterapkan.</p><form class="backup-restore-form" method="post" action="/admin/backup/preview" enctype="multipart/form-data"><label class="sr-only" for="backupFile">Pilih file backup JSON</label><div class="file-picker" data-file-picker data-has-file="false"><span class="file-picker-action" aria-hidden="true">Pilih file JSON</span><span class="file-picker-name" id="backupFileName" data-file-name>Belum ada file dipilih</span><input id="backupFile" type="file" name="backup" accept="application/json,.json" aria-describedby="backupFileName" required></div><button type="submit" class="secondary-button">Periksa file backup</button></form></article></div>
     <div class="safe-note"><strong>Aman:</strong><span>API key, sesi WhatsApp, dan database pelanggan tidak disertakan dalam file backup.</span></div>
     <div class="health-list">${backupRuns.length ? backupRuns.map((run) => `<div class="health-item"><strong>Database ${escapeHtml(run.trigger_type)}</strong><span>${escapeHtml(run.completed_at || run.started_at)} · ${run.size_bytes ? `${Math.ceil(Number(run.size_bytes) / 1024)} KB` : escapeHtml(run.error_message || 'berjalan')}</span>${badge(run.status, run.status === 'succeeded' ? 'ok' : run.status === 'failed' ? 'danger' : 'warn')}</div>`).join('') : '<div class="health-item"><strong>Backup database</strong><span>Belum ada proses backup tercatat.</span></div>'}</div>
   </section>
@@ -3880,25 +4290,6 @@ ${pageHeader('Koneksi Sistem', 'Hubungkan layanan yang digunakan bot.', 'ST-04')
     });
 
     app.get('/admin/whatsapp', async (req, res) => {
-        if (!globalWhatsAppManager.isPersistedInitialized()) {
-            const currentWa = getWaStatus();
-            globalWhatsAppManager.registerSession({
-                id: 'CS Line 1 (Utama)',
-                phone: '6281234567890',
-                status: currentWa.state === 'open' ? 'online' : 'connecting',
-                dailyLimit: 300,
-                todayLeadCount: 14,
-                todayMessageCount: 42,
-            });
-            globalWhatsAppManager.registerSession({
-                id: 'CS Line 2 (Cadangan)',
-                phone: '6289876543210',
-                status: 'online',
-                dailyLimit: 300,
-                todayLeadCount: 8,
-                todayMessageCount: 25,
-            });
-        }
         const waConfig = globalWhatsAppManager.getConfig();
         const sessions = globalWhatsAppManager.getSessions();
         const mainWaStatus = getWaStatus();
@@ -3925,7 +4316,7 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
 </div>
 
 <dialog id="waQrModal">
-  <div style="padding:28px; background:var(--panel); border-radius:28px; border:1px solid var(--line);">
+  <div class="wa-qr-modal-body" style="padding:28px; background:var(--panel); border-radius:28px; border:1px solid var(--line);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:14px;">
       <div style="display:flex; align-items:center; gap:10px;">
         <span style="font-size:22px;">📱</span>
@@ -3934,7 +4325,7 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
           <p class="muted" style="margin:2px 0 0; font-size:12px;">Scan QR Code untuk registrasi nomor CS baru</p>
         </div>
       </div>
-      <button type="button" id="closeWaModalX" style="border:none; outline:none; background:var(--soft); color:var(--muted); border-radius:50%; width:34px; height:34px; font-size:16px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all 0.15s ease;">✕</button>
+      <button type="button" id="closeWaModalX" style="border:none; outline:none; background:var(--soft); color:var(--muted); border-radius:50%; width:34px; height:34px; font-size:16px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:background-color .15s ease,color .15s ease,transform .15s ease;">✕</button>
     </div>
 
     <div style="text-align:center; background:var(--soft); padding:20px; border-radius:18px; border:1px solid var(--line); margin-bottom:20px;">
@@ -3952,12 +4343,19 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
 
     <form method="post" action="/admin/whatsapp/numbers/add" style="display:flex; flex-direction:column; gap:14px;">
       <div class="field">
-        <label for="modalCsId" style="font-size:12px; font-weight:600;">Nama / Label CS</label>
+        <label for="modalCsId" style="font-size:12px; font-weight:600;">Label internal nomor</label>
         <input id="modalCsId" type="text" name="id" placeholder="contoh: CS Line 3 - Fast Response" required style="height:40px; border-radius:10px;">
+        <small class="muted">Hanya terlihat oleh admin.</small>
       </div>
       <div class="field">
-        <label for="modalCsPhone" style="font-size:12px; font-weight:600;">Nomor WhatsApp (Angka Kode Negara)</label>
-        <input id="modalCsPhone" type="text" name="phone" placeholder="contoh: 6281299887766" required style="height:40px; border-radius:10px;">
+        <label for="modalCsName" style="font-size:12px; font-weight:600;">Nama CS ke customer <span class="muted">(opsional)</span></label>
+        <input id="modalCsName" type="text" name="csNameOverride" maxlength="60" placeholder="Kosong = gunakan ${escapeHtml(getBusinessConfig().csName)}" style="height:40px; border-radius:10px;">
+        <small class="muted">Isi hanya jika nomor ini memakai persona berbeda.</small>
+      </div>
+      <div class="field">
+        <label for="modalCsPhone" style="font-size:12px; font-weight:600;">Nomor WhatsApp terdeteksi</label>
+        <input id="modalCsPhone" type="text" name="phone" placeholder="Scan QR untuk mendeteksi nomor" required readonly inputmode="numeric" style="height:40px; border-radius:10px;">
+        <small class="muted">Nomor diisi otomatis dari akun WhatsApp yang memindai QR.</small>
       </div>
       <div class="field">
         <label for="modalCsDailyLimit" style="font-size:12px; font-weight:600;">Kuota Lead Harian (Maksimal)</label>
@@ -3989,19 +4387,24 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
           <p class="muted" style="margin: 0 0 20px; font-size: 13px;">Belum ada nomor WA didaftarkan. Klik tombol + Tambah Nomor untuk memindai QR & mendaftarkan nomor.</p>
           <button type="button" class="primary-button" id="openWaModalBtnBottom" style="height:36px; padding:0 20px; border-radius:10px;">Tambah Nomor Baru</button>
         </div>
-      ` : sessions.map((s) => `
+      ` : sessions.map((s) => {
+        const runtime = getWaSessionStatus(s.phone);
+        const runtimeOnline = runtime.state === 'open';
+        return `
         <div class="health-item" style="padding: 14px 16px; flex-direction: column; align-items: stretch; gap: 8px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
             <div>
               <strong style="font-size:14px;">${escapeHtml(s.id)}</strong>
               <div style="display:flex; gap:8px; align-items:center; margin-top:4px;">
                 <span class="mono" style="font-size:12px; color:var(--ink); font-weight:600;">+${escapeHtml(s.phone)}</span>
-                ${badge(s.status === 'online' ? 'Online' : s.status === 'resting' ? 'Istirahat Limit' : 'Disconnected', s.status === 'online' ? 'ok' : 'warn')}
+                ${badge(runtimeOnline ? 'Online' : waRuntimeLabel(runtime), runtimeOnline ? 'ok' : runtime.state === 'close' || runtime.state === 'logged_out' || runtime.state === 'error' ? 'danger' : 'warn')}
               </div>
               <div class="muted" style="font-size:11px; margin-top:4px;">Lead Hari Ini: ${s.todayLeadCount} / ${s.dailyLimit || '∞'} · Pesan Dikirim: ${s.todayMessageCount}</div>
+              <div class="muted" style="font-size:11px; margin-top:3px;">Nama ke customer: <strong>${escapeHtml(s.csNameOverride?.trim() || getBusinessConfig().csName)}</strong>${s.csNameOverride?.trim() ? '' : ' (default)'}</div>
             </div>
             <div style="display:flex; gap:6px; align-items:center; margin-top:2px;">
               <button type="button" class="ghost-btn edit-session-btn" data-phone="${escapeHtml(s.phone)}" style="padding:4px 8px; font-size:11px; height:28px;">Edit</button>
+              ${runtimeOnline ? '' : `<button type="button" class="ghost-btn connect-session-btn" data-phone="${escapeHtml(s.phone)}" style="padding:4px 8px; font-size:11px; height:28px;">Hubungkan</button>`}
               <form method="post" action="/admin/auth/clear" style="margin:0;" data-confirm="Reset sesi WhatsApp +${escapeHtml(s.phone)}?">
                 <input type="hidden" name="phone" value="${escapeHtml(s.phone)}">
                 <input type="hidden" name="redirectUrl" value="/admin/whatsapp">
@@ -4017,8 +4420,12 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
             <input type="hidden" name="phone" value="${escapeHtml(s.phone)}">
             <div style="display:flex; flex-direction:column; gap:12px;">
               <div class="field" style="margin:0;">
-                <label style="font-size:12px; font-weight:600; margin-bottom:6px; display:block;">Nama / Label CS</label>
+                <label style="font-size:12px; font-weight:600; margin-bottom:6px; display:block;">Label internal nomor</label>
                 <input type="text" name="id" value="${escapeHtml(s.id)}" required style="height:40px; font-size:13px; border-radius:10px; border:1px solid var(--line); width:100%; padding:0 12px; background:var(--panel); outline:none;">
+              </div>
+              <div class="field" style="margin:0;">
+                <label style="font-size:12px; font-weight:600; margin-bottom:6px; display:block;">Nama CS ke customer <span class="muted">(opsional)</span></label>
+                <input type="text" name="csNameOverride" maxlength="60" value="${escapeHtml(s.csNameOverride || '')}" placeholder="Kosong = gunakan ${escapeHtml(getBusinessConfig().csName)}" style="height:40px; font-size:13px; border-radius:10px; border:1px solid var(--line); width:100%; padding:0 12px; background:var(--panel); outline:none;">
               </div>
               <div class="field" style="margin:0;">
                 <label style="font-size:12px; font-weight:600; margin-bottom:6px; display:block;">Kuota Lead Harian (Maksimal)</label>
@@ -4029,8 +4436,8 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
               </div>
             </div>
           </form>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>
   </section>
 
@@ -4097,22 +4504,35 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
     const closeBtnCancel = document.getElementById('closeWaModalCancel');
 
     let pollInterval = null;
+    let selectedPhone = new URLSearchParams(location.search).get('connect') || '';
     const fetchWaStatus = async () => {
+      if (!selectedPhone) {
+        const statusTxt = document.getElementById('liveQrStatus');
+        const qrImg = document.getElementById('liveQrImage');
+        const connBadge = document.getElementById('scanConnectedBadge');
+        if (qrImg) qrImg.style.display = 'none';
+        if (connBadge) connBadge.style.display = 'none';
+        if (statusTxt) {
+          statusTxt.style.display = 'block';
+          statusTxt.textContent = 'Isi nomor baru lalu klik Simpan & Aktifkan CS untuk membuat QR.';
+        }
+        return;
+      }
       try {
-        const res = await fetch('/admin/whatsapp/status');
+        const res = await fetch('/admin/whatsapp/status' + (selectedPhone ? '?phone=' + encodeURIComponent(selectedPhone) : ''));
         if (!res.ok) return;
         const data = await res.json();
         const qrImg = document.getElementById('liveQrImage');
         const statusTxt = document.getElementById('liveQrStatus');
         const connBadge = document.getElementById('scanConnectedBadge');
 
-        if (data.state === 'open') {
+        if (data.state === 'open' && (selectedPhone === 'pending' || !selectedPhone || String(data.phone || '') === selectedPhone)) {
           if (qrImg) qrImg.style.display = 'none';
           if (statusTxt) statusTxt.style.display = 'none';
           if (connBadge) connBadge.style.display = 'block';
           if (data.phone) {
             const phoneInput = document.getElementById('modalCsPhone');
-            if (phoneInput && !phoneInput.value) {
+            if (phoneInput) {
               phoneInput.value = data.phone;
             }
           }
@@ -4125,6 +4545,13 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
           if (qrImg) {
             qrImg.src = data.qrUrl || ('https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(data.qr));
             qrImg.style.display = 'block';
+          }
+        } else if (data.state === 'error' || data.state === 'close' || data.state === 'logged_out') {
+          if (connBadge) connBadge.style.display = 'none';
+          if (qrImg) qrImg.style.display = 'none';
+          if (statusTxt) {
+            statusTxt.style.display = 'block';
+            statusTxt.textContent = data.detail || 'Gagal menyiapkan sesi. Tutup lalu coba hubungkan lagi.';
           }
         } else {
           if (connBadge) connBadge.style.display = 'none';
@@ -4142,24 +4569,27 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
       if (!pollInterval) pollInterval = setInterval(fetchWaStatus, 2000);
     };
 
-    const openModal = async () => {
+    const openModal = async (phone = 'pending') => {
+      selectedPhone = phone;
       if (modal) {
         if (typeof modal.showModal === 'function') {
           modal.showModal();
         } else {
           modal.setAttribute('open', '');
         }
-        try {
-          await fetch('/admin/whatsapp/qr/generate', { method: 'POST' });
-        } catch {}
+        try { await fetch('/admin/whatsapp/qr/generate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone:selectedPhone === 'pending' ? '' : selectedPhone}) }); } catch {}
         startPolling();
       }
     };
 
-    if (openBtn) openBtn.addEventListener('click', openModal);
-    if (openBtnBottom) openBtnBottom.addEventListener('click', openModal);
+    if (openBtn) openBtn.addEventListener('click', () => openModal('pending'));
+    if (openBtnBottom) openBtnBottom.addEventListener('click', () => openModal('pending'));
+    document.querySelectorAll('.connect-session-btn').forEach(btn => btn.addEventListener('click', () => openModal(btn.getAttribute('data-phone') || '')));
+    if (selectedPhone) openModal(selectedPhone);
 
     const closeModal = () => {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = null;
       if (modal) {
         if (typeof modal.close === 'function') modal.close();
         else modal.removeAttribute('open');
@@ -4185,10 +4615,16 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
     });
 
     app.get('/admin/whatsapp/status', async (_req, res) => {
-        let wa = getWaStatus();
-        if (!wa.qr && wa.state !== 'open' && wa.state !== 'connecting') {
-            startWhatsAppConnection().catch(() => {});
-            wa = getWaStatus();
+        const rawPhone = String(_req.query.phone || '');
+        const phone = rawPhone === 'pending' ? 'pending' : rawPhone.replace(/[^0-9]/g, '');
+        if (!phone) {
+            res.json({ state: 'unknown', detail: 'Buka modal Tambah Nomor untuk membuat QR.', qr: null, qrUrl: null, phone: null, sessions: globalWhatsAppManager.getSessions() });
+            return;
+        }
+        let wa = getWaSessionStatus(phone);
+        if (phone === 'pending' && (isWaSessionStaleConnecting(wa) || (!wa.qr && wa.state !== 'open' && wa.state !== 'connecting'))) {
+            startWhatsAppConnection(phone).catch(() => {});
+            wa = getWaSessionStatus(phone);
         }
         let qrUrl = wa.qrUrl || null;
         if (wa.qr && (!qrUrl || !qrUrl.startsWith('data:image/'))) {
@@ -4207,11 +4643,28 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
         });
     });
 
+    app.get('/admin/api/whatsapp', async (_req, res) => {
+        const config = globalWhatsAppManager.getConfig();
+        res.json({ config, sessions: globalWhatsAppManager.getSessions(), mainStatus: getWaStatus() });
+    });
+
+    app.get('/admin/api/config', (_req, res) => res.json({ config: getBusinessConfig(), raw: fs.existsSync(CONFIG_PATH) ? fs.readFileSync(CONFIG_PATH, 'utf8') : '{}' }));
+    app.get('/admin/api/prompt', (_req, res) => { const builder = readPromptBuilder(); res.json({ builder, presets: PROMPT_PRESETS, generated: buildSystemPrompt(builder), config: buildPromptConfigData() }); });
+    app.get('/admin/api/settings', async (_req, res) => res.json({ env: readEnvValues(), aiHealth: await checkAiHealth(), backups: await listBackupRuns(pool, 5) }));
+
     app.post('/admin/whatsapp/qr/generate', async (_req, res) => {
+        const phone = String(_req.body.phone || '').replace(/[^0-9]/g, '');
+        if (!phone) {
+            try { await startWhatsAppConnection('pending'); } catch {}
+            const wa = getWaSessionStatus('pending');
+            res.json({ ok: true, qrUrl: wa.qrUrl || null });
+            return;
+        }
+        if (!globalWhatsAppManager.getSession(phone)) return res.status(400).json({ ok: false, error: 'Nomor belum terdaftar.' });
         try {
-            await startWhatsAppConnection();
+            await startWhatsAppConnection(phone);
         } catch {}
-        let wa = getWaStatus();
+        let wa = getWaSessionStatus(phone);
         let qrUrl = wa.qrUrl || null;
         if (wa.qr && (!qrUrl || !qrUrl.startsWith('data:image/'))) {
             try {
@@ -4226,30 +4679,40 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
 
     app.post('/admin/whatsapp/numbers/add', async (req, res) => {
         const id = String(req.body.id || '').trim();
-        const phone = String(req.body.phone || '').replace(/[^0-9]/g, '').trim();
+        const csNameOverride = String(req.body.csNameOverride || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+        const pendingStatus = getWaSessionStatus('pending');
+        const phone = String(pendingStatus.state === 'open' ? pendingStatus.phone || '' : '').replace(/[^0-9]/g, '').trim();
         const dailyLimit = Math.max(10, parseInt(req.body.dailyLimit || '300', 10));
 
         if (!id || !phone) {
-            redirectWithMsg(res, '/admin/whatsapp', 'Nama CS dan nomor WhatsApp wajib diisi.', 'error');
+            redirectWithMsg(res, '/admin/whatsapp', 'Scan QR sampai nomor WhatsApp terdeteksi, lalu isi nama CS.', 'error');
             return;
         }
 
-        const currentWa = getWaStatus();
+        if (globalWhatsAppManager.getSession(phone)) {
+            redirectWithMsg(res, '/admin/whatsapp', `Nomor WhatsApp +${phone} sudah terdaftar.`, 'error');
+            return;
+        }
         globalWhatsAppManager.registerSession({
             id,
+            ...(csNameOverride ? { csNameOverride } : {}),
             phone,
-            status: currentWa.state === 'open' ? 'online' : 'connecting',
+            status: 'connecting',
             dailyLimit,
             todayLeadCount: 0,
             todayMessageCount: 0,
         });
-
-        redirectWithMsg(res, '/admin/whatsapp', `Nomor WhatsApp ${id} (+${phone}) berhasil didaftarkan.`, 'ok');
+        const adopted = adoptPendingWhatsAppSession(phone);
+        setWaSessionStatus(phone, adopted && pendingStatus.state === 'open'
+            ? { ...pendingStatus, state: 'open', phone }
+            : { state: 'connecting', detail: 'Menyiapkan sesi nomor ini', phone: undefined, qr: undefined, qrUrl: undefined });
+        redirectWithMsg(res, `/admin/whatsapp?connect=${encodeURIComponent(phone)}`, `Nomor WhatsApp ${id} berhasil disimpan.`, 'ok');
     });
 
     app.post('/admin/whatsapp/numbers/update', async (req, res) => {
         const phone = String(req.body.phone || '').trim();
         const id = String(req.body.id || '').trim();
+        const csNameOverride = String(req.body.csNameOverride || '').replace(/\s+/g, ' ').trim().slice(0, 60);
         const dailyLimit = Math.max(10, parseInt(req.body.dailyLimit || '300', 10));
 
         if (!id || !phone) {
@@ -4265,6 +4728,7 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
 
         globalWhatsAppManager.updateSession(phone, {
             id,
+            csNameOverride: csNameOverride || undefined,
             dailyLimit,
         });
 
@@ -4272,17 +4736,25 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
     });
 
     app.post('/admin/whatsapp/numbers/delete', async (req, res) => {
-        const phone = String(req.body.phone || '').trim();
-        if (phone) {
-            globalWhatsAppManager.removeSession(phone);
-            redirectWithMsg(res, '/admin/whatsapp', `Nomor WhatsApp +${phone} berhasil dihapus.`, 'ok');
-            return;
-        }
-        redirectWithMsg(res, '/admin/whatsapp', 'Nomor WhatsApp tidak valid.', 'error');
+        const phone = String(req.body.phone || '').replace(/[^0-9]/g, '').trim();
+        if (!phone) return redirectWithMsg(res, '/admin/whatsapp', 'Nomor WhatsApp tidak valid.', 'error');
+        await stopWhatsAppSession(phone, true);
+        const deleted = globalWhatsAppManager.removeSession(phone);
+        redirectWithMsg(
+            res,
+            '/admin/whatsapp',
+            deleted ? `Nomor WhatsApp +${phone} berhasil dihapus.` : `Nomor WhatsApp +${phone} tidak ditemukan atau gagal disimpan.`,
+            deleted ? 'ok' : 'error',
+        );
     });
 
     app.post('/admin/whatsapp/config', async (req, res) => {
-        const rotationMode = (req.body.rotationMode || 'round_robin') as RotationMode;
+        const rawRotationMode = String(req.body.rotationMode || 'round_robin');
+        if (!(['round_robin', 'least_busy', 'random'] as string[]).includes(rawRotationMode)) {
+            redirectWithMsg(res, '/admin/whatsapp', 'Mode rotasi tidak valid.', 'error');
+            return;
+        }
+        const rotationMode = rawRotationMode as RotationMode;
         const minDelaySeconds = Math.max(0, parseInt(req.body.minDelaySeconds || '3', 10));
         const maxDelaySeconds = Math.max(minDelaySeconds, parseInt(req.body.maxDelaySeconds || '5', 10));
         const maxConcurrency = Math.max(1, parseInt(req.body.maxConcurrency || '3', 10));
@@ -4505,7 +4977,11 @@ ${ordersTable(rowsResult.rows)}`, 'orders', { toastHtml: toastFromQuery(req.quer
         res.send(page(`Pesanan #${id}`, `${pageHeader(`Pesanan #${id}`, 'Detail produk, pelanggan, pengiriman, dan pembayaran.', 'OR-07')}
 <div class="row-actions" style="margin-bottom:22px"><a class="ghost-btn" href="/admin/orders">Kembali ke Pesanan</a><a class="ghost-btn" href="/admin/chat?jid=${encodeURIComponent(String(order.jid || ''))}">Lihat percakapan</a>${whatsappNumber(order.jid) ? `<a class="ghost-btn" href="https://wa.me/${whatsappNumber(order.jid)}" target="_blank" rel="noreferrer">Hubungi di WhatsApp</a>` : ''}</div>
 ${orderDetailHtml(order)}
-${String(order.status) === 'awaiting_payment' ? `<form method="post" action="/admin/orders/paid" data-confirm="Tandai pesanan #${id} sebagai lunas setelah pembayaran diperiksa?"><input type="hidden" name="jid" value="${escapeHtml(order.jid)}"><input type="hidden" name="orderId" value="${id}"><button type="submit">Tandai lunas</button></form>` : ''}`, 'orders'));
+<div class="row-actions">
+${String(order.status) === 'awaiting_payment' ? `<form method="post" action="/admin/orders/paid" data-confirm="Tandai pesanan #${id} sebagai lunas setelah pembayaran diperiksa?"><input type="hidden" name="jid" value="${escapeHtml(order.jid)}"><input type="hidden" name="orderId" value="${id}"><button type="submit">Tandai lunas</button></form>` : ''}
+${String(order.status) === 'paid' ? `<form method="post" action="/admin/orders/status"><input type="hidden" name="orderId" value="${id}"><input type="hidden" name="status" value="shipped"><label>Kurir<input name="shippingCarrier" placeholder="Contoh: JNE"></label><label>Nomor resi<input name="trackingNumber" required></label><button type="submit">Tandai dikirim</button></form>` : ''}
+${String(order.status) === 'shipped' ? `<form method="post" action="/admin/orders/status"><input type="hidden" name="orderId" value="${id}"><input type="hidden" name="status" value="completed"><button type="submit">Tandai selesai</button></form>` : ''}
+</div>`, 'orders'));
     });
 
     app.post('/admin/orders/paid', async (req, res) => {
@@ -4513,6 +4989,14 @@ ${String(order.status) === 'awaiting_payment' ? `<form method="post" action="/ad
         const orderId = Number(req.body.orderId);
         const paid = await markOrderPaid(jid, Number.isFinite(orderId) ? orderId : undefined);
         redirectWithMsg(res, '/admin/orders', paid.ok ? `Pesanan #${paid.order.id} ditandai lunas.` : paid.error, paid.ok ? 'ok' : 'error');
+    });
+
+    app.post('/admin/orders/status', async (req, res) => {
+        const orderId = Number(req.body.orderId);
+        const status = String(req.body.status || '') as 'shipped' | 'completed' | 'cancelled';
+        if (!Number.isInteger(orderId) || !['shipped', 'completed', 'cancelled'].includes(status)) return redirectWithMsg(res, '/admin/orders', 'Status pesanan tidak valid.', 'error');
+const result = await advanceOrderStatus(orderId, status, 'admin-ui', { trackingNumber: String(req.body.trackingNumber || '').trim(), shippingCarrier: String(req.body.shippingCarrier || '').trim() });
+        redirectWithMsg(res, `/admin/orders/${orderId}`, result.ok ? 'Status pesanan diperbarui.' : result.error, result.ok ? 'ok' : 'error');
     });
 
     app.get('/admin/chat', async (req, res) => {
@@ -4580,6 +5064,18 @@ ${pipelineFailures.length ? `<div class="table-wrap"><table><thead><tr><th>Arah<
         redirectWithMsg(res, '/admin/handoff', jid ? `Handoff ${jid} di-resolve.` : 'JID kosong.', jid ? 'ok' : 'error');
     });
 
+    app.post('/admin/handoff/assign', async (req, res) => {
+        const id = Number(req.body.id);
+        if (Number.isFinite(id)) await handoffRepository.assign(id, 'admin-ui', 'admin-ui');
+        redirectWithMsg(res, '/admin/handoff', 'Handoff diambil.', 'ok');
+    });
+
+    app.post('/admin/handoff/handling', async (req, res) => {
+        const id = Number(req.body.id);
+        if (Number.isFinite(id)) await handoffRepository.startHandling(id, 'admin-ui');
+        redirectWithMsg(res, '/admin/handoff', 'Handoff mulai ditangani.', 'ok');
+    });
+
     app.post('/admin/customer/update', async (req, res) => {
         try {
             const raw = String(req.body.jid || '').trim().toLowerCase();
@@ -4630,10 +5126,7 @@ ${pipelineFailures.length ? `<div class="table-wrap"><table><thead><tr><th>Arah<
             } else {
                 jid = normalizeCustomerJid(raw);
             }
-            await clearChatHistory(jid);
-            await clearOrderState(jid);
-            await pool.query('DELETE FROM leads WHERE jid = $1', [jid]);
-            await pool.query('DELETE FROM handoff_log WHERE jid = $1', [jid]);
+            await deleteCustomerData(jid, { retainFinancial: true });
         } catch (error) {
             const back = String(req.get('referer') || '').includes('/admin/leads') ? String(req.get('referer')) : '/admin/leads';
             redirectWithMsg(res, back, error instanceof Error ? error.message : 'Nomor WhatsApp tidak valid.', 'error');
@@ -4643,12 +5136,23 @@ ${pipelineFailures.length ? `<div class="table-wrap"><table><thead><tr><th>Arah<
         redirectWithMsg(res, back, `Customer ${jid} dihapus.`, 'ok');
     });
 
+    app.get('/admin/customer/export', async (req, res) => {
+        try {
+            const jid = String(req.query.jid || '').trim();
+            const payload = await exportCustomerData(jid);
+            res.setHeader('Content-Disposition', `attachment; filename="customer-export-${encodeURIComponent(jid.replace(/[^a-z0-9@._-]/gi, '_'))}.json"`);
+            res.type('application/json').send(JSON.stringify(payload, null, 2));
+        } catch (error) {
+            redirectWithMsg(res, '/admin/leads', error instanceof Error ? error.message : 'Data customer tidak dapat diekspor.', 'error');
+        }
+    });
+
     app.post('/admin/auth/clear', async (req, res) => {
         const targetUrl = String(req.body.redirectUrl || req.get('referer') || '/admin/whatsapp');
         const phone = req.body.phone ? String(req.body.phone).trim() : null;
         if (phone) {
             globalWhatsAppManager.setSessionStatus(phone, 'disconnected');
-            await pool.query('DELETE FROM auth_keys WHERE phone = $1', [phone]).catch(() => pool.query('DELETE FROM auth_keys'));
+            await stopWhatsAppSession(phone, true);
             redirectWithMsg(res, targetUrl, `Sesi WhatsApp untuk ${phone} berhasil di-reset.`, 'ok');
             return;
         }

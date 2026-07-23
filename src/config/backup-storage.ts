@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { createReadStream, createWriteStream } from 'node:fs';
-import { readFile, writeFile, unlink, stat } from 'node:fs/promises';
+import { readFile, writeFile, unlink, stat, mkdir, readdir } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { appLogger } from './logger.js';
@@ -49,11 +49,20 @@ export class LocalBackupStorage implements BackupStorage {
         this.directory = directory;
         if (encryptionKey) {
             this.encryptionKey = Buffer.from(encryptionKey, 'hex');
+            if (this.encryptionKey.length !== 32) throw new Error('BACKUP_ENCRYPTION_KEY must be 64 hex characters.');
         }
     }
 
+    private resolve(remoteName: string) {
+        const root = path.resolve(this.directory);
+        const target = path.resolve(root, remoteName);
+        if (target !== root && !target.startsWith(`${root}${path.sep}`)) throw new Error('Invalid backup name.');
+        return target;
+    }
+
     async upload(localPath: string, remoteName: string, encrypt = false): Promise<BackupMetadata> {
-        const remotePath = path.join(this.directory, remoteName);
+        const remotePath = this.resolve(remoteName);
+        await mkdir(path.dirname(remotePath), { recursive: true });
         const stats = await stat(localPath);
         
         let checksum: string;
@@ -118,7 +127,7 @@ export class LocalBackupStorage implements BackupStorage {
     }
 
     async download(remoteName: string, localPath: string, decrypt = false): Promise<void> {
-        const remotePath = path.join(this.directory, remoteName);
+        const remotePath = this.resolve(remoteName);
         
         if (decrypt && this.encryptionKey) {
             // Read IV and decrypt
@@ -178,12 +187,23 @@ export class LocalBackupStorage implements BackupStorage {
     }
 
     async list(): Promise<BackupMetadata[]> {
-        // Placeholder: would scan directory and return metadata
-        return [];
+        await mkdir(this.directory, { recursive: true });
+        const entries = await readdir(this.directory, { withFileTypes: true });
+        const result: BackupMetadata[] = [];
+        for (const entry of entries) {
+            if (!entry.isFile()) continue;
+            const filename = entry.name;
+            const filePath = this.resolve(filename);
+            const info = await stat(filePath);
+            const digest = createHash('sha256');
+            digest.update(await readFile(filePath));
+            result.push({ filename, size: info.size, checksum: digest.digest('hex'), encrypted: false, uploadedAt: info.mtime.toISOString() });
+        }
+        return result.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
     }
 
     async delete(remoteName: string): Promise<void> {
-        const remotePath = path.join(this.directory, remoteName);
+        const remotePath = this.resolve(remoteName);
         await unlink(remotePath);
         appLogger.info({ component: 'backup-storage', remoteName }, 'backup.deleted');
     }
@@ -213,39 +233,19 @@ export class S3BackupStorage implements BackupStorage {
     }
 
     async upload(localPath: string, remoteName: string, encrypt = false): Promise<BackupMetadata> {
-        // Placeholder: would use AWS SDK or MinIO client
-        // For now, just log the intent
-        appLogger.warn(
-            { component: 'backup-storage', provider: 's3', remoteName },
-            'backup.s3_not_implemented'
-        );
-        
-        const stats = await stat(localPath);
-        return {
-            filename: remoteName,
-            size: stats.size,
-            checksum: 'placeholder',
-            encrypted: encrypt,
-            uploadedAt: new Date().toISOString(),
-        };
+        throw new Error('S3 backup provider is not implemented; use BACKUP_PROVIDER=local.');
     }
 
     async download(remoteName: string, localPath: string, decrypt = false): Promise<void> {
-        appLogger.warn(
-            { component: 'backup-storage', provider: 's3', remoteName },
-            'backup.s3_not_implemented'
-        );
+        throw new Error('S3 backup provider is not implemented; use BACKUP_PROVIDER=local.');
     }
 
     async list(): Promise<BackupMetadata[]> {
-        return [];
+        throw new Error('S3 backup provider is not implemented; use BACKUP_PROVIDER=local.');
     }
 
     async delete(remoteName: string): Promise<void> {
-        appLogger.warn(
-            { component: 'backup-storage', provider: 's3', remoteName },
-            'backup.s3_not_implemented'
-        );
+        throw new Error('S3 backup provider is not implemented; use BACKUP_PROVIDER=local.');
     }
 }
 

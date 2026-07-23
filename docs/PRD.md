@@ -30,6 +30,7 @@ npm start
 - Admin development memilih port kosong mulai 3000 dan menulis URL aktif ke terminal.
 - Satu proses bot dijaga oleh `data/voidlark.lock`.
 - Setelah perubahan kode, jalankan `npm run build`, lalu restart server jika server memang sedang digunakan. Jangan menyalakan server jika user sudah meminta server dihentikan.
+- `src/` hanya berisi source TypeScript. Ekstensi `.js` pada import internal wajib dipertahankan untuk ESM `NodeNext`; JavaScript runtime hanya dihasilkan ke `dist/` oleh `npm run build`.
 
 ## Arsitektur Konfigurasi
 
@@ -60,8 +61,9 @@ Sumber: `.env`, dikelola melalui `/admin/settings`.
 
 Pengguna tidak mengatur `PORT` atau `NODE_ENV` dari UI. Settings dibagi menjadi:
 
-- Koneksi utama: Database dan AI.
-- Fitur pendukung: Ongkir, Lookup eksternal, dan Handoff.
+- Koneksi utama: AI.
+- Layanan lanjutan: Ongkir, Handoff, Lookup eksternal, dan Database.
+- Layout desktop layanan lanjutan menempatkan Ongkir dan Handoff di kolom kiri, serta Lookup eksternal dan Database di kolom kanan; mobile runtuh menjadi satu kolom.
 
 Nomor admin menerima format awam seperti `081234567890` dan dinormalisasi ke JID WhatsApp.
 
@@ -215,7 +217,7 @@ Brave input sudah dihapus dari UI karena tidak menjadi free-tier utama. Dukungan
 
 Total detail order menghitung `harga satuan x quantity + ongkir`.
 
-Status production lengkap, payment gateway, webhook idempotent, dan state machine transactional belum tersedia; lihat `.project/nextplan.md`.
+Status production penuh dan payment gateway nyata belum tersedia; webhook idempotent, transaction abstraction, migration ledger, dan order state machine sudah tersedia. Lihat `docs/ROADMAP.md` untuk gap launch.
 
 ### Handoff
 
@@ -239,17 +241,17 @@ Handoff operasional memiliki status waiting/assigned/handling/resolved, priority
 Nama navigasi saat ini:
 
 - Ringkasan
+- Perlu Ditangani
+- Pelanggan & Chat
+- Pesanan
 - Profil & Alur
 - Gaya Balasan
 - Katalog & Informasi
 - Simulasi Percakapan
-- Perlu Ditangani
-- Riwayat Percakapan
-- Calon Pelanggan
-- Pesanan
+- Manajemen WA
 - Koneksi Sistem
 
-Identitas visual: Editorial Industrial Control Desk dengan IBM Plex Sans/Mono, cyan signal accent, low-radius geometry, inline Phosphor SVG, light/dark/system mode, responsive UI, dan accessibility dasar.
+Identitas visual: operational calm dengan bahasa komponen native terinspirasi shadcn/ui, hierarchy Carbon/Fluent, Inter Variable untuk product UI, IBM Plex Mono untuk data teknis, mature teal accent, satu-border surface, radius konsisten, inline Phosphor SVG, light/dark/system mode, responsive UI, dan accessibility dasar. Implementasi tetap server-rendered Express; tidak memakai paket React, Vite, Tailwind, atau shadcn/ui.
 
 Fitur penting:
 
@@ -284,24 +286,22 @@ Backup tidak mencakup:
 - database customer/order/chat,
 - sesi WhatsApp.
 
-Endpoint `/health` melaporkan database, WhatsApp, AI, shipping, lookup, dan uptime. Backup database otomatis tersedia untuk SQLite dan PostgreSQL, dengan checksum, retensi, audit `backup_runs`, dan drill melalui `npm run db:backup:drill -- <file>`. Backup lokal tetap perlu disalin ke storage off-host. Metrics dan alerts belum tersedia.
+Endpoint `/health`, `/health/live`, `/health/ready`, dan `/metrics` melaporkan database, WhatsApp, queue, backup age, uptime, dan metrik operasional. Backup database otomatis tersedia untuk SQLite dan PostgreSQL, dengan checksum, retensi, audit `backup_runs`, dan drill melalui `npm run db:backup:drill -- <file>`. Backup lokal tetap perlu disalin ke storage off-host; alert saat ini berupa structured log/SLO metric, belum routing operator.
 
 ## Batasan Production Saat Ini
 
-Project belum production-ready. Temuan utama audit disimpan lengkap di `.project/nextplan.md`:
+Project siap untuk staging/pilot terkontrol, tetapi belum boleh disebut production-ready penuh. Temuan utama audit disimpan di `docs/ROADMAP.md`:
 
-- durable inbound queue, deduplication, lease, retry/dead-letter, dan per-JID ordering sudah tersedia; cancellation produksi belum tersedia,
-- outbound outbox, retry, provider ID, serta delivery/read tracking sudah tersedia; transaksi atomik dengan business state menunggu fase database,
+- durable inbound queue, deduplication, lease, retry/dead-letter, per-JID ordering, dan bounded graceful drain saat shutdown sudah tersedia; failure drill process-kill nyata masih perlu,
+- outbound outbox, retry, provider ID, delivery/read tracking, dan outbound intent projection sudah tersedia; cancellation multi-bubble produksi belum menjadi requirement utama,
 - admin sudah memiliki authentication, logout, session expiry, dan CSRF protection,
-- database migration belum versioned,
-- order mutation belum transactional,
-- WhatsApp baru memahami text biasa,
-- Knowledge belum retrieval-based dan ingestion belum atomic,
-- belum ada automated tests milik project,
-- observability dan deployment supervision belum lengkap,
+- database migration, order transaction, payment webhook idempotency, dan audit trail sudah tersedia; payment provider nyata dan fulfillment lengkap belum,
+- WhatsApp mendukung text, image, document, location, dan voice path; tipe media lain tetap fallback/handoff,
+- Knowledge sudah bounded retrieval dan atomic ingestion; tuning chunk/schema lanjutan tetap terbuka,
+- automated tests, CI build/test/audit/secret scan, metrics, dan runbook sudah tersedia; E2E, load, failure drill, dashboard, dan deployment supervision nyata belum lengkap,
 - Parsing workbook menggunakan `exceljs`; format spreadsheet Knowledge yang didukung adalah XLSX dan CSV.
 
-Perkiraan production readiness hasil audit: 35-40%.
+Perkiraan readiness bersifat gate-based, bukan persentase. Status saat ini: staging/pilot terkontrol; launch gates ada di `docs/ROADMAP.md`.
 
 ## Aturan Workspace
 
@@ -309,11 +309,18 @@ Perkiraan production readiness hasil audit: 35-40%.
 - Jangan hardcode industri di `src/`.
 - Jangan membuat sumber prompt kedua di luar Prompt Builder.
 - Jangan memasukkan API key atau secret ke dokumentasi, log, atau source.
-- `.env` harus diperlakukan sebagai secret; audit menunjukkan `.gitignore` masih perlu diperkeras sesuai `.project/nextplan.md`.
+- `.env` harus diperlakukan sebagai secret dan tidak boleh dilacak Git.
 - Jangan mengedit `dist` manual; hasilkan dengan `npm run build`.
 - Setelah perubahan kode, validasi build dan restart server hanya jika server sedang digunakan.
-- Semua dokumentasi project wajib disimpan di folder `.project/`.
-- Update `.project/CHANGELOG.md` untuk setiap perubahan penting.
-- Update `.project/PRD.md` jika arsitektur, aturan, requirement, atau workflow berubah.
-- Update `.project/nextplan.md` jika audit, prioritas, roadmap, atau pekerjaan lanjutan berubah.
+- Dokumentasi produk dan engineering wajib disimpan di `docs/`; changelog kanonis berada di root repository.
+- Update `CHANGELOG.md` untuk setiap perubahan penting.
+- Update `docs/PRD.md` jika arsitektur, aturan, requirement, atau workflow berubah.
+- Update `docs/ROADMAP.md` jika audit, prioritas, roadmap, atau pekerjaan lanjutan berubah.
 - Jangan membuat atau menggunakan kembali folder `.agents/` maupun file `.agents/AGENTS.md`.
+
+## Runtime Status Terbaru — 2026-07-23
+
+Catatan lama di bawah dokumen ini bersifat historis. Status kanonis saat ini: durable ingestion, versioned migrations, payment webhook idempotency, tests, metrics, privacy lifecycle, outbound intent projection, dan WhatsApp multi-number control plane aktif. Gap launch tercatat di `docs/ROADMAP.md`; cloud backup providers tetap nonaktif sampai implementasi dan kredensial diverifikasi.
+# Runtime status note — 2026-07-22
+
+Catatan status historis telah digabungkan ke status kanonis di atas. Lifecycle multi-socket WhatsApp kini aktif; provider backup off-host tetap nonaktif sampai implementasi dan kredensial diverifikasi.

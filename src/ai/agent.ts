@@ -389,7 +389,12 @@ const appendCompletion = async (
 const looksLikeShippingIssue = (text: string) => /\b(ongkir|ongkos kirim|pengiriman|kurir|rajaongkir)\b/i.test(text);
 
 const sanitizeAgentText = (text: string) => sanitizeCustomerLanguage(stripInternalMarkup(text).replace(/\*/g, ''));
+export const isInternalRepairText = (text: string) => /^(?:hapus|koreksi|perbaiki|hilangkan|klaim|balasan\s+(?:yang\s+)?salah|unsupported(?:\s+types?)?|tidak ada bukti|bukti katalog|customer-facing)\b/i.test(text.trim())
+    || /\b(?:unsupportedTypes|validateClaims|system prompt|proses berpikir|instruksi internal)\b/i.test(text);
 const SAFE_CUSTOMER_FALLBACK = 'Maaf Kak, aku belum bisa memastikan rekomendasi yang paling mirip dari katalog. Aku bantu teruskan ke admin ya.';
+const evidenceFallback = (unsupportedTypes: string[]) => unsupportedTypes.includes('price')
+    ? 'Maaf Kak, harga produk itu belum tercantum pada katalog yang aku pegang. Aku bantu konfirmasi ke admin dulu ya.'
+    : SAFE_CUSTOMER_FALLBACK;
 
 const enforceCatalogEvidence = async (
     text: string,
@@ -409,7 +414,10 @@ const enforceCatalogEvidence = async (
         max_tokens: 1_000,
     });
     const repairedText = sanitizeAgentText(repaired.choices[0].message.content || '');
-    return validateClaims(repairedText, evidence).valid ? repairedText : SAFE_CUSTOMER_FALLBACK;
+    // Model kadang mengulang instruksi validator sebagai jawaban. Jangan kirim metadata internal.
+    const fallback = evidenceFallback(validation.unsupportedTypes);
+    if (!repairedText || isInternalRepairText(repairedText)) return fallback;
+    return validateClaims(repairedText, evidence).valid ? repairedText : fallback;
 };
 
 const extractLeadFromPrompt = (text: string) => {
@@ -514,7 +522,7 @@ const handleToolCall = async (
     }
 };
 
-export const askAgent = async (prompt: string, context: string = '', history: ChatMessage[] = [], jid: string = ''): Promise<AgentResult> => {
+export const askAgent = async (prompt: string, context: string = '', history: ChatMessage[] = [], jid: string = '', csNameOverride?: string): Promise<AgentResult> => {
     console.log('Menghubungi AI dengan model:', process.env.AI_MODEL || 'gemini/gemini-2.5-flash');
 
     try {
@@ -556,7 +564,7 @@ export const askAgent = async (prompt: string, context: string = '', history: Ch
         const recentHistory = history.slice(-12);
         const retrievalQuery = [...recentHistory.map((message) => message.content), prompt].join('\n');
         const relevantContext = selectRelevantKnowledge(context, retrievalQuery);
-        const fullSystemPrompt = `${buildBusinessPrompt()}\n\n${basePrompt}\n\nATURAN PENGIRIMAN (DARI SISTEM):\n${checkoutRule}${handoffInstruction}\n\nPENTING: Setiap kali pelanggan memberikan info (nama, alamat, preferensi, dsb), SELALU panggil tool simpanDataPelanggan.\nSetiap customer memilih produk, varian/opsi, level/kualitas, ukuran/paket, qty, data checkout, atau ongkir, SELALU panggil tool simpanDraftPesanan.\n${shippingRule} Jika pelanggan juga memberikan data diri, panggil simpanDataPelanggan sekaligus.\nJangan minta data checkout sebelum produk/opsi utama (dan field order wajib dari config) cukup jelas. Jangan ringkasan pesanan akhir sebelum checkout lengkap.\n${orderRule}\n\nKNOWLEDGE RELEVAN (KATALOG / FAQ PRODUK):\n${relevantContext || 'Belum ada data katalog yang relevan.'}`;
+        const fullSystemPrompt = `${buildBusinessPrompt(csNameOverride)}\n\n${basePrompt}\n\nATURAN PENGIRIMAN (DARI SISTEM):\n${checkoutRule}${handoffInstruction}\n\nPENTING: Setiap kali pelanggan memberikan info (nama, alamat, preferensi, dsb), SELALU panggil tool simpanDataPelanggan.\nSetiap customer memilih produk, varian/opsi, level/kualitas, ukuran/paket, qty, data checkout, atau ongkir, SELALU panggil tool simpanDraftPesanan.\n${shippingRule} Jika pelanggan juga memberikan data diri, panggil simpanDataPelanggan sekaligus.\nJangan minta data checkout sebelum produk/opsi utama (dan field order wajib dari config) cukup jelas. Jangan ringkasan pesanan akhir sebelum checkout lengkap.\n${orderRule}\n\nKNOWLEDGE RELEVAN (KATALOG / FAQ PRODUK):\n${relevantContext || 'Belum ada data katalog yang relevan.'}`;
 
         const messages: any[] = [
             { role: 'system', content: fullSystemPrompt },
@@ -615,7 +623,7 @@ export const askAgent = async (prompt: string, context: string = '', history: Ch
     }
 };
 
-export const previewAgentReply = async (prompt: string, context: string = '', history: ChatMessage[] = []) => {
+export const previewAgentReply = async (prompt: string, context: string = '', history: ChatMessage[] = [], csNameOverride?: string) => {
     const apiKey = process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || '';
     const baseURL = process.env.AI_API_BASE_URL || 'http://localhost:20128/v1';
     if (!apiKey) throw new Error('API key AI belum diisi. Buka Koneksi Sistem untuk menghubungkan AI.');
@@ -649,7 +657,7 @@ export const previewAgentReply = async (prompt: string, context: string = '', hi
         ? buildExternalLookupFallback(externalLookupQuery, externalReference.content, businessConfig.businessName)
         : SAFE_CUSTOMER_FALLBACK;
     const domainPolicy = `STRATEGI DOMAIN AKTIF (${domainMatcher.id}):\n${domainMatch.policy}`;
-    const systemPrompt = `${buildBusinessPrompt()}\n\n${basePrompt}\n\nCORE OUTPUT POLICY:\nGunakan Bahasa Indonesia natural saja. Jangan gunakan aksara China. Jangan pernah menampilkan DSML, XML, environment_details, JSON tool call, workspace path, metadata sistem, atau proses berpikir kepada customer. Jika referensi web sudah tersedia, jangan panggil tool pencarian lagi. Jangan menciptakan produk, pilihan, spesifikasi, harga, atau ketersediaan yang tidak ada pada evidence.\n\n${domainPolicy}\n\nMODE PREVIEW ADMIN:\nJangan menyimpan data, draft, pesanan, atau handoff. Jawab sebagai simulasi percakapan saja. WAJIB baca seluruh RIWAYAT CHAT yang diberikan. Jangan mengulang sapaan/perkenalan setelah turn pertama. Jangan menanyakan ulang konteks yang sudah disebut customer. Saat customer memakai rujukan seperti "yang paling mirip", hubungkan dengan topik pada riwayat terdekat. Jangan langsung handoff jika evidence cukup untuk memberi jawaban berguna.\nShipping ${businessConfig.enableShipping ? 'aktif' : 'nonaktif'}.\n\nDOMAIN AKTIF: ${domainMatcher.id}\n\nREFERENSI WEB TERVERIFIKASI:\n${compactExternalReference}\n\nPROFIL DOMAIN TERVERIFIKASI:\n${domainMatch.profileEvidence}\n\nKANDIDAT KATALOG TERVERIFIKASI:\n${domainMatch.candidateEvidence}\n\nKNOWLEDGE RELEVAN:\n${relevantContext || 'Belum ada data katalog yang relevan.'}`;
+    const systemPrompt = `${buildBusinessPrompt(csNameOverride)}\n\n${basePrompt}\n\nCORE OUTPUT POLICY:\nGunakan Bahasa Indonesia natural saja. Jangan gunakan aksara China. Jangan pernah menampilkan DSML, XML, environment_details, JSON tool call, workspace path, metadata sistem, atau proses berpikir kepada customer. Jika referensi web sudah tersedia, jangan panggil tool pencarian lagi. Jangan menciptakan produk, pilihan, spesifikasi, harga, atau ketersediaan yang tidak ada pada evidence.\n\n${domainPolicy}\n\nMODE PREVIEW ADMIN:\nJangan menyimpan data, draft, pesanan, atau handoff. Jawab sebagai simulasi percakapan saja. WAJIB baca seluruh RIWAYAT CHAT yang diberikan. Jangan mengulang sapaan/perkenalan setelah turn pertama. Jangan menanyakan ulang konteks yang sudah disebut customer. Saat customer memakai rujukan seperti "yang paling mirip", hubungkan dengan topik pada riwayat terdekat. Jangan langsung handoff jika evidence cukup untuk memberi jawaban berguna.\nShipping ${businessConfig.enableShipping ? 'aktif' : 'nonaktif'}.\n\nDOMAIN AKTIF: ${domainMatcher.id}\n\nREFERENSI WEB TERVERIFIKASI:\n${compactExternalReference}\n\nPROFIL DOMAIN TERVERIFIKASI:\n${domainMatch.profileEvidence}\n\nKANDIDAT KATALOG TERVERIFIKASI:\n${domainMatch.candidateEvidence}\n\nKNOWLEDGE RELEVAN:\n${relevantContext || 'Belum ada data katalog yang relevan.'}`;
     const model = process.env.AI_MODEL || 'gemini/gemini-2.5-flash';
     const messages: any[] = [
         { role: 'system', content: systemPrompt },

@@ -5,6 +5,9 @@ services:
       target: runtime
     restart: unless-stopped
     init: true
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "3000:3000"
     environment:
@@ -14,10 +17,18 @@ services:
       DB_DRIVER: sqlite
       SQLITE_PATH: /app/data/voidlark.db
       DB_BACKUP_DIR: /app/backups/database
+      DB_BACKUP_ENABLED: ${DB_BACKUP_ENABLED:-true}
+      DB_BACKUP_RETENTION: ${DB_BACKUP_RETENTION:-14}
+      DB_BACKUP_INTERVAL_MINUTES: ${DB_BACKUP_INTERVAL_MINUTES:-1440}
+      DB_BACKUP_RUN_ON_START: ${DB_BACKUP_RUN_ON_START:-false}
+      READINESS_MAX_INBOUND_DEPTH: ${READINESS_MAX_INBOUND_DEPTH:-1000}
+      READINESS_MAX_OUTBOUND_DEPTH: ${READINESS_MAX_OUTBOUND_DEPTH:-1000}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
       AI_API_BASE_URL: ${AI_API_BASE_URL:-http://host.docker.internal:20128/v1}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-gemini/gemini-2.5-flash}
+      SHUTDOWN_DRAIN_TIMEOUT_MS: ${SHUTDOWN_DRAIN_TIMEOUT_MS:-15000}
+      PRIVACY_RETENTION_DAYS: ${PRIVACY_RETENTION_DAYS:-0}
     volumes:
       - voidlark-data:/app/data
       - voidlark-backups:/app/backups

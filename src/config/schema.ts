@@ -608,6 +608,30 @@ const applyOutboundPostSendActions = async (database: Database) => {
     await database.query('CREATE INDEX IF NOT EXISTS idx_outbound_post_send ON outbound_messages(post_send_status, sent_at, id)');
 };
 
+const applyOutboundIntentDelivery = async (database: Database) => {
+    await addColumnIfMissing(database, 'outbound_intents', 'processed_at', DB_DRIVER === 'postgres' ? 'TIMESTAMPTZ' : 'TEXT');
+    await addColumnIfMissing(database, 'outbound_intents', 'last_error', 'TEXT');
+    await database.query('CREATE INDEX IF NOT EXISTS idx_outbound_intents_pending ON outbound_intents(processed_at, id)');
+};
+
+const applyOrderFulfillment = async (database: Database) => {
+    await addColumnIfMissing(database, 'orders', 'tracking_number', 'TEXT');
+    await addColumnIfMissing(database, 'orders', 'shipping_carrier', 'TEXT');
+    await addColumnIfMissing(database, 'orders', 'shipped_at', DB_DRIVER === 'postgres' ? 'TIMESTAMPTZ' : 'TEXT');
+    await addColumnIfMissing(database, 'orders', 'completed_at', DB_DRIVER === 'postgres' ? 'TIMESTAMPTZ' : 'TEXT');
+    await addColumnIfMissing(database, 'orders', 'cancelled_at', DB_DRIVER === 'postgres' ? 'TIMESTAMPTZ' : 'TEXT');
+    await addColumnIfMissing(database, 'orders', 'cancellation_reason', 'TEXT');
+};
+
+const cleanupUnsupportedGroupPipelineRows = async (database: Database) => {
+    await database.query(`UPDATE inbound_messages SET status = 'completed', completed_at = COALESCE(completed_at, CURRENT_TIMESTAMP),
+        lease_until = NULL, lease_token = NULL, last_error = NULL, updated_at = CURRENT_TIMESTAMP
+        WHERE jid LIKE '%@g.us' AND status IN ('queued', 'processing', 'retry', 'dead_letter')`);
+    await database.query(`UPDATE handoff_log SET resolved = ${DB_DRIVER === 'postgres' ? 'TRUE' : '1'}, status = 'resolved',
+        resolved_at = COALESCE(resolved_at, CURRENT_TIMESTAMP), resolution_note = 'Pesan grup diabaikan oleh pipeline customer', updated_at = CURRENT_TIMESTAMP
+        WHERE jid LIKE '%@g.us' AND ${DB_DRIVER === 'postgres' ? 'resolved = FALSE' : 'resolved = 0'}`);
+};
+
 const migrations: Migration[] = [
     {
         version: 1,
@@ -656,6 +680,24 @@ const migrations: Migration[] = [
         name: 'outbound_post_send_actions',
         source: 'outbound-post-send-action-and-status-v1',
         apply: applyOutboundPostSendActions,
+    },
+    {
+        version: 9,
+        name: 'outbound_intent_delivery',
+        source: 'outbound-intent-processed-at-last-error-index-v1',
+        apply: applyOutboundIntentDelivery,
+    },
+    {
+        version: 10,
+        name: 'order_fulfillment_metadata',
+        source: 'order-tracking-carrier-shipped-completed-cancelled-metadata-v1',
+        apply: applyOrderFulfillment,
+    },
+    {
+        version: 11,
+        name: 'ignore_group_customer_pipeline',
+        source: 'complete-group-inbound-and-resolve-group-handoffs-v1',
+        apply: cleanupUnsupportedGroupPipelineRows,
     },
 ];
 

@@ -102,15 +102,16 @@ export const getBusinessConfig = (): BusinessConfig => {
     };
 };
 
-export const buildBusinessPrompt = () => {
+export const buildBusinessPrompt = (csNameOverride?: string) => {
     const config = getBusinessConfig();
+    const csName = String(csNameOverride || config.csName).trim() || config.csName;
     const lookupRule = config.enableExternalProductLookup
         ? `Lookup eksternal AKTIF. Jika customer sebut produk/brand/spec yang tidak ada atau kurang jelas di knowledge base, panggil tool cariReferensiProduk. Hasil web = referensi saja, bukan stok/harga toko. Setelah dapat referensi, arahkan ke katalog toko.`
         : `Lookup eksternal NONAKTIF. Jika item di luar knowledge base, jujur belum ada di katalog, tawarkan opsi mirip dari knowledge base, atau escalateToHuman jika perlu.`;
 
     return `BUSINESS CONFIG:
 Nama bisnis/produk: ${config.businessName}
-Nama CS virtual: ${config.csName}
+Nama CS virtual: ${csName}
 Tipe produk: ${config.productType}
 Shipping aktif: ${config.enableShipping ? 'ya' : 'tidak'}
 Lookup eksternal: ${config.enableExternalProductLookup ? 'ya' : 'tidak'}
@@ -120,13 +121,13 @@ Field order utama: ${config.orderFields.join(', ')}
 Instruksi pembayaran: ${config.paymentInstructions}
 
 IDENTITAS WAJIB:
-Kamu adalah ${config.csName}, CS virtual ${config.businessName}. Bukan admin manusia.
-Sapa sebagai ${config.csName} dari ${config.businessName}, jangan "Ada yang bisa ${config.businessName} bantu?" (terasa kaku/korporat).
-Contoh sapaan bagus: "Halo Kak, aku ${config.csName} dari ${config.businessName}."
+Kamu adalah ${csName}, CS virtual ${config.businessName}. Bukan admin manusia.
+Sapa sebagai ${csName} dari ${config.businessName}, jangan "Ada yang bisa ${config.businessName} bantu?" (terasa kaku/korporat).
+Contoh sapaan bagus: "Halo Kak, aku ${csName} dari ${config.businessName}."
 
 Jika ditanya bot/AI/manusia:
 - Jujur singkat, hangat, tanpa malu-malu berlebihan dan tanpa emoji robot berlebihan.
-- Contoh: "Iya Kak, aku ${config.csName}, CS virtual ${config.businessName}. Tetap bisa bantu kok."
+- Contoh: "Iya Kak, aku ${csName}, CS virtual ${config.businessName}. Tetap bisa bantu kok."
 - Jangan berbohong bilang manusia. Jangan panjang-panjang soal "asisten virtual".
 - Langsung tawarkan bantu 1 pertanyaan lanjutan.
 

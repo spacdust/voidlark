@@ -6,11 +6,13 @@ export type NumberStatus = 'online' | 'connecting' | 'resting' | 'disconnected';
 
 export interface WhatsAppNumberSession {
     id: string; // E.g. 'CS Line 1'
+    csNameOverride?: string;
     phone: string;
     status: NumberStatus;
     dailyLimit: number;
     todayLeadCount: number;
     todayMessageCount: number;
+    counterDate?: string;
 }
 
 export interface WhatsAppManagerConfig {
@@ -38,10 +40,12 @@ export class WhatsAppManager {
     private config: WhatsAppManagerConfig;
     private isInitialized = false;
     private storagePath: string | null = STORAGE_PATH;
+    private readonly today: () => string;
 
-    constructor(config: Partial<WhatsAppManagerConfig> = {}, storagePath: string | null = STORAGE_PATH) {
+    constructor(config: Partial<WhatsAppManagerConfig> = {}, storagePath: string | null = STORAGE_PATH, today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date())) {
         this.config = { ...DEFAULT_WA_MANAGER_CONFIG, ...config };
         this.storagePath = storagePath;
+        this.today = today;
         if (this.storagePath) {
             this.loadFromDisk();
         }
@@ -59,6 +63,9 @@ export class WhatsAppManager {
                         this.sessions.set(s.phone, s);
                     }
                 }
+                if (data.stickyAssignments && typeof data.stickyAssignments === 'object') {
+                    this.stickyAssignments = new Map(Object.entries(data.stickyAssignments));
+                }
                 this.isInitialized = true;
             }
         } catch {
@@ -66,19 +73,21 @@ export class WhatsAppManager {
         }
     }
 
-    public saveToDisk() {
-        if (!this.storagePath) return;
+    public saveToDisk(): boolean {
+        if (!this.storagePath) return true;
         try {
             const dir = path.dirname(this.storagePath);
             if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
             const payload = {
                 config: this.config,
                 sessions: this.getSessions(),
+                stickyAssignments: Object.fromEntries(this.stickyAssignments),
             };
             fs.writeFileSync(this.storagePath, JSON.stringify(payload, null, 2), 'utf-8');
             this.isInitialized = true;
+            return true;
         } catch {
-            // Ignore write errors
+            return false;
         }
     }
 
@@ -96,7 +105,7 @@ export class WhatsAppManager {
     }
 
     public registerSession(session: WhatsAppNumberSession) {
-        this.sessions.set(session.phone, session);
+        this.sessions.set(session.phone, { ...session, counterDate: session.counterDate || this.today() });
         this.saveToDisk();
     }
 
@@ -109,12 +118,21 @@ export class WhatsAppManager {
     }
 
     public removeSession(phone: string): boolean {
-        const deleted = this.sessions.delete(phone);
-        if (deleted) this.saveToDisk();
-        return deleted;
+        const session = this.sessions.get(phone);
+        if (!session) return false;
+        this.sessions.delete(phone);
+        if (!this.saveToDisk()) {
+            this.sessions.set(phone, session);
+            return false;
+        }
+        for (const [customerJid, assignedPhone] of this.stickyAssignments) {
+            if (assignedPhone === phone) this.stickyAssignments.delete(customerJid);
+        }
+        return true;
     }
 
     public getSessions(): WhatsAppNumberSession[] {
+        this.resetDailyCounters();
         return Array.from(this.sessions.values());
     }
 
@@ -122,28 +140,35 @@ export class WhatsAppManager {
         return this.sessions.get(phone);
     }
 
+    public getEffectiveCsName(phone: string, defaultName: string): string {
+        return this.sessions.get(phone)?.csNameOverride?.trim() || defaultName;
+    }
+
     public setSessionStatus(phone: string, status: NumberStatus) {
         const session = this.sessions.get(phone);
         if (session) {
             session.status = status;
+            this.saveToDisk();
         }
     }
 
     public recordMessageSent(phone: string) {
+        this.resetDailyCounters();
         const session = this.sessions.get(phone);
         if (session) {
             session.todayMessageCount++;
+            this.saveToDisk();
         }
     }
 
     // Assigns an active WhatsApp number session for an incoming customer (JID)
     public assignNumberForLead(customerJid: string): WhatsAppNumberSession | null {
+        this.resetDailyCounters();
         // 1. Sticky Session Check: Existing customer gets their previously assigned number
         if (this.config.enableStickyAssignment && this.stickyAssignments.has(customerJid)) {
             const assignedPhone = this.stickyAssignments.get(customerJid)!;
             const session = this.sessions.get(assignedPhone);
-            // Return sticky session if active (even if resting daily limit, sticky customer stays!)
-            if (session && session.status !== 'disconnected') {
+            if (session && session.status === 'online') {
                 return session;
             }
         }
@@ -153,14 +178,7 @@ export class WhatsAppManager {
             (s) => s.status === 'online' && (s.dailyLimit <= 0 || s.todayLeadCount < s.dailyLimit)
         );
 
-        if (availableSessions.length === 0) {
-            // Fallback to any online session if all limits hit
-            const anyOnline = this.getSessions().filter((s) => s.status === 'online');
-            if (anyOnline.length === 0) return null;
-            const fallback = anyOnline[0];
-            if (this.config.enableStickyAssignment) this.stickyAssignments.set(customerJid, fallback.phone);
-            return fallback;
-        }
+        if (availableSessions.length === 0) return null;
 
         let selected: WhatsAppNumberSession;
 
@@ -186,6 +204,26 @@ export class WhatsAppManager {
 
     public getStickyAssignment(customerJid: string): string | undefined {
         return this.stickyAssignments.get(customerJid);
+    }
+
+    public setStickyAssignment(customerJid: string, phone: string) {
+        if (this.sessions.has(phone) && this.stickyAssignments.get(customerJid) !== phone) {
+            this.stickyAssignments.set(customerJid, phone);
+            this.saveToDisk();
+        }
+    }
+
+    private resetDailyCounters() {
+        const date = this.today();
+        let changed = false;
+        for (const session of this.sessions.values()) {
+            if (session.counterDate === date) continue;
+            session.todayLeadCount = 0;
+            session.todayMessageCount = 0;
+            session.counterDate = date;
+            changed = true;
+        }
+        if (changed) this.saveToDisk();
     }
 }
 

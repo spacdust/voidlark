@@ -80,9 +80,11 @@ test('payment handoff is opt-in and happens after order confirmation', async () 
     assert.ok(outbound.indexOf('outboundWorker.enqueue(jid, { text: result.text }') < outbound.indexOf('if (result.postPaymentHandoff)'));
 });
 
-test('dashboard stat row has five columns and AI detail wraps compactly', async () => {
+test('dashboard stat row uses at most four columns and AI detail wraps compactly', async () => {
     const source = await readFile(new URL('../src/admin/server.ts', import.meta.url), 'utf8');
-    assert.ok(source.includes('.grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));'));
+    assert.ok(source.includes('.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));'));
+    assert.ok(source.includes('.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }'));
+    assert.ok(source.includes('.grid { grid-template-columns: 1fr; }'));
     assert.match(source, /status-detail-wrap/);
     assert.match(source, /Pesan perlu retry/);
 });

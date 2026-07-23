@@ -7,6 +7,8 @@ export interface InboundEnvelope { message: WAMessage; receivedAt: string }
 export type InboundHandler = (message: WAMessage) => Promise<void>;
 export type OutboundHandler = (jid: string, payload: unknown) => Promise<string | null>;
 
+export const isSupportedInboundJid = (jid: string | null | undefined): jid is string => Boolean(jid && (jid.endsWith('@s.whatsapp.net') || jid.endsWith('@lid')));
+
 export class PermanentInboundError extends Error {
     constructor(message: string) {
         super(message);
@@ -48,7 +50,7 @@ export class DurableInboundWorker {
         for (const message of messages) {
             const providerId = message.key.id;
             const jid = message.key.remoteJid;
-            if (!providerId || !jid || !message.message || message.key.fromMe) continue;
+            if (!providerId || !isSupportedInboundJid(jid) || !message.message || message.key.fromMe) continue;
             await this.store.enqueueInbound(providerId, jid, { message, receivedAt: new Date().toISOString() } satisfies InboundEnvelope);
         }
         this.wake();
@@ -69,6 +71,13 @@ export class DurableInboundWorker {
         this.stopped = true;
         if (this.pollTimer) clearTimeout(this.pollTimer);
         this.pollTimer = null;
+    }
+
+    async drain(timeoutMs = 15_000) {
+        this.stop();
+        const deadline = Date.now() + timeoutMs;
+        while (this.active > 0 && Date.now() < deadline) await wait(Math.min(50, Math.max(1, deadline - Date.now())));
+        return this.active === 0;
     }
 
     private async loop() {
@@ -113,6 +122,7 @@ export class DurableOutboundWorker {
     private readonly pollIntervalMs: number;
     private readonly postSendHandler?: (action: unknown) => Promise<void>;
     private readonly postSendPollMs: number;
+    private active = 0;
 
     constructor(private readonly handler: OutboundHandler, options: WorkerOptions = {}) {
         this.store = options.store || messageStore;
@@ -144,6 +154,13 @@ export class DurableOutboundWorker {
         this.pollTimer = null;
     }
 
+    async drain(timeoutMs = 15_000) {
+        this.stop();
+        const deadline = Date.now() + timeoutMs;
+        while (this.active > 0 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, Math.min(50, Math.max(1, deadline - Date.now()))));
+        return this.active === 0;
+    }
+
     private async loop() {
         while (!this.stopped) {
             const action = this.postSendHandler ? await this.store.claimPostSendAction() : null;
@@ -162,6 +179,7 @@ export class DurableOutboundWorker {
             if (!stored) return;
             const started = process.hrtime.bigint();
             let processingFailed = false;
+            this.active += 1;
             try {
                 const providerId = await this.handler(stored.jid, stored.payload);
                 await this.store.markOutboundSent(stored.id, providerId || '', stored.lease_token || undefined);
@@ -170,6 +188,7 @@ export class DurableOutboundWorker {
                 const failed = await this.store.failOutbound(stored.id, error, stored.lease_token || undefined);
                 operationalMetrics.queue('outbound', Number(process.hrtime.bigint() - started) / 1e9, true, failed?.status === 'dead_letter');
             } finally {
+                this.active -= 1;
                 if (!processingFailed) operationalMetrics.queue('outbound', Number(process.hrtime.bigint() - started) / 1e9);
             }
         }

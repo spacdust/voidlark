@@ -1,15 +1,17 @@
 import { acquireInstanceLock } from './config/instance-lock.js';
 import { connectDB, pool } from './config/db.js';
 import { initSchema } from './config/schema.js';
-import { startWhatsAppConnection, stopWhatsAppConnection, checkWhatsAppCredentialsExist } from './whatsapp/connection.js';
+import { drainWhatsAppWorkers, startConfiguredWhatsAppConnections, stopWhatsAppConnection, checkWhatsAppCredentialsExist } from './whatsapp/connection.js';
 import { initializeKnowledgeBase, stopKnowledgeWorker } from './ai/knowledge.js';
 import { startAdminServer, stopAdminServer } from './admin/server.js';
 import { assertProductionAdminPassword } from './admin/security.js';
 import { appLogger } from './config/logger.js';
 import { startDatabaseBackupScheduler, type DatabaseBackupScheduler } from './config/database-backup.js';
+import { OutboundIntentWorker } from './whatsapp/outbound-intent-worker.js';
 
 let backupScheduler: DatabaseBackupScheduler | null = null;
 let releaseInstanceLock: (() => void) | null = null;
+const outboundIntentWorker = new OutboundIntentWorker();
 let shutdownPromise: Promise<void> | null = null;
 
 const shutdown = (signal: string) => {
@@ -17,7 +19,9 @@ const shutdown = (signal: string) => {
     shutdownPromise = (async () => {
         appLogger.info({ component: 'bootstrap', signal }, 'application.stopping');
         await backupScheduler?.stop();
+        await drainWhatsAppWorkers(Number(process.env.SHUTDOWN_DRAIN_TIMEOUT_MS || 15_000));
         stopKnowledgeWorker();
+        outboundIntentWorker.stop();
         await Promise.allSettled([stopWhatsAppConnection(), stopAdminServer()]);
         await pool.end();
         releaseInstanceLock?.();
@@ -41,9 +45,10 @@ const init = async () => {
 
     // 2. Mulai WhatsApp Client hanya jika sesi (kredensial) sudah ada
     await startAdminServer();
+    outboundIntentWorker.start();
     const hasCreds = await checkWhatsAppCredentialsExist();
     if (hasCreds) {
-        startWhatsAppConnection().catch((err) => {
+        startConfiguredWhatsAppConnections().catch((err) => {
             appLogger.error({ component: 'whatsapp', err }, 'whatsapp.auto_start_failed');
         });
     }

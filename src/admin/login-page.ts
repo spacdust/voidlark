@@ -1,3 +1,5 @@
+import { VOIDLARK_LOGO_SVG } from './logo.js';
+
 const escapeHtml = (value: unknown) => String(value ?? '')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -19,34 +21,31 @@ export const renderLoginPage = (error = '') => `<!doctype html>
     })();
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-    :root{color-scheme:light;font-family:"IBM Plex Sans","Segoe UI",sans-serif;--bg:#f8fafc;--panel:#ffffff;--ink:#0f172a;--muted:#64748b;--line:rgba(15,23,42,0.08);--soft:#f1f5f9;--primary:#0284c7;--primary-hover:#0369a1;--primary-weak:rgba(2,132,199,0.08);--accent:#0d9488;--danger:#ef4444;--radius:12px;--radius-sm:8px;--control-h:44px;--shadow:0 4px 20px rgba(0,0,0,0.04),0 2px 8px rgba(0,0,0,0.02)}
-    html[data-theme="dark"]{color-scheme:dark;--bg:#0b0f17;--panel:#111827;--ink:#f3f4f6;--muted:#9ca3af;--line:rgba(255,255,255,0.08);--soft:#1f2937;--primary:#00e5ff;--primary-hover:#38bdf8;--primary-weak:rgba(0,229,255,0.1);--accent:#00f5d4;--danger:#ef4444;--shadow:0 8px 32px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.2)}
+    :root{color-scheme:light;font-family:"Inter","Segoe UI",system-ui,sans-serif;--bg:#f3f6f7;--panel:#fff;--ink:#172326;--muted:#5d6c70;--line:#d7e0e1;--soft:#e9eff0;--primary:#087f83;--primary-hover:#06686b;--primary-weak:#dceff0;--accent:#087f83;--danger:#b42318;--radius:10px;--radius-sm:8px;--control-h:44px;--shadow:0 16px 36px rgba(21,43,46,.14)}
+    html[data-theme="dark"]{color-scheme:dark;--bg:#172123;--panel:#202c2e;--ink:#edf4f3;--muted:#a9b9b8;--line:#3b4b4d;--soft:#263335;--primary:#72c8c1;--primary-hover:#94ddd6;--primary-weak:#294a4a;--accent:#72c8c1;--danger:#f28b82;--shadow:0 18px 44px rgba(0,0,0,.28)}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;overflow-x:clip;display:grid;grid-template-rows:56px 1fr;background:var(--bg);color:var(--ink)}
     .topbar{display:flex;align-items:center;gap:12px;padding:0 22px;border-bottom:1px solid var(--line);background:var(--panel)}
     .brand-logo-wrap{display:flex;align-items:center;gap:10px}
     .brand-logo-svg{width:28px;height:28px;flex-shrink:0}
     .brand{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--ink)}.topbar-meta{margin-left:auto;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;text-transform:uppercase}
-    .stage{display:grid;place-items:center;padding:32px 18px}.login{width:min(440px,100%);border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:0 0 0 5px var(--soft),0 0 0 6px var(--line),var(--shadow);transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}
+    .stage{display:grid;place-items:center;padding:32px 18px}.login{width:min(440px,100%);border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}
     .login-head{padding:24px 24px 20px;border-bottom:1px solid var(--line)}.eyebrow{display:block;margin-bottom:8px;color:var(--primary);font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
     h1{margin:0;font-size:24px;line-height:1.2;letter-spacing:-.02em}.intro{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
     .login-body{padding:24px}.error{margin:0 0 18px;padding:11px 12px;border-left:3px solid var(--danger);background:color-mix(in srgb,var(--danger) 10%,transparent);color:var(--danger);font-size:13px;line-height:1.45}
-    label{display:block;margin-bottom:7px;font-size:13px;font-weight:600}.password-wrap{position:relative}.password-wrap input{width:100%;height:var(--control-h);padding:9px 52px 9px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);color:var(--ink);font:16px "IBM Plex Sans",sans-serif;outline:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}.password-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
+    label{display:block;margin-bottom:7px;font-size:13px;font-weight:600}.password-wrap{position:relative}.password-wrap input{width:100%;height:var(--control-h);padding:9px 52px 9px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);color:var(--ink);font:16px "Inter","Segoe UI",system-ui,sans-serif;outline:none;transition:border-color .15s ease,box-shadow .15s ease}.password-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-weak)}
     .eye{position:absolute;right:1px;top:1px;display:grid;place-items:center;width:42px;height:42px;border:0;border-left:1px solid var(--line);border-radius:0 var(--radius-sm) var(--radius-sm) 0;background:var(--soft);color:var(--muted);cursor:pointer}.eye:hover{color:var(--primary)}.eye:focus-visible,.submit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}.eye svg{width:19px;height:19px}.eye[aria-pressed="true"]:after{content:"";position:absolute;width:21px;height:2px;transform:rotate(-42deg);border-radius:2px;background:currentColor}
-    .submit{width:100%;height:var(--control-h);margin-top:16px;border:0;border-radius:var(--radius-sm);background:var(--primary);color:#0b0f17;font:600 14px "IBM Plex Sans",sans-serif;cursor:pointer;transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}.submit:hover{background:var(--primary-hover);box-shadow:0 0 0 4px var(--primary-weak)}.submit:disabled{cursor:wait;opacity:.7}.hint{display:flex;align-items:center;gap:7px;margin:16px 0 0;color:var(--muted);font-size:12px}.hint-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
-    .login-foot{display:flex;justify-content:space-between;gap:12px;padding:13px 24px;border-top:1px solid var(--line);color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10px;text-transform:uppercase}
+    .submit{width:100%;height:var(--control-h);margin-top:16px;border:0;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font:600 14px "Inter","Segoe UI",system-ui,sans-serif;cursor:pointer;transition:background-color .15s ease,box-shadow .15s ease,transform .15s ease}.submit:hover{background:var(--primary-hover);box-shadow:0 0 0 3px var(--primary-weak)}.submit:active{transform:scale(.985)}.submit:disabled{cursor:wait;opacity:.7}.hint{display:flex;align-items:center;gap:7px;margin:16px 0 0;color:var(--muted);font-size:12px}.hint-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+    .login-foot{padding:13px 24px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
     .auth-overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--bg) 90%,transparent);opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease}.auth-overlay[data-state="loading"],.auth-overlay[data-state="success"]{opacity:1;visibility:visible}.auth-state{display:grid;justify-items:center;gap:13px;color:var(--ink);text-align:center}.auth-state strong{font-size:16px}.auth-state span{color:var(--muted);font-size:13px}.auth-mark{display:grid;place-items:center;width:48px;height:48px;border:1px solid var(--primary);border-radius:50%;color:var(--primary)}.auth-spinner{width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:auth-spin .7s linear infinite}.auth-check{display:none;width:23px;height:12px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg) translateY(-2px)}.auth-overlay[data-state="success"] .auth-spinner{display:none}.auth-overlay[data-state="success"] .auth-check{display:block}.auth-overlay[data-state="success"] .auth-mark{background:var(--primary);color:#0b0f17}.login.is-submitting{opacity:.62;transform:translateY(2px);transition:opacity .16s ease,transform .16s ease}@keyframes auth-spin{to{transform:rotate(360deg)}}
     @media(max-width:520px){body{grid-template-rows:52px 1fr}.topbar{padding:0 16px}.topbar-meta{display:none}.stage{align-items:start;padding:22px 14px}.login-head,.login-body{padding:20px}.login-foot{padding:12px 20px;flex-wrap:wrap}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.auth-spinner{border-color:var(--primary)}}
   </style>
+  <link rel="stylesheet" href="/admin/assets/admin.css?v=20260723-3">
 </head>
-<body>
+<body class="login-app">
   <header class="topbar">
     <div class="brand-logo-wrap">
-      <svg class="brand-logo-svg" viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 14.5C5 12.5 9.5 6.5 14 2C14.3 1.7 14.8 2.1 14.6 2.5C13.3 5.5 12.3 9 10.7 11.2C14 9.5 18 6 20.5 3.5C20.8 3.2 21.3 3.6 21 4C18.5 7.5 14.3 12.5 11 15.5C14.7 15 19 14.2 22 13.5C22.4 13.4 22.6 13.9 22.3 14.2C19 17.5 13 20.5 7 23C5 23.8 3 24 1 23.5C0.6 23.4 0.5 22.9 0.9 22.7C3 21 5 18 6.3 16.2C4.7 16.5 3 16 1.7 15.2C1.4 15 1.6 14.6 2 14.5Z" fill="#00F5D4"/>
-        <path d="M15.5 17.5L20 21L15.5 24.5" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      ${VOIDLARK_LOGO_SVG}
       <span class="brand">VOIDLARK ADMIN</span>
     </div>
     <span class="topbar-meta">Protected workspace</span>
