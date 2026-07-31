@@ -1,0 +1,303 @@
+{
+  "generatedAt": "2026-07-28T08:35:49.878Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Santai dan banyak tanya",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, mau nanya2 parfum dong",
+        "Bedanya inspired sama karakter apaan ya?",
+        "Kalau buat ngantor yang nggak bikin pusing enaknya mana?",
+        "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?",
+        "Yang pertama berapaan kak ukuran kecilnya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, mau nanya2 parfum dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Senang bisa bantu. Sebelumnya, ada gambaran belum nih Kak, mau cari parfum buat keperluan apa? Biar aku bisa bantu rekomendasiin yang cocok."
+        },
+        {
+          "role": "user",
+          "content": "Bedanya inspired sama karakter apaan ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Mudah Kak, dua kelompok utama parfum di Aromatique. Parfum Inspired — basic parfum Asia. Satu note aroma saja, sederhana, ringan. Cocok buat sehari-hari yang simple. Harganya lebih terjangkau. Parfum Karakter — lebih kompleks, punya main accords yang bisa menyesuaikan suhu tubuh pemakai. Kalau kena keringat atau aroma tubuh, baunya malah makin enak. Tahan lama dan lebih berkarakter. Intinya: Inspired buat yang simpel dan ringan, Karakter buat yang ingin aroma lebih kuat dan personal. Kak lebih condong ke yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat ngantor yang nggak bikin pusing enaknya mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired. Aroma ringan satu note. Tidak kompleks, tidak menyengat di ruang tertutup. Aman seharian di kantor. Mau coba ukuran berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku rekomendasikan Agolie dari Parfum Karakter, Kak. Arahnya fresh dan nama produknya tercantum di katalog internal."
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama berapaan kak ukuran kecilnya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml: Super Premium\n30ml: Rp120.000\nPlatinum\n30ml: Rp135.000\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Agolie",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Marah karena jawaban berulang",
+      "tone": "marah",
+      "messages": [
+        "Dari tadi ditanya aroma terus, saya cuma mau tahu harga EDP 50ml!",
+        "Iya itu. Harganya berapa?",
+        "Jangan muter lagi ya. Kalau masih nggak jelas saya mau admin."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Dari tadi ditanya aroma terus, saya cuma mau tahu harga EDP 50ml!"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml harganya Rp75.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Iya itu. Harganya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml harganya Rp75.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Jangan muter lagi ya. Kalau masih nggak jelas saya mau admin."
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml: Rp75.000. Itu harga final per botol. Mau lanjut pesan? Kalau iya, perlu tau jumlahnya berapa."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 75000,
+        "subtotal": 75000
+      }
+    },
+    {
+      "id": 3,
+      "name": "Pelanggan dengan typo",
+      "tone": "typo",
+      "messages": [
+        "kak ada parfume buat cwo yg wanginya kalem ga",
+        "buat kuliah sih, budget 70rb an",
+        "yg fresh aja tp jgn ky minyak kayu putih wkwk",
+        "boleh yg paling aman satu aja"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "kak ada parfume buat cwo yg wanginya kalem ga"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique! Ada beberapa pilihan parfum yang cocok buat cowok dengan wangi kalem. Kak lebih suka aroma yang seperti apa? Biar aku bisa rekomendasiin yang pas."
+        },
+        {
+          "role": "user",
+          "content": "buat kuliah sih, budget 70rb an"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT\n30ml Rp35.000\nParfum Inspired EDT\n50ml Rp45.000\nParfum Inspired EDT\n100ml Rp55.000\nParfum Inspired EDP\n30ml Rp60.000\nPilih salah satu."
+        },
+        {
+          "role": "user",
+          "content": "yg fresh aja tp jgn ky minyak kayu putih wkwk"
+        },
+        {
+          "role": "assistant",
+          "content": "Haha oke aman. Rekomendasi Parfum Inspired EDP 30ml. Wangi fresh, cocok kuliah, tahan lama seharian. Pilih aroma citrus atau marine biar kalem. Ada preferensi aroma atau aku bantu pilihkan?"
+        },
+        {
+          "role": "user",
+          "content": "boleh yg paling aman satu aja"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku rekomendasikan Agolie dari Parfum Karakter, Kak. Arahnya fresh dan nama produknya tercantum di katalog internal."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Karakter",
+        "productName": "Agolie"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Ragu dan berubah pikiran",
+      "tone": "ragu-ragu",
+      "messages": [
+        "Aku mau EDP 30ml satu kak",
+        "Eh bentar, yang 50ml selisih berapa?",
+        "Kayaknya 50ml aja deh",
+        "Eh tapi budgetku 65 ribu. Balik 30ml aja ya",
+        "Atas nama Nisa, 081222334455, kirim ke Prambanan Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau EDP 30ml satu kak"
+        },
+        {
+          "role": "assistant",
+          "content": "EDP 30ml. Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "Eh bentar, yang 50ml selisih berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Harga pilihan sebelumnya Rp60.000, sedangkan EDP 50ml Rp75.000. Selisihnya Rp15.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kayaknya 50ml aja deh"
+        },
+        {
+          "role": "assistant",
+          "content": "EDP 50ml. Pilih aroma dulu."
+        },
+        {
+          "role": "user",
+          "content": "Eh tapi budgetku 65 ribu. Balik 30ml aja ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, balik ke EDP 30ml Rp60.000. Sesuai budget. Ada aroma favorit, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Atas nama Nisa, 081222334455, kirim ke Prambanan Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke BOKO HARJO, PRAMBANAN, SLEMAN, DI YOGYAKARTA, 55572:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. JNE REG - Rp6.000 (1 hari)\n4. JNE SPS - Rp53.000 (0 hari) Paling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?"
+        }
+      ],
+      "tools": [
+        "cekOngkir"
+      ],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "customer": {
+          "name": "Nisa",
+          "phone": "081222334455",
+          "address": "kirim ke Prambanan Sleman"
+        },
+        "shippingEvidence": "Ongkir ke BOKO HARJO, PRAMBANAN, SLEMAN, DI YOGYAKARTA, 55572:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. JNE REG - Rp6.000 (1 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Buru-buru mau membeli",
+      "tone": "buru-buru",
+      "messages": [
+        "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?",
+        "Pilih satu aja yang aman",
+        "EDP 30ml ready harga berapa?",
+        "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, Anin dari Aromatique. Siap bantu cepat! Rekomendasi: Parfum Karakter Super Premium — aroma halus, elegan, manis lembut, tahan lama. Mau ukuran 30ml, 50ml, atau 100ml, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aja yang aman"
+        },
+        {
+          "role": "assistant",
+          "content": "Pilih 30ml. Wangi manis lembut, tahan lama. Aman buat coba dulu. Mau pesan?"
+        },
+        {
+          "role": "user",
+          "content": "EDP 30ml ready harga berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke MAGUWOHARJO, DEPOK, SLEMAN, DI YOGYAKARTA, 55282:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari) Paling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana? Karena dibutuhkan besok, pilih layanan dengan estimasi maksimal 1 hari. Estimasi kurir bukan jaminan waktu tiba."
+        }
+      ],
+      "tools": [
+        "cekOngkir"
+      ],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "customer": {
+          "name": "Dita",
+          "phone": "081399887766",
+          "address": "Maguwoharjo Depok Sleman"
+        },
+        "shippingEvidence": "Ongkir ke MAGUWOHARJO, DEPOK, SLEMAN, DI YOGYAKARTA, 55282:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?\n\nKarena dibutuhkan besok, pilih layanan dengan estimasi maksimal 1 hari. Estimasi kurir bukan jaminan waktu tiba."
+      }
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-07-27T03:48:48.916Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Referensi luar Mykonos Monaco Royale",
+      "messages": [
+        "Kak, ada Mykonos Monaco Royale?",
+        "Kalau itu bukan produk kalian, cari notesnya lalu rekomendasikan produk Aromatique yang benar-benar ada dan paling mirip",
+        "Jelaskan kenapa produk internal itu cocok, jangan kasih harga dulu",
+        "Sekarang kasih klasifikasi, ukuran, dan harga yang tersedia"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, ada Mykonos Monaco Royale?"
+        },
+        {
+          "role": "assistant",
+          "content": "Setelah aku cek, Kak, Mykonos Monaco Royale bukan produk dari Aromatique — itu parfum dari brand luar. Tapi di Aromatique ada beberapa varian yang mungkin punya karakter mirip. Kalau boleh tahu, aroma kayak gimana yang Kakak cari dari Mykonos Monaco Royale? Biar aku bantu rekomendasiin yang paling cocok dari katalog kita."
+        },
+        {
+          "role": "user",
+          "content": "Kalau itu bukan produk kalian, cari notesnya lalu rekomendasikan produk Aromatique yang benar-benar ada dan paling mirip"
+        },
+        {
+          "role": "assistant",
+          "content": "Dapet, Kak. Mykonos Monaco Royale itu parfum unisex dengan karakter: - Top: bergamot, jasmine, lemon, orange (ada juga versi dengan melon, pear, green notes) - Middle: rose, apricot, raspberry, plum, floral notes - Base: cedarwood, amber, musk, vetiver, caramel Jadi keseluruhan aroma-nya fresh fruity-floral di awal, hangat woody-musky di dasar.\n\nDari katalog Aromatique, yang paling mendekati profil kayak gini adalah: Parfum Karakter — karena punya kompleksitas notes berlapis seperti parfum desainer. Tapi dari varian aroma spesifik yang ada, aku cocokkan yang paling mirip dengan karakter segar-fruity-floral lalu woody hangat. Sayangnya dari daftar aroma yang tercatat di kita, belum ada satu varian yang notes-nya persis meniru Mykonos Monaco Royale.\n\nAlternatifnya, Kakak bisa pilih Parfum Inspired dengan aroma fruity-floral yang fresh, lalu kita sesuaikan level kualitasnya. Atau kalau mau yang lebih kompleks dan tahan lama, Parfum Karakter bisa jadi pilihan. Kakak lebih suka yang ringan sehari-hari atau yang kuat tahan lama?"
+        },
+        {
+          "role": "user",
+          "content": "Jelaskan kenapa produk internal itu cocok, jangan kasih harga dulu"
+        },
+        {
+          "role": "assistant",
+          "content": "Pertimbangannya begini, Kak: Mykonos Monaco Royale punya 3 lapisan aroma — fresh fruity di awal, floral manis di tengah, woody-musk hangat di dasar. Parfum desainer Eropa seperti itu biasanya kompleks dan berubah seiring waktu di kulit. Nah, dari produk Aromatique, yang punya karakter notes berlapis seperti itu adalah Parfum Karakter.\n\nBedanya dengan Parfum Inspired yang cuma 1 note datar, Parfum Karakter punya 3 notes wangi yang berkembang — mirip cara kerja parfum Eropa original. Aromanya juga menyesuaikan suhu tubuh dan lebih tahan lama. Jadi kalau Kakak mencari pengalaman aroma yang naik-turun seperti Mykonos Monaco Royale, Parfum Karakter adalah pilihan yang paling mendekati dari sisi kompleksitas dan ketahanan.\n\nKakak tertarik coba varian aroma dari Parfum Karakter?"
+        },
+        {
+          "role": "user",
+          "content": "Sekarang kasih klasifikasi, ukuran, dan harga yang tersedia"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu, Kak. Parfum Karakter dari Aromatique punya dua kualitas:\n\n1. Super Premium — 70% ekstrak parfum, tahan lama, projection kuat.\n\n2. Platinum — 90% ekstrak parfum, lebih kental dan strong, longevity maksimal. Keduanya tersedia dalam ukuran: - 30ml — Super Premium Rp120.000 / Platinum Rp135.000 - 50ml — Super Premium Rp160.000 / Platinum Rp180.000 - 100ml — Super Premium Rp310.000 / Platinum Rp360.000 Kalau Kakak suka aroma yang kompleks dan tahan lama seperti Mykonos Monaco Royale, Platinum di 50ml bisa jadi sweet spot — strong tapi masih reasonable ukurannya. Atau mau coba Super Premium dulu?"
+        }
+      ],
+      "tools": [
+        "cariReferensiProduk"
+      ],
+      "state": {}
+    },
+    {
+      "id": 2,
+      "name": "Referensi luar Lattafa Khamrah",
+      "messages": [
+        "Ada Lattafa Khamrah ready?",
+        "Kalau tidak dijual, pakai cuma sebagai referensi dan carikan produk toko yang karakternya mendekati",
+        "Aku pilih kandidat internal pertama. Jelaskan singkat",
+        "Kasih pilihan harga resminya"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ada Lattafa Khamrah ready?"
+        },
+        {
+          "role": "assistant",
+          "content": "Heritage. Hangat, manis, sedikit rempah — cocok dengan Khamrah. Mau varian ukuran dan kualitas mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau tidak dijual, pakai cuma sebagai referensi dan carikan produk toko yang karakternya mendekati"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, dari knowledge yang ada, Lattafa Khamrah tidak termasuk produk toko. Tapi dari karakter aromanya — warm, sweet, spicy, gourmand — produk Aromatique yang paling mendekati adalah Parfum Karakter dengan kualitas Super Premium atau Platinum. Aromanya lebih kaya, hangat, dan tahan lama, cocok buat penggemar parfum Timur Tengah yang manis-rempah. Mau coba lihat pilihan ukuran dan harganya?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pilih kandidat internal pertama. Jelaskan singkat"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, aku ambil Parfum Karakter. Parfum Karakter punya 3 tahap aroma (top, middle, base notes) yang berevolusi di kulit — cocok buat yang suka wangi kompleks dan tahan lama. Ada dua kualitas: - Super Premium (70% ekstrak) — lebih ringan, tetap tahan lama. - Platinum (90% ekstrak) — lebih kental dan strong. Mau kualitas Super Premium atau Platinum?"
+        },
+        {
+          "role": "user",
+          "content": "Kasih pilihan harga resminya"
+        },
+        {
+          "role": "assistant",
+          "content": "Harga Parfum Karakter: Super Premium (70% ekstrak) - 30ml: Rp120.000 - 50ml: Rp160.000 - 100ml: Rp310.000 Platinum (90% ekstrak) - 30ml: Rp135.000 - 50ml: Rp180.000 - 100ml: Rp360.000 Mau pilih kualitas dan ukuran yang mana, Kak?"
+        }
+      ],
+      "tools": [
+        "cariReferensiProduk"
+      ],
+      "state": {}
+    }
+  ]
+}

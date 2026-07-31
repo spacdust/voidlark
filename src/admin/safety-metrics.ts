@@ -68,7 +68,8 @@ export const renderSafetyMetricsHTML = () => {
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>AI Safety Metrics - Voidlark</title>
+            <title>Voidlark Dashboard</title>
+            <link rel="icon" href="/admin/assets/voidlark-logo-clean.svg" type="image/svg+xml">
             <link rel="stylesheet" href="/admin/assets/admin.css?v=20260723-3">
             <style>
                 * { box-sizing: border-box; }

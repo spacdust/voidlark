@@ -1,0 +1,72 @@
+{
+  "generatedAt": "2026-07-28T11:51:27.872Z",
+  "scenarios": [
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Bedanya terutama di konsentrasi bibitnya, Kak.\n\n1. EDT — 66% bibit.\n\n2. EDP — 75% bibit.\n\n3. Murni — 100% bibit.\n\nJadi urutannya dari konsentrasi paling rendah ke paling tinggi adalah EDT, EDP, lalu Murni. Kalau Kakak kasih tahu parfumnya dipakai untuk apa, aku bisa bantu pilih satu yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma elegan, aku paling mengarah ke Alisya Ashley dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga glamour. Pilihan yang paling pas dan masih sesuai budget: EDP 30ml seharga Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000, sedangkan EDP 50ml Rp75.000. Selisihnya Rp15.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau dari dua pilihan tadi, aku pilih EDP 30ml, Kak. EDP tetap sama seperti pilihan sebelumnya, tetapi harganya Rp60.000 dan lebih hemat Rp15.000 daripada EDP 50ml. Kalau belum butuh ukuran lebih besar, pilihan ini lebih masuk akal."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Alisya Ashley",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "maxBudget": 100000
+      }
+    }
+  ]
+}

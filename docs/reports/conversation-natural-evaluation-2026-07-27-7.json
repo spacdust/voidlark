@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-07-27T05:08:04.655Z",
+  "scenarios": [
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Mudah aja Kak, bedanya di kadar konsentratnya: 1. EDT (2:1) - 66% bibit, 34% pelarut. Aroma cenderung lembut, aman langsung ke baju, nggak ninggalin noda. Cocok buat sehari-hari yang nggak terlalu strong. 2. EDP (3:1) - 75% bibit, 25% pelarut. Aroma lebih kuat dari EDT. Bisa ke baju tapi jaga jarak semprot biar nggak noda. Paling recommended buat keseharian. 3. Murni / Extrait - 100% bibit, tanpa pelarut. Aroma paling kuat, teksturnya lebih kental dan berminyak. Proyeksi ke kulit lebih dekat, penyebaran di udara lebih lembut. Mau yang mana Kak? Atau boleh aku bantu cariin aroma dulu?"
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "EDT: 66% konsentrat, aroma lembut, aman di baju tanpa noda. EDP: 75% konsentrat, aroma lebih strong, spray jarak 30cm. Murni: full konsentrat, aroma sangat kuat, tekstur oily, proyeksi dekat kulit. Pilih sesuai kebutuhan. Mau kualitas dan ukuran mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dengan budget maksimal Rp100.000, pilihan yang tersedia: Parfum Inspired EDT\n30ml: Rp35.000\nParfum Inspired EDT\n50ml: Rp45.000\nParfum Inspired EDT\n100ml: Rp55.000\nParfum Inspired EDP\n30ml: Rp60.000\nParfum Inspired EDP\n50ml: Rp75.000\nParfum Inspired EDP\n100ml: Rp85.000\nKakak mau pilih yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitasnya dulu, Kak? Harga ukuran 30ml dan 50ml berbeda untuk EDT, EDP, Murni, Super Premium, dan Platinum."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "EDP 50ml. Aroma kuat tahan lama buat acara malam. Ukuran pas, harga masih ramah. Mau langsung EDP 50ml Kak?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "Murni",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 150000,
+        "subtotal": 150000
+      }
+    }
+  ]
+}

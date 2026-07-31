@@ -1,0 +1,288 @@
+{
+  "generatedAt": "2026-07-28T08:35:36.087Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Pembeli banyak meminta diskon",
+      "tone": "negosiasi",
+      "messages": [
+        "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?",
+        "Harga normal satuannya berapa?",
+        "Berarti total normal 20 botol berapa?",
+        "Diskonnya beneran nggak ada ya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Penawaran khusus perlu dikonfirmasi ke admin."
+        },
+        {
+          "role": "user",
+          "content": "Harga normal satuannya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Berarti total normal 20 botol berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item. Untuk 20 item, totalnya Rp700.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Diskonnya beneran nggak ada ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Penawaran khusus perlu dikonfirmasi ke admin."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 20,
+        "unitPrice": 35000,
+        "subtotal": 700000
+      }
+    },
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, bedanya di kadar konsentratnya. EDT (2:1) — 66% bibit, aroma cenderung lembut, aman semprot langsung ke baju tanpa noda. EDP (3:1) — 75% bibit, aroma lebih strong, tetap bisa ke baju tapi jaga jarak semprot biar nggak noda. Murni (Extrait) — 100% bibit, aroma paling kuat, tekstur lebih kental dan oily, proyeksi ke kulit lebih dekat. Kalau baru pertama coba, biasanya EDP jadi pilihan favorit karena udah strong tapi masih praktis dipakai. Mau coba yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Budget maksimal Rp100.000. Pilihan dalam budget: - Parfum Inspired EDT\n30ml Rp35.000\nParfum Inspired EDT\n50ml Rp45.000\nParfum Inspired EDT\n100ml Rp55.000\nParfum Inspired EDP\n30ml Rp60.000\nParfum Inspired EDP\n50ml Rp75.000\nParfum Inspired EDP\n100ml Rp85.000\nMau pilih yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas yang mau dibandingkan, Kak? Setelah itu aku hitung selisih 30ml dan 50ml."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih EDP 50ml. Wangi lebih kuat, cocok kondangan malam. Ukuran 50ml lebih awet dari 30ml. Mau ambil EDP 50ml, Kak?"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    },
+    {
+      "id": 8,
+      "name": "Komplain aroma pembelian lama",
+      "tone": "kecewa",
+      "messages": [
+        "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya",
+        "Terlalu manis, bikin eneg",
+        "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Maaf dengar parfum yang kemarin kurang cocok di Kakak. Boleh aku tanya dulu, kira-kira kurang cocoknya gimana? Siapa tahu kita bisa cari alternatif yang lebih cocok."
+        },
+        {
+          "role": "user",
+          "content": "Terlalu manis, bikin eneg"
+        },
+        {
+          "role": "assistant",
+          "content": "Aduh, paham Kak. Aroma yang terlalu manis memang bikin kurang nyaman kalau dipakai seharian. Kakak lagi cari wewangian yang lebih segar dan ringan, atau lebih ke arah hangat yang nggak manis-manis? Biar aku bisa bantu rekomendasikan yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik, Kak. Aku hubungkan ke admin sekarang. Pesan Kakak sudah diteruskan dan admin akan melanjutkan di chat ini."
+        }
+      ],
+      "tools": [
+        "escalateToHuman"
+      ],
+      "state": {
+        "handoffReason": "Customer meminta admin: Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Senang banget bisa bantu cari kado anniversary buat pasangan. Sebelum aku rekomendasiin, boleh tahu dulu sedikit tentang pasangan Kakak?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Wah, cocok banget! Aku langsung kepikiran keluarga aroma Woody atau Amber — dua-duanya punya karakter hangat, elegan, dan cocok dipakai malam hari. Plus, aroma kayu dan amber itu unisex, jadi bisa dipakai berdua tanpa masalah. Kalau boleh tahu, pasangan Kakak lebih suka aroma yang hangat-manis kayak vanila/resin, atau yang lebih kering dan maskulin kayak kayu-kayuan? Biar aku bisa arahkan ke pilihan yang paling pas."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Dua pilihan Parfum Karakter yang terverifikasi: 1. D Sava – arah glamour. 2. Dsava – arah glamour. Kakak lebih tertarik yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter: Super Premium\n30ml: Rp120.000\nSuper Premium\n50ml: Rp160.000\nSuper Premium\n100ml: Rp310.000\nPlatinum\n30ml: Rp135.000\nPlatinum\n50ml: Rp180.000\nPlatinum\n100ml: Rp360.000\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak buru-buru kok. Silakan diskusi dulu sama pasangan. Kalau nanti udah mantap, tinggal chat aku lagi ya. Siap bantu kapan aja 😊"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Dsava",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 10,
+      "name": "Salah chat lalu tertarik",
+      "tone": "acak",
+      "messages": [
+        "Kak ini jual case hp samsung nggak?",
+        "Oh parfum toh wkwk salah chat",
+        "Tapi sekalian deh, ada parfum cowok murah nggak?",
+        "Budget 50 ribu, yang fresh ada?",
+        "Kalau EDT 30ml berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ini jual case hp samsung nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, kita jual parfum, bukan case HP Samsung. Ada yang bisa aku bantu untuk rekomendasi parfum?"
+        },
+        {
+          "role": "user",
+          "content": "Oh parfum toh wkwk salah chat"
+        },
+        {
+          "role": "assistant",
+          "content": "Haha gapapa Kak, santai aja. Kalau lagi butuh rekomendasi parfum, bilang aja ya. Aku siap bantu 😊"
+        },
+        {
+          "role": "user",
+          "content": "Tapi sekalian deh, ada parfum cowok murah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ada. Parfum Inspired, EDT, aroma fresh maskulin. Mau tau variannya?"
+        },
+        {
+          "role": "user",
+          "content": "Budget 50 ribu, yang fresh ada?"
+        },
+        {
+          "role": "assistant",
+          "content": "Cocok nih. Parfum Inspired EDT\n30ml Rp35.000\natau\n50ml Rp45.000\n Dua-duanya dalam budget. Mau ukuran yang mana Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau EDT 30ml berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 35000,
+        "subtotal": 35000
+      }
+    }
+  ]
+}

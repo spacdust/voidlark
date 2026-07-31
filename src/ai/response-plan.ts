@@ -128,13 +128,16 @@ export const buildResponsePlan = (answer: string, options: ResponsePlanOptions =
 
     if (candidates.length <= maxBubbles) return { bubbles: candidates };
     
-    // Check if candidates contain list items - if yes, preserve them separately
+    // Keep list items intact, but never create a burst beyond configured bubble count.
     const hasListItems = candidates.some(c => /^\d+\.\s+/.test(c));
     
     if (hasListItems) {
-        // For list items, return all of them separately even if exceeds maxBubbles
-        // This ensures each numbered item gets its own bubble
-        return { bubbles: candidates };
+        return {
+            bubbles: [
+                ...candidates.slice(0, maxBubbles - 1),
+                candidates.slice(maxBubbles - 1).join('\n\n'),
+            ],
+        };
     }
     
     // For non-list content, merge excess candidates

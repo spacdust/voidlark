@@ -1,0 +1,132 @@
+{
+  "generatedAt": "2026-07-28T12:07:17.012Z",
+  "scenarios": [
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique! Senang bisa bantu cari kado anniversary buat pasangan.\n\n Misalnya yang fresh, manis, floral, atau yang hangat dan maskulin?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kesan elegan di malam hari, aku bisa bantu pilihkan dari keluarga aroma yang sesuai, Kak. Tapi data varian yang tersedia belum memberi label khusus unisex, jadi aku nggak mau memastikan sesuatu yang belum dicantumkan.\n\nKalau tetap ingin dipertimbangkan bersama pasangan, aku bisa kasih dua pilihan aroma elegan sebagai shortlist."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah elegan yang Kakak cari:\n\n1. Sun Girl — keluarga elegan.\n\n2. Axbomba — keluarga elegan.\n\nDari dua ini, mana yang paling menarik buat Kakak?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axbomba\n\nParfum Karakter:\n\nSuper Premium\n30ml: Rp120.000\n50ml: Rp160.000\n100ml: Rp310.000\n\nPlatinum\n30ml: Rp135.000\n50ml: Rp180.000\n100ml: Rp360.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu Kak, nggak buru-buru kok. Silakan diskusi dulu sama pasangan.\n\nKalau nanti sudah mantap pilih ukuran dan kualitasnya, langsung chat aku lagi ya. Senang bantu"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Axbomba",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 10,
+      "name": "Salah chat lalu tertarik",
+      "tone": "acak",
+      "messages": [
+        "Kak ini jual case hp samsung nggak?",
+        "Oh parfum toh wkwk salah chat",
+        "Tapi sekalian deh, ada parfum cowok murah nggak?",
+        "Budget 50 ribu, yang fresh ada?",
+        "Kalau EDT 30ml berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ini jual case hp samsung nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique.\n\nMaaf Kak, untuk case HP atau aksesoris elektronik lainnya kita nggak jual. Aromatique ini khusus parfum dan wewangian.\n\nKalau Kakak lagi cari parfum, aku bisa bantu rekomendasiin. Misalnya aroma floral, fruity, fresh, atau yang lebih hangat seperti musk?"
+        },
+        {
+          "role": "user",
+          "content": "Oh parfum toh wkwk salah chat"
+        },
+        {
+          "role": "assistant",
+          "content": "Hehe iya Kak, salah kamar sedikit 😄\n\nNggak apa-apa, santai aja. Kalau suatu saat Kakak tertarik cari parfum, Aromatique siap bantu ya.\n\nSemoga cepet dapet case HP yang dicari, Kak!"
+        },
+        {
+          "role": "user",
+          "content": "Tapi sekalian deh, ada parfum cowok murah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ada pilihan yang bisa disesuaikan, Kak. Supaya nggak asal memberi label cowok atau menyebut varian yang belum cocok, aku saring dari karakter aroma dan batas harganya.\n\nBudget maksimalnya berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Budget 50 ribu, yang fresh ada?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke Angelina jolie dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Pilihan yang paling pas dan masih sesuai budget: EDT 30ml seharga Rp35.000."
+        },
+        {
+          "role": "user",
+          "content": "Kalau EDT 30ml berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Angelina jolie",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 35000,
+        "subtotal": 35000,
+        "maxBudget": 50000
+      }
+    }
+  ]
+}

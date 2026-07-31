@@ -1,0 +1,313 @@
+{
+  "generatedAt": "2026-07-29T07:52:34.984Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Berubah dari Inspired ke pasangan Karakter",
+      "tone": "berubah-pikiran",
+      "messages": [
+        "Aku mau Angelina jolie versi Inspired EDP 30ml, Kak",
+        "Harganya berapa?",
+        "Eh pengin lihat versi Karakter pasangannya juga deh",
+        "Nama Karakternya apa dan harga 30ml-nya ada apa aja?",
+        "Oke ambil yang Super Premium 30ml satu"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau Angelina jolie versi Inspired EDP 30ml, Kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Angelina jolie adalah nama Parfum Inspired atau parfum acuannya, Kak. Nama Parfum Karakter-nya Agolie."
+        },
+        {
+          "role": "user",
+          "content": "Harganya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Eh pengin lihat versi Karakter pasangannya juga deh"
+        },
+        {
+          "role": "assistant",
+          "content": "Agolie adalah nama Parfum Karakter, Kak. Pasangan Parfum Inspired-nya adalah Angelina jolie."
+        },
+        {
+          "role": "user",
+          "content": "Nama Karakternya apa dan harga 30ml-nya ada apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nDari pilihan ini, kualitas mana yang paling sesuai kebutuhan Kakak?"
+        },
+        {
+          "role": "user",
+          "content": "Oke ambil yang Super Premium 30ml satu"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Karakter Super Premium 30ml, harganya Rp120.000."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Agolie",
+        "classification": "Parfum Karakter",
+        "attributes": {
+          "quality": "Super Premium",
+          "size": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 120000,
+        "subtotal": 120000
+      }
+    },
+    {
+      "id": 7,
+      "name": "Menanyakan detail produk Karakter",
+      "tone": "detail",
+      "messages": [
+        "Axbomba itu wanginya kayak gimana, Kak?",
+        "Parfum aslinya yang jadi acuan namanya apa?",
+        "Kalau buat cowok kuliah cocok nggak?",
+        "Untuk ukuran kecil, semua kualitas Karakter berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Axbomba itu wanginya kayak gimana, Kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axbomba memakai Axe Anarki sebagai acuan, Kak. Profil parfum acuannya memuat bluberi, lavender, delima, kayu cendana, dan amber putih. Karena versi Parfum Karakter dimodifikasi, susunan notes akhirnya bisa lebih berlapis dan tidak harus identik dengan parfum acuan."
+        },
+        {
+          "role": "user",
+          "content": "Parfum aslinya yang jadi acuan namanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axe Anarki adalah nama Parfum Inspired atau parfum acuannya, Kak. Nama Parfum Karakter-nya Axbomba."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat cowok kuliah cocok nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yang bisa dipastikan, pilihannya memang Super Premium, Platinum. Detail ketahanan atau hasil pemakaiannya belum dicantumkan, jadi aku nggak mau menebak. Kalau Kakak kasih tahu kebutuhan dan budgetnya, aku bantu arahkan ke satu pilihan yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Untuk ukuran kecil, semua kualitas Karakter berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Axe Anarki",
+        "classification": "Parfum Karakter",
+        "attributes": {}
+      }
+    },
+    {
+      "id": 8,
+      "name": "Mengubah jumlah lalu checkout",
+      "tone": "membeli",
+      "messages": [
+        "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian",
+        "Kualitas yang paling sesuai yang mana?",
+        "Harga satu botolnya berapa?",
+        "Jadi dua botol ya, total produknya berapa?",
+        "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, aku cek dulu ya untuk Bodyshop Oceanus Inspired 50ml.\n\nKalau dilihat dari klasifikasinya, ini masuk ke Parfum Inspired dengan kualitas EDT karena paling cocok buat pemakaian harian — ringan, kalem, dan pas buat ke kantor/kuliah.\n\nApakah Kakak tertarik dengan varian EDT ini, atau ada preferensi lain yang ingin ditanyakan?"
+        },
+        {
+          "role": "user",
+          "content": "Kualitas yang paling sesuai yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu, berikut balasan yang sudah diperbaiki sesuai dengan data yang ada:\n\nUntuk pemakaian harian seperti ke kantor atau kuliah, yang paling cocok adalah kualitas EDT (2:1) dari Parfum Inspired.\n\nKarena EDT memiliki konsentrasi 66% bibit, aromanya cenderung lembut dan ringan. Parfum Inspired disarankan untuk disemprot ke baju.\n\nApakah Kakak tertarik dengan varian aroma tertentu?"
+        },
+        {
+          "role": "user",
+          "content": "Harga satu botolnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired:\n\nEDT\n30ml: Rp35.000\n50ml: Rp45.000\n100ml: Rp55.000\n\nEDP\n30ml: Rp60.000\n50ml: Rp75.000\n100ml: Rp85.000\n\nMurni\n30ml: Rp120.000\n50ml: Rp150.000\n100ml: Rp165.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Jadi dua botol ya, total produknya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas dan ukuran dulu, Kak? Harga mengikuti kombinasi variasi pada katalog."
+        },
+        {
+          "role": "user",
+          "content": "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Produk Bodyshop Oceanus sudah tercatat, Kak. Pilihan kualitas dan ukuran belum lengkap, jadi aku belum hitung ongkir. Pilihan yang mau dipakai yang mana?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Bodyshop Oceanus",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Ukuran": "50ml"
+        },
+        "customer": {
+          "name": "Fajar",
+          "phone": "081287654321",
+          "address": "Mantrijeron Yogyakarta"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "name": "Menguji batas stok ketahanan dan keamanan",
+      "tone": "hati-hati",
+      "messages": [
+        "Kak EDT 30ml stok lima botol ada kan?",
+        "Terus wanginya pasti tahan 12 jam nggak?",
+        "Kalau kulit sensitif aman disemprot langsung?",
+        "Kalau datanya memang nggak ada, harga resminya aja deh"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak EDT 30ml stok lima botol ada kan?"
+        },
+        {
+          "role": "assistant",
+          "content": "Status stok saat ini belum dicantumkan, jadi perlu dikonfirmasi ke admin sebelum pesanan diproses."
+        },
+        {
+          "role": "user",
+          "content": "Terus wanginya pasti tahan 12 jam nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Durasi ketahanan pastinya belum tercantum, Kak, jadi aku tidak bisa menjanjikan jumlah jam tertentu. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau kulit sensitif aman disemprot langsung?"
+        },
+        {
+          "role": "assistant",
+          "content": "Keamanan untuk kulit sensitif belum dicantumkan, Kak, jadi aku tidak bisa memastikan aman disemprot langsung. Ikuti petunjuk pada kemasan; kalau mudah iritasi, hentikan pemakaian bila muncul reaksi dan konfirmasikan dulu ke admin atau tenaga kesehatan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau datanya memang nggak ada, harga resminya aja deh"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [],
+      "state": {}
+    },
+    {
+      "id": 10,
+      "name": "Pemula santai banyak bertanya",
+      "tone": "ceria",
+      "messages": [
+        "Wkwk aku gapaham parfum sama sekali, Kak",
+        "Fresh, floral, woody tuh gampangnya beda apa?",
+        "Aku cewek, sering panas-panasan, dan nggak suka manis",
+        "Kasih dua rekomendasi yang paling nyambung dong",
+        "Yang kedua itu nama aslinya atau nama Karakter?",
+        "Kalau ukuran paling kecil semua kualitasnya berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Wkwk aku gapaham parfum sama sekali, Kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Tenang aja, justru aku di sini buat bantu carikan yang cocok. 😊\n\nKakak lebih suka buat sehari-hari ke kantor/kuliah, atau untuk acara spesial kayak kondangan atau hangout malam?"
+        },
+        {
+          "role": "user",
+          "content": "Fresh, floral, woody tuh gampangnya beda apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu, Kak. Berdasarkan informasi yang tersedia, berikut adalah penjelasan mengenai kategori aroma parfum yang bisa membantu:\nFresh — Aroma ini ringan dan segar, biasanya berasal dari esensi buah non-sitrus seperti apel, peach, berry, pir, dan anggur. Karakternya manis, segar, juicy, dan menggugah selera. Kesan yang ditimbulkan ceria, youthful, playful, dan menyenangkan. Cocok untuk kegiatan santai, kencan ringan, atau hangout bersama teman di siang hari, serta baik digunakan pada musim semi atau panas.\nFloral — Aroma bunga-bungaan, termasuk kategori Red Floral yang lebih berani dan intens seperti mawar merah, peony, atau carnation. Aroma ini cenderung kaya, manis, dengan sedikit spicy, serta menyampaikan pesan romansa yang dalam, gairah, dan karisma. Sangat cocok untuk acara formal di malam hari atau momen spesial seperti dinner romantis.\nWoody — Aroma ini berbasis dari kayu-kayuan seperti sandalwood, cedarwood, vetiver, dan patchouli. Memberikan kesan hangat, dewasa, dan maskulin. Cocok digunakan di malam hari, musim dingin, atau acara formal.\n\nApakah Kakak tertarik pada salah satu kategori tersebut, atau ingin yang merupakan campuran dari beberapa aroma? Biar saya bantu rekomendasikan produk yang sesuai."
+        },
+        {
+          "role": "user",
+          "content": "Aku cewek, sering panas-panasan, dan nggak suka manis"
+        },
+        {
+          "role": "assistant",
+          "content": "Yang bisa dipastikan, pilihannya memang Super Premium, Platinum, EDT, EDP, Murni. Detail ketahanan atau hasil pemakaiannya belum dicantumkan, jadi aku nggak mau menebak. Kalau Kakak kasih tahu kebutuhan dan budgetnya, aku bantu arahkan ke satu pilihan yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua rekomendasi yang paling nyambung dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah fresh yang dicari:\n\n1. Squad Girl — keluarga fresh. Memakai Body Shop Vanila sebagai acuan; profil acuannya memuat lemon, orange blossom, melati, tuberose, lily of the valley, kayu cendana, aprikot, dan persik. Versi Parfum Karakter dapat dimodifikasi, jadi susunannya tidak harus identik.\n\n2. Agolie — keluarga fresh. Memakai Angelina jolie sebagai acuan; profil acuannya memuat kayu cendana, musk, dan amber. Versi Parfum Karakter dapat dimodifikasi, jadi susunannya tidak harus identik.\n\nDari dua ini, mana yang paling menarik?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua itu nama aslinya atau nama Karakter?"
+        },
+        {
+          "role": "assistant",
+          "content": "Agolie adalah nama Parfum Karakter, Kak. Pasangan Parfum Inspired-nya adalah Angelina jolie."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil semua kualitasnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Agolie",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

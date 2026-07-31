@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-07-28T12:02:58.306Z",
+  "scenarios": [
+    {
+      "id": 8,
+      "name": "Komplain aroma pembelian lama",
+      "tone": "kecewa",
+      "messages": [
+        "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya",
+        "Terlalu manis, bikin eneg",
+        "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, maaf banget dengar parfumnya kurang cocok 😊\n\n Misalnya terlalu kuat, terlalu lembut, atau aromanya kurang sesuai selera? Biar aku bisa bantu cari alternatif yang lebih pas."
+        },
+        {
+          "role": "user",
+          "content": "Terlalu manis, bikin eneg"
+        },
+        {
+          "role": "assistant",
+          "content": "Paham, Kak. Berarti arah manisnya kita hindari dulu supaya rekomendasi berikutnya nggak mengulang masalah yang sama.\n\nAku bisa arahkan ke keluarga fresh yang lebih segar atau woody yang lebih berkayu. Kakak lebih condong ke fresh atau woody?"
+        },
+        {
+          "role": "user",
+          "content": "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik, Kak. Aku hubungkan ke admin sekarang. Pesan Kakak sudah diteruskan dan admin akan melanjutkan di chat ini."
+        }
+      ],
+      "tools": [
+        "escalateToHuman"
+      ],
+      "state": {
+        "handoffReason": "Customer meminta admin: Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique! Wah, anniversary, pasti momen spesial banget nih 🥰\n\n Misalnya yang segar, manis, floral, atau yang lebih hangat dan maskulin?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kesan elegan di malam hari, aku bisa bantu pilihkan dari keluarga aroma yang sesuai, Kak. Tapi data varian yang tersedia belum memberi label khusus unisex, jadi aku nggak mau memastikan sesuatu yang belum dicantumkan.\n\nKalau tetap ingin dipertimbangkan bersama pasangan, aku bisa kasih dua pilihan aroma elegan sebagai shortlist."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah elegan yang Kakak cari:\n\n1. Sun Girl — keluarga glamour.\n\n2. Axbomba — keluarga glamour.\n\nDari dua ini, mana yang paling menarik buat Kakak?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axbomba\n\nParfum Karakter:\n\nSuper Premium\n30ml: Rp120.000\n50ml: Rp160.000\n100ml: Rp310.000\n\nPlatinum\n30ml: Rp135.000\n50ml: Rp180.000\n100ml: Rp360.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai aja Kak, nggak buru-buru kok 😊\n\nKalau nanti sudah diskusi sama pasangan, tinggal bilang aja mau ukuran dan kualitas yang mana, aku siap bantu lanjutin."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Axbomba",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

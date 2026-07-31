@@ -8,6 +8,7 @@ import { operationalMetrics } from '../operations/metrics.js';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const checksum = (buffer: Buffer | string) => createHash('sha256').update(buffer).digest('hex');
+const isTemporaryKnowledgeFile = (name: string) => name.startsWith('~$') || name.startsWith('.') || /(?:\.tmp|\.temp|\.part|\.crdownload)$/i.test(name);
 
 export interface KnowledgeWorkerOptions {
     store?: KnowledgeStore;
@@ -83,9 +84,11 @@ export class KnowledgeIngestionWorker {
             const names = (await fs.readdir(this.knowledgeDir)).sort((a, b) => a.localeCompare(b));
             const files: Array<{ name: string; path: string; buffer: Buffer; checksum: string }> = [];
             for (const name of names) {
+                if (isTemporaryKnowledgeFile(name)) continue;
                 const filePath = path.join(this.knowledgeDir, name);
                 if (!(await fs.stat(filePath)).isFile()) continue;
                 const buffer = await fs.readFile(filePath);
+                if (!buffer.length) continue;
                 files.push({ name, path: filePath, buffer, checksum: checksum(buffer) });
             }
             const sourceChecksum = checksum(files.map((file) => `${file.name}\0${file.checksum}`).join('\n'));

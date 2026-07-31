@@ -49,7 +49,7 @@ test('all admin collapse controls persist their latest state across navigation',
 
     assert.ok(details.length > 0);
     for (const [, attributes] of details) {
-        assert.match(attributes, /data-persist-collapse="[^"]+"/);
+        if (!attributes.includes('inline-editor')) assert.match(attributes, /data-persist-collapse="[^"]+"/);
     }
     assert.match(source, /querySelectorAll\('\[data-persist-collapse\]'\)/);
     assert.match(source, /addEventListener\('toggle'/);
@@ -101,6 +101,22 @@ test('lead table exposes explicit created and updated timestamps plus server sor
     assert.doesNotMatch(route, /ORDER BY \$\{req\.query/);
 });
 
+test('lead status control keeps selected and dropdown colors aligned', async () => {
+    const server = await readFile('src/admin/server.ts', 'utf8');
+    const styles = await readFile('src/admin/admin-styles.ts', 'utf8');
+    for (const status of ['new', 'interested', 'checkout', 'paid', 'shipped', 'completed', 'lost']) {
+        assert.match(server, new RegExp(`data-status-value="\\$\\{value\\}"`));
+        assert.match(styles, new RegExp(`\\.status-${status}`));
+    }
+    assert.match(server, /data-status-select/);
+    assert.match(server, /role="listbox"/);
+    assert.match(server, /aria-selected/);
+    assert.match(server, /event\.key === 'Escape'/);
+    assert.match(styles, /\.status-select \{[\s\S]*width: 144px[\s\S]*border-radius: 8px/);
+    assert.match(styles, /\.status-menu \{[\s\S]*position: fixed[\s\S]*width: 144px[\s\S]*border-radius: 10px/);
+    assert.match(server, /getBoundingClientRect\(\)/);
+});
+
 test('admin and login share one native semantic product UI layer', async () => {
     const [server, login, styles] = await Promise.all([
         readFile(new URL('../src/admin/server.ts', import.meta.url), 'utf8'),
@@ -110,6 +126,12 @@ test('admin and login share one native semantic product UI layer', async () => {
 
     assert.match(server, /href="\/admin\/assets\/admin\.css\?v=[^"]+"/);
     assert.match(login, /href="\/admin\/assets\/admin\.css\?v=[^"]+"/);
+    assert.match(server, /rel="icon" href="\/admin\/assets\/voidlark-logo-clean\.svg" type="image\/svg\+xml"/);
+    assert.match(login, /rel="icon" href="\/admin\/assets\/voidlark-logo-clean\.svg" type="image\/svg\+xml"/);
+    assert.match(server, /<title>Voidlark Dashboard<\/title>/);
+    assert.match(login, /<title>Voidlark Dashboard<\/title>/);
+    assert.equal((login.match(/<title>/g) || []).length, 1);
+    assert.match(server, /app\.get\('\/favicon\.ico'/);
     assert.match(server, /app\.get\('\/admin\/assets\/admin\.css'/);
     assert.match(server, /<body class="admin-app">/);
     assert.match(login, /<body class="login-app">/);
@@ -154,12 +176,14 @@ test('admin and login share one native semantic product UI layer', async () => {
     assert.match(server, /class="backup-restore-form"/);
     assert.match(server, /\['Ongkir', 'Handoff'\]/);
     assert.match(server, /\['Lookup eksternal', 'Database'\]/);
+    assert.equal((login.match(/<script nonce="\$\{escapeHtml\(nonce\)\}">/g) || []).length, 2);
 });
 
 test('SSR Admin host keeps legacy page rendering available', async () => {
     const server = await readFile(new URL('../src/admin/server.ts', import.meta.url), 'utf8');
     assert.match(server, /app\.get\('\/admin\/login'/);
-    assert.match(server, /res\.send\(renderLoginPage\(\)\)/);
+    assert.match(server, /renderLoginPage\('', String\(res\.locals\.cspNonce\)\)/);
+    assert.match(server, /renderLoginPage\('Password tidak valid\.', String\(res\.locals\.cspNonce\)\)/);
     assert.doesNotMatch(server, /reactIndex|React Admin host|dist[\\/]admin-ui|express\.static\([^\n]*admin-ui/);
 });
 

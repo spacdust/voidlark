@@ -1,0 +1,260 @@
+{
+  "generatedAt": "2026-07-27T04:28:16.628Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Mencari aroma mirip Mykonos",
+      "messages": [
+        "Kak, di sini ada Mykonos Monaco Royale nggak?",
+        "Oh nggak ada ya? Yang wanginya mirip ada nggak, Kak?",
+        "Yang paling mirip yang mana?",
+        "Kalau itu harganya berapa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, di sini ada Mykonos Monaco Royale nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Mykonos Monaco Royale itu brand luar, Kak. Kalau dari katalog kita, nggak ada produk dengan nama itu. Tapi aku bisa bantu cari tahu dulu karakter aroma Mykonos Monaco Royale-nya kayak gimana, biar kita cari alternatif yang paling cocok dari koleksi Aromatique. Mau aku cek dulu?"
+        },
+        {
+          "role": "user",
+          "content": "Oh nggak ada ya? Yang wanginya mirip ada nggak, Kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dari referensi, Mykonos Monaco Royale punya profil aroma: - Top: Pear, Melon, Mandarin Orange - Middle: Jasmine, Rose, Floral - Base: Caramel, Musk, Amber, Vanilla Jadi kesannya fruity-floral yang manis, creamy, dan ada sentuhan musk-amber di dasar. Dari katalog Aromatique, yang paling cocok dengan profil itu ada dua kandidat:\n\n1. Musky Pea – keluarga floral, aroma lembut dengan sentuhan musk. Cocok buat pengganti sisi floral-musk-nya.\n\n2. Clive Five – keluarga glamour, lebih kaya dan mewah. Bisa nge-cover sisi manis dan warm amber-vanilla-nya.\n\nKalau lihat preferensi Kakak, lebih suka yang ringan dan segar atau yang warm dan manis? Biar aku rekomendasiin yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Yang paling mirip yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dari profilnya, Mykonos Monaco Royale punya kombinasi fruity manis di atas, floral creamy di tengah, dan amber-musk hangat di dasar. Itu campuran yang balance antara segar, feminin, dan warm. Dari katalog kita, Clive Five dari keluarga glamour paling mendekati. Karakternya lebih kaya, mewah, dan ada kehangatan yang mirip dengan sisi amber-vanilla serta floral-nya.\n\nMusky Pea lebih ke floral-musk yang ringan dan soft, jadi kurang nge-cover sisi manis dan warm-nya. Mau aku jelasin varian dan harga Clive Five, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau itu harganya berapa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Clive Five masuk ke kelompok Parfum Karakter, dengan dua kualitas: Super Premium - 30ml – Rp120.000 (200g) - 50ml – Rp160.000 (300g) - 100ml – Rp310.000 (450g) Platinum - 30ml – Rp135.000 (200g) - 50ml – Rp180.000 (300g) - 100ml – Rp360.000 (450g) Platinum lebih intens dan tahan lama, Super Premium lebih ringan tapi tetap berkualitas. Mau coba ukuran dan kualitas yang mana, Kak?"
+        }
+      ],
+      "tools": [
+        "external:cache",
+        "cariReferensiProduk"
+      ],
+      "state": {}
+    },
+    {
+      "id": 2,
+      "name": "Mencari aroma mirip Khamrah",
+      "messages": [
+        "Kak ada Lattafa Khamrah?",
+        "Kalau nggak ada, ada yang wanginya mirip Khamrah nggak?",
+        "Aku mau yang pertama deh. Wanginya gimana?",
+        "Harganya berapa, Kak?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ada Lattafa Khamrah?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Lattafa Khamrah itu merek luar, Kak. Kita tidak jual produk brand tersebut. Tapi kalau Kakak cari wewangian dengan karakter hangat, manis, sedikit gourmand — kira-kira seperti itu yang dicari? Biar aku bantu cariin alternatif yang cocok dari koleksi Aromatique."
+        },
+        {
+          "role": "user",
+          "content": "Kalau nggak ada, ada yang wanginya mirip Khamrah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku sudah mencari referensi Khamrah, Kak. ###### Fragrance Notes:. Khamrah by Lattafa Perfumes is an Aromatic Spicy fragrance for women and men. This is a new fragrance. Khamrah was launched in\n\n2022. The top notes are Cinnamon, Nutmeg, and Bergamot; the middle notes are Dates, Praline, Tuberose, and Mahonial; the base no Untuk kandidat dari katalog Aromatique, aku belum mau menebak agar rekomendasinya tidak salah. Aku bantu teruskan ke admin untuk mencocokkan pilihan terdekat ya."
+        },
+        {
+          "role": "user",
+          "content": "Aku mau yang pertama deh. Wanginya gimana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dari referensi yang aku dapat, Khamrah punya profil aroma: - Top: kayu manis, pala, bergamot - Middle: kurma, praline - Base: amber, vanila, benzoin Jadi karakter utamanya hangat, manis, gourmand — cocok buat yang suka aroma oriental sweet-spicy. Di Aromatique, yang paling mendekati profil itu ada di kelompok Parfum Karakter, Kak. Aroma dengan nuansa hangat, manis, dan sedikit rempah.\n\nMau aku jelasin pilihan kualitas dan ukurannya?"
+        },
+        {
+          "role": "user",
+          "content": "Harganya berapa, Kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu Kak, ini harga Parfum Karakter Aromatique: Super Premium 30ml - Rp120.000 (200g) 50ml - Rp160.000 (300g) 100ml - Rp310.000 (450g) Platinum 30ml - Rp135.000 (200g) 50ml - Rp180.000 (300g) 100ml - Rp360.000 (450g) Kakak tertarik dengan kualitas dan ukuran yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache",
+        "cariReferensiProduk"
+      ],
+      "state": {}
+    },
+    {
+      "id": 3,
+      "name": "Parfum untuk hadiah",
+      "messages": [
+        "Kak, mau cari parfum buat kado cewek umur 25. Dia sukanya wangi lembut, nggak nyegrak.",
+        "Menurut Kakak yang paling aman yang mana?",
+        "Oke, kalau yang itu pilihan ukuran sama harganya berapa?",
+        "Aku ambil EDP 30ml ya. Nama Lala, 081234560001, kirim ke Ngaglik Sleman."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, mau cari parfum buat kado cewek umur 25. Dia sukanya wangi lembut, nggak nyegrak."
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, aku belum bisa memastikan rekomendasi yang paling mirip dari katalog. Aku bantu teruskan ke admin ya."
+        },
+        {
+          "role": "user",
+          "content": "Menurut Kakak yang paling aman yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, kita cari yang cocok dulu ya. Kalau adik cewek suka wangi lembut dan nggak nyegrak, biasanya aroma dari keluarga Floral atau Musk-Powdery paling aman. Lembut, feminin, dan nggak bikin pusing. Sebelum aku rekomendasiin produknya, aku mau tanya satu hal dulu: Kakak ada gambaran nggak, dia lebih suka wangi yang segar kayak bunga-bungaan atau yang hangat lembut kayak bedak?\n\nBiar aku arahkan ke pilihan yang pas 😊"
+        },
+        {
+          "role": "user",
+          "content": "Oke, kalau yang itu pilihan ukuran sama harganya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk Parfum Karakter, pilihan kualitas dan harganya: Super Premium 30ml - Rp120.000 50ml - Rp160.000 100ml - Rp310.000 Platinum 30ml - Rp135.000 50ml - Rp180.000 100ml - Rp360.000 Kakak mau yang kualitas Super Premium atau Platinum? Terus ukuran berapa yang kira-kira cocok buat kado?"
+        },
+        {
+          "role": "user",
+          "content": "Aku ambil EDP 30ml ya. Nama Lala, 081234560001, kirim ke Ngaglik Sleman."
+        },
+        {
+          "role": "assistant",
+          "content": "Ambil EDP 30ml. Nama Lala, 081234560001, kirim Ngaglik Sleman. Oke. EDP 30ml ready. Ongkir perlu alamat lengkap. Jalan/RT/RW/patokan?"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    },
+    {
+      "id": 4,
+      "name": "Mencari parfum sesuai budget",
+      "messages": [
+        "Kak, budget 80 ribuan dapat parfum apa?",
+        "Aku sukanya yang fresh buat dipakai siang.",
+        "Kalau menurut Kakak yang paling cocok yang mana?",
+        "Oke ambil EDP 50ml satu ya. Nama Rian, 081234560002, alamat Sewon Bantul."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, budget 80 ribuan dapat parfum apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, harga produk itu belum tercantum pada katalog yang aku pegang. Aku bantu konfirmasi ke admin dulu ya."
+        },
+        {
+          "role": "user",
+          "content": "Aku sukanya yang fresh buat dipakai siang."
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired. Fresh buat siang. Pilih ukuran: 50ml, 100ml, atau 30ml EDP. Mau yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau menurut Kakak yang paling cocok yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "50ml EDP. Fresh, tahan siang, pas budget. Mau?"
+        },
+        {
+          "role": "user",
+          "content": "Oke ambil EDP 50ml satu ya. Nama Rian, 081234560002, alamat Sewon Bantul."
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, harga produk itu belum tercantum pada katalog yang aku pegang. Aku bantu konfirmasi ke admin dulu ya."
+        }
+      ],
+      "tools": [
+        "simpanDraftPesanan",
+        "cekOngkir"
+      ],
+      "state": {
+        "stage": "variant_selected",
+        "productName": "Parfum Inspired",
+        "classification": "EDP",
+        "quantity": 1,
+        "shippingEvidence": "Ongkir ke BANGUNHARJO, SEWON, BANTUL, DI YOGYAKARTA, 55188:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. SICEPAT HALU - Rp6.500 (2-3 hari)\n4. POS Pos Sameday - Rp16.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?",
+        "customer": {
+          "name": "Rian",
+          "phone": "081234560002",
+          "address": "Sewon Bantul"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "Mengubah ukuran dan jumlah",
+      "messages": [
+        "Kak, aku mau parfum wangi manis, EDP 30ml satu.",
+        "Itu berapa harganya?",
+        "Eh ganti 50ml aja deh, sekalian dua botol. Jadi berapa?",
+        "Oke. Atas nama Tia, 081234560003, kirim ke Mlati Sleman."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, aku mau parfum wangi manis, EDP 30ml satu."
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Ada yang bisa dibantu? Sebelum aku rekomendasiin, boleh tahu dulu Kakak sukanya wangi manis yang kayak gimana? Misalnya manis buah-buahan, manis vanilla, atau manis bunga? Biar aku cocokin aroma yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Itu berapa harganya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk Parfum Inspired kualitas EDP ukuran 30ml, harganya Rp60.000 Kak. Tapi sebelum lanjut, aku mau bantu cocokin dulu aromanya. Kakak sukanya wangi manis yang lebih ke arah mana? Misalnya manis buah, manis vanilla, atau manis bunga?"
+        },
+        {
+          "role": "user",
+          "content": "Eh ganti 50ml aja deh, sekalian dua botol. Jadi berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk EDP 50ml harganya Rp75.000 per botol. Kalau dua botol jadi Rp150.000 Kak. Sebelum aku bantu proses, Kakak ada preferensi aroma manis yang diinginkan? Biar aku rekomendasiin yang cocok."
+        },
+        {
+          "role": "user",
+          "content": "Oke. Atas nama Tia, 081234560003, kirim ke Mlati Sleman."
+        },
+        {
+          "role": "assistant",
+          "content": "Pesanan catat: - Parfum Inspired EDP 50ml x 2 - Tia - 081234560003 - Mlati Sleman Sebelum ongkir, Kak Tia suka aroma manis yang mana: manis buah, manis vanilla, atau manis bunga?"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    }
+  ]
+}

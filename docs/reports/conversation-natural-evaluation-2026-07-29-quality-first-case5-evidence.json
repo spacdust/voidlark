@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-07-29T08:27:35.309Z",
+  "scenarios": [
+    {
+      "id": 5,
+      "name": "Referensi fireplace dari luar katalog",
+      "tone": "penasaran",
+      "messages": [
+        "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?",
+        "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?",
+        "Aku pengin satu pilihan aja biar nggak bingung",
+        "Yang direkomendasiin itu aromanya gimana?",
+        "Kalau ukuran paling kecil harganya berapa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maison Margiela By the Fireplace tidak ditemukan sebagai produk pada katalog aktif, Kak. Referensi luarnya sudah ditemukan dan hanya akan dipakai sebagai pembanding. Kalau Kakak ingin alternatif toko, aku perlu membandingkan notes-nya dengan kandidat katalog terlebih dahulu."
+        },
+        {
+          "role": "user",
+          "content": "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dari produk toko yang sudah dibandingkan, Squad Girl paling dekat, Kak. Produk ini memakai Body Shop Vanila sebagai acuan. Overlap notes yang ditemukan: vanila.\n\nSquad Girl tetap produk berbeda dari Maison Margiela By the Fireplace, jadi susunan dan hasil akhirnya tidak harus identik."
+        },
+        {
+          "role": "user",
+          "content": "Aku pengin satu pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Squad Girl dari Parfum Karakter, Kak. Dari pilihan yang tersedia, ini yang paling dekat dengan kebutuhan yang tadi Kakak jelaskan."
+        },
+        {
+          "role": "user",
+          "content": "Yang direkomendasiin itu aromanya gimana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Squad Girl memakai Body Shop Vanila sebagai acuan, Kak. Profil parfum acuannya memuat aprikot, persik, plum, lemon, ylang-ylang, orange blossom, melati, dan tuberose. Karena versi Parfum Karakter dimodifikasi, susunan notes akhirnya bisa lebih berlapis dan tidak harus identik dengan parfum acuan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil harganya berapa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Squad Girl",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

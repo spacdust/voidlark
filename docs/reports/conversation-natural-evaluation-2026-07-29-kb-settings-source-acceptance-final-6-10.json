@@ -1,0 +1,305 @@
+{
+  "generatedAt": "2026-07-29T05:21:19.455Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Pembeli banyak meminta diskon",
+      "tone": "negosiasi",
+      "messages": [
+        "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?",
+        "Harga normal satuannya berapa?",
+        "Berarti total normal 20 botol berapa?",
+        "Diskonnya beneran nggak ada ya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Penawaran khusus perlu dikonfirmasi ke admin."
+        },
+        {
+          "role": "user",
+          "content": "Harga normal satuannya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Berarti total normal 20 botol berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item. Untuk 20 item, totalnya Rp700.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Diskonnya beneran nggak ada ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Penawaran khusus perlu dikonfirmasi ke admin."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 20,
+        "unitPrice": 35000,
+        "subtotal": 700000
+      }
+    },
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Bedanya terutama di konsentrasi bibitnya, Kak.\n\n1. EDT — 66% bibit.\n\n2. EDP — 75% bibit.\n\n3. Murni — 100% bibit.\n\nJadi urutannya dari konsentrasi paling rendah ke paling tinggi adalah EDT, EDP, lalu Murni. Kalau Kak kasih tahu parfumnya dipakai untuk apa, aku bisa bantu pilih satu yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma elegan, aku paling mengarah ke Axe Anarki dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga elegan. Arah parfum aslinya memuat amber putih, bluberi, lavender, delima, dan kayu cendana, jadi alasan rekomendasinya bukan hanya label elegan. Pilihan yang paling pas dan masih sesuai budget: EDP 30ml seharga Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000, sedangkan EDP 50ml Rp75.000. Selisihnya Rp15.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau dari dua pilihan tadi, aku pilih EDP 30ml, Kak. EDP tetap sama seperti pilihan sebelumnya, tetapi harganya Rp60.000 dan lebih hemat Rp15.000 daripada EDP 50ml. Kalau belum butuh ukuran lebih besar, pilihan ini lebih masuk akal."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Axe Anarki",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "maxBudget": 100000
+      }
+    },
+    {
+      "id": 8,
+      "name": "Komplain aroma pembelian lama",
+      "tone": "kecewa",
+      "messages": [
+        "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya",
+        "Terlalu manis, bikin eneg",
+        "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku turut sedih dengar kabar itu. Boleh Kakak ceritakan dulu, parfum yang mana ya yang kemarin dibeli? Biar aku cek dulu dan bisa bantu cari solusinya."
+        },
+        {
+          "role": "user",
+          "content": "Terlalu manis, bikin eneg"
+        },
+        {
+          "role": "assistant",
+          "content": "Paham, Kak. Berarti arah manisnya kita hindari dulu supaya rekomendasi berikutnya nggak mengulang masalah yang sama.\n\nAku bisa arahkan ke keluarga fresh yang lebih segar atau woody yang lebih berkayu. Kak lebih condong ke fresh atau woody?"
+        },
+        {
+          "role": "user",
+          "content": "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik, Kak. Aku hubungkan ke admin sekarang. Pesan Kakak sudah diteruskan dan admin akan melanjutkan di chat ini."
+        }
+      ],
+      "tools": [
+        "escalateToHuman"
+      ],
+      "state": {
+        "handoffReason": "Customer meminta admin: Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Wah, anniversary, pasti momen spesial banget nih.\n\nTerus selama ini dia suka aroma yang kayak gimana — yang segar, manis, woody, atau floral?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma elegan, aku paling mengarah ke Bacarat Rouge dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga elegan. Arah parfum aslinya memuat saffron, kayu amber, ambergris, melati, dan hedione, jadi alasan rekomendasinya bukan hanya label elegan."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah elegan yang dicari:\n\n1. Bacarat Rouge — keluarga elegan, dengan arah notes saffron, kayu amber, ambergris, melati, dan hedione.\n\n2. Beneton Hot — keluarga elegan, dengan arah notes kayu mawar Brasil, jeruk mandarin, lemon, bergamot, aprikot, iris, melati air, dan lily of the valley.\n\nDari dua ini, mana yang paling menarik?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Beneton Hot\n\nParfum Inspired:\n\nEDT\n30ml: Rp35.000\n50ml: Rp45.000\n100ml: Rp55.000\n\nEDP\n30ml: Rp60.000\n50ml: Rp75.000\n100ml: Rp85.000\n\nMurni\n30ml: Rp120.000\n50ml: Rp150.000\n100ml: Rp165.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak usah buru-buru. Tanyakan dulu aja ke pasangan.\n\nKalau nanti udah fix mau ukuran dan kualitas yang mana, tinggal chat aku lagi ya. Siap bantu kapan aja 😊"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Beneton Hot",
+        "classification": "Parfum Inspired"
+      }
+    },
+    {
+      "id": 10,
+      "name": "Salah chat lalu tertarik",
+      "tone": "acak",
+      "messages": [
+        "Kak ini jual case hp samsung nggak?",
+        "Oh parfum toh wkwk salah chat",
+        "Tapi sekalian deh, ada parfum cowok murah nggak?",
+        "Budget 50 ribu, yang fresh ada?",
+        "Kalau EDT 30ml berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ini jual case hp samsung nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, maaf, Aromatique nggak jual case HP Samsung. Produk yang kami jual parfum dan wewangian.\n\nKak lagi cari parfum atau ada kebutuhan lain yang bisa aku bantu?"
+        },
+        {
+          "role": "user",
+          "content": "Oh parfum toh wkwk salah chat"
+        },
+        {
+          "role": "assistant",
+          "content": "Haha nggak apa-apa Kak, santai aja 😄\n\nKalau suatu saat Kakak tertarik cari parfum, aku Anin dari Aromatique siap bantu rekomendasiin wangi yang cocok. Ada yang bisa aku bantu atau cukup sampai sini dulu?"
+        },
+        {
+          "role": "user",
+          "content": "Tapi sekalian deh, ada parfum cowok murah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ada pilihan yang bisa disesuaikan, Kak. Supaya nggak asal memberi label cowok atau menyebut varian yang belum cocok, aku saring dari karakter aroma dan batas harganya.\n\nBudget maksimalnya berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Budget 50 ribu, yang fresh ada?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke Bodyshop Oceanus dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Arah parfum aslinya memuat teratai air, jadi alasan rekomendasinya bukan hanya label fresh. Pilihan yang paling pas dan masih sesuai budget: EDT 30ml seharga Rp35.000."
+        },
+        {
+          "role": "user",
+          "content": "Kalau EDT 30ml berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Bodyshop Oceanus",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 35000,
+        "subtotal": 35000,
+        "maxBudget": 50000
+      }
+    }
+  ]
+}

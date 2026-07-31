@@ -1,0 +1,262 @@
+{
+  "generatedAt": "2026-07-27T03:00:56.125Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Konsultasi aroma segar harian",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Halo kak, cari parfum segar buat kerja sehari-hari"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Kebetulan kita punya beberapa pilihan yang cocok buat daily wear. Sebelum aku rekomendasiin, boleh tahu nih Kak, lebih suka aroma yang benar-benar segar kayak jeruk-jerukan, atau yang segar herbal kayak aroma dedaunan? Biar lebih pas rekomendasinya."
+        },
+        {
+          "role": "user",
+          "content": "Aku sukanya yang nggak terlalu manis, ada rekomendasi?"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, berarti Kakak cari yang fresh tapi nggak manis. Cocok nih sama keluarga aroma Citrus atau Aromatic. Dari keluarga Citrus, kita punya beberapa pilihan yang segar, tajam, dan cerah — cocok banget dipakai kerja sehari-hari karena ringan dan bikin semangat. Dari keluarga Aromatic, aromanya lebih ke herbal kayak rosemary, lavender, mint — segar tapi lebih kompleks dan sedikit maskulin.\n\nDari dua keluarga ini, kira-kira Kakak lebih tertarik ke yang citrus fruity segar, atau yang herbal segar kayak aroma dedaunan?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pilih rekomendasi pertama. Itu inspired atau karakter?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk yang Citrus, kita punya di kelompok Parfum Inspired, Kak. Ini varian aroma yang terinspirasi dari parfum terkenal dengan harga yang lebih terjangkau. Kalau Kakak suka yang fresh citrus, pilihan bagusnya ada Mykonos — aromanya segar, ringan, cocok banget buat daily kerja. Ada juga Moscow yang fresh citrus dengan sentuhan sedikit lebih hangat. Tapi sebelumnya Kakak, aku tanya dulu — budget-nya kira-kira berapa?\n\nBiar aku sesuaikan sama kualitas dan ukuran yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran 30ml kualitas EDP berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk Mykonos atau Moscow, ukuran 30ml kualitas EDP harganya Rp60.000 per botol, Kak. Ringan di kantong kan? Kalau Kakak tertarik, mau coba yang mana — Mykonos atau Moscow?"
+        },
+        {
+          "role": "user",
+          "content": "Oke ambil satu. Nama Raka, WA 081234567890, alamat Seturan, Depok, Sleman, Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Raka mau Mykonos atau Moscow, Kak? Biar aku pastikan dulu sebelum lanjut."
+        }
+      ],
+      "tools": []
+    },
+    {
+      "id": 2,
+      "name": "Referensi merek luar",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ada yang mirip Mykonos Monaco Royale?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique! Ada yang bisa aku bantu? Oke, Mykonos Monaco Royale ya. Aku cek dulu notes-nya: pear, melon, green notes, cedarwood, moss, caramel, musk — fresh fruity dengan sentuhan woody dan manis. Dari katalog kita, yang paling mendekati karakter itu... aku lihat dulu ya. Beberapa opsi yang mungkin cocok:\n\n1. Agnes Monica New Agnes (keluarga floral, ada kesegaran) — karakter Musky Pea\n\n2. Bacarat La Rose (keluarga glamour) — karakter Clive Five\n\n3. Bodyshop White Musk (keluarga glamour) — karakter Suddenly Dari tiga ini, Musky Pea punya nuansa fresh dan musky yang agak mirip dengan kesan clean dan hangatnya Monaco Royale. Tapi kalau mau yang lebih mania dan glamour, Suddenly juga opsi. Mau aku ceritain lebih detail salah satunya, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Iya, carikan produk Aromatique yang notesnya paling mendekati"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, dari knowledge kita, Mykonos Monaco Royale notes-nya: pear, melon, green notes, cedarwood, moss, caramel, musk. Perpaduan fresh fruity, woody, dan sedikit manis hangat. Dari katalog Aromatique, yang paling mendekati kombinasi ini ada dua kandidat:\n\n1. Musky Pea — fresh fruity floral dengan sentuhan musky. Cocok karena ada kesegaran buah dan musk yang mirip.\n\n2. Suddenly — dari kelompok glamour, lebih soft dan creamy, cocok buat yang suka sisi manis hangatnya. Kalau lihat dari arah Inspired di katalog kita, yang karakter fresh fruity-nya paling nyambung itu Musky Pea. Mau aku jelasin varian dan harganya, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pilih yang paling mirip. Klasifikasinya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Musky Pea masuk ke keluarga floral — lebih tepatnya perpaduan fresh fruity dengan sentuhan musky. Karakternya ringan, segar, tapi tetap ada kehangatan lembut di akhir. Cocok banget buat sehari-hari, hangout siang, atau acara santai. Nah, Musky Pea ini masuk ke kelompok Parfum Inspired di Aromatique. Ada tiga kualitas: EDT, EDP, dan Murni. Mau aku jelasin bedanya dan harganya, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Kasih pilihan ukuran dan harganya ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Musky Pea (Inspired). Tiga kualitas: EDT, EDP, Murni. Masing-masing tiga ukuran: 30ml, 50ml, 100ml. Mau kualitas apa?"
+        },
+        {
+          "role": "user",
+          "content": "Ambil 50ml yang kualitas tengah. Nama Dina, WA 081298765432, alamat Bantul, Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Pilihannya sudah sesuai, Kak. Sekarang tinggal pilih kurirnya:\n\n1. WAHANA — Rp5.000 (2 hari)\n\n2. JNE — Rp6.000 (1 hari)\n\n3. TIKI — Rp14.000 (hari ini) Mau pakai yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache",
+        "cariReferensiProduk",
+        "cekOngkir",
+        "simpanDraftPesanan"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Customer aktif membandingkan kualitas",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau parfum buat acara malam, elegan tapi nggak menusuk"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique! Untuk acara malam yang elegan tapi tetap nyaman, aku rekomen dua arah aroma yang cocok:\n\n1. White Floral — lembut, creamy, feminin, elegan tapi nggak berlebihan. Cocok buat dinner romantis atau acara formal malam.\n\n2. Red Floral — sedikit lebih hangat dan berani, tetap manis dan romantis, cocok kalau mau kesan yang lebih memikat. Dari dua itu, kira-kira Kakak lebih suka yang lembut lembut kayak white floral, atau yang sedikit lebih hangat dan berani?"
+        },
+        {
+          "role": "user",
+          "content": "Bedanya Super Premium dan Platinum apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Platinum lebih tinggi dari Super Premium. Super Premium — kualitas bagus, harga lebih hemat. Platinum — lebih pekat, lebih tahan lama, aroma lebih kaya. Kalau untuk acara malam dan mau elegan tanpa menusuk, Platinum di ukuran 30ml atau 50ml bisa jadi pilihan. Tapi Super Premium juga udah oke kok. Kakak tertarik ke kelompok White Floral atau Red Floral? Biar bisa aku cocokin produknya."
+        },
+        {
+          "role": "user",
+          "content": "Kalau 30ml masing-masing berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Super Premium 30ml: Rp120.000 Platinum 30ml: Rp135.000 Keduanya ukuran 30ml. Tapi Kakak belum pilih mau aroma dari kelompok White Floral atau Red Floral nih. Biar bisa aku kasih rekomendasi produk spesifiknya, Kakak lebih suka yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih Platinum 30ml satu ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Platinum 30ml. Pilih aroma dulu. Dua kelompok cocok malam:\n\n1. White Floral — bunga putih, lembut, creamy, elegan. Contoh melati, tuberose.\n\n2. Red Floral — mawar, peony, hangat, romantis. Mau arah mana Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Nama Sari, nomor 082112223333, kirim ke Condongcatur, Depok, Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke Kak Sari, sebelum aku cek ongkir, aku perlu tahu dulu aromanya mau yang White Floral atau Red Floral? Soalnya nanti produknya beda tergantung pilihan Kakak."
+        }
+      ],
+      "tools": []
+    },
+    {
+      "id": 4,
+      "name": "Customer hemat dan langsung tanya harga",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Parfum paling murah yang tersedia berapa kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, untuk Parfum Inspired, yang termurah ada kualitas EDT (2:1) ukuran 30ml seharga Rp33.\n\n000. Tapi karena minimal yang kami tawarkan 30ml, jadi itu paling ekonomis. Kalau mau tau lebih detail, ada yang ditanyain lagi soal aromanya?"
+        },
+        {
+          "role": "user",
+          "content": "Yang EDT 30ml itu bisa pilih aroma apa saja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk EDT 30ml, bisa pilih semua aroma yang ada di daftar Parfum Inspired. Ada beberapa pilihan aroma seperti:\n\n1. Fresh / segar\n\n2. Fruity / buah\n\n3. Sweet / manis\n\n4. Floral / bunga Kalau Kakak suka aroma yang seperti apa, aku bisa bantu rekomendasiin yang cocok."
+        },
+        {
+          "role": "user",
+          "content": "Rekomendasikan yang manis lembut untuk perempuan"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk aroma manis lembut cocoknya ke keluarga Fruity atau Sweet Floral. Beberapa rekomendasi aroma yang available:\n\n1. Vanilla – manis lembut, creamy, cocok buat sehari-hari\n\n2. Strawberry – manis segar, playful, cocok hangout\n\n3. Peach – manis juicy, ringan, feminin\n\n4. Cherry Blossom – manis floral lembut, elegan Kalau mau yang paling universal dan disukai banyak perempuan, Vanilla atau Cherry Blossom bisa jadi pilihan aman. Mau pilih aroma yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Oke ambil satu EDT 30ml"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, satu lagi. Untuk aroma Vanilla atau Cherry Blossom, mau pilih yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Nanda, 081377788899, Jalan Kaliurang km 7 Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Sebentar Kak, sebelumnya mau konfirmasi dulu aroma yang dipilih. Vanilla atau Cherry Blossom, Kak?"
+        }
+      ],
+      "tools": []
+    },
+    {
+      "id": 5,
+      "name": "Perubahan pilihan di tengah checkout",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Cari aroma woody yang cocok buat cowok"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, aku cek dulu di katalog kita. Dari info yang ada, aroma woody cocok banget buat cowok — karakternya hangat, maskulin, elegan. Biasanya cocok dipakai malam hari, acara formal, atau cuaca dingin. Di Aromatique, kita punya dua kelompok parfum yang bisa masuk ke arah woody:\n\n1. Parfum Inspired — lebih ringan, harga terjangkau\n\n2. Parfum Karakter — lebih kuat, kualitas premium Kak ada bayangan mau yang seperti apa? Budget-nya di kisaran berapa? Biar aku bantu arahkan ke yang paling pas."
+        },
+        {
+          "role": "user",
+          "content": "Pilih rekomendasi kedua, ukuran 30ml EDP"
+        },
+        {
+          "role": "assistant",
+          "content": "Rekomendasi kedua, ukuran 30ml EDP. Mau berapa botol?"
+        },
+        {
+          "role": "user",
+          "content": "Eh ganti jadi 50ml EDP dua botol ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke Kak, 50ml EDP dua botol. Rekap: - Produk: Parfum Inspired - Aroma: Woody (bebas pilih nanti) - Kualitas: EDP - Ukuran: 50ml - Jumlah: 2 botol Sebelum lanjut, Kakak mau pilih aroma woody yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Berapa total produknya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Harga per botol 50ml EDP = Rp75.000 (sudah terkunci dari sebelumnya). Total produk: 2 x Rp75.000 = Rp150.\n\n000. Kalau udah oke, aku perlu data checkout dulu Kak — nama, nomor WA, dan alamat tujuan kirim."
+        },
+        {
+          "role": "user",
+          "content": "Budi, WA 085700112233, alamat Banguntapan, Bantul"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke Banguntapan ada beberapa pilihan. Paling hemat:\n\n1. WAHANA Express — Rp5.000 (2 hari)\n\n2. WAHANA Ekonomis — Rp5.000 (2 hari)\n\n3. SICEPAT HALU — Rp6.500 (2-3 hari)\n\n4. JNE CTCSPS — Rp25.000 Kak mau pilih kurir yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih Super Premium. Tolong lanjutkan dan buat rekap akhirnya"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, untuk Parfum Inspired tidak ada kualitas Super Premium. Pilihan kualitas untuk Parfum Inspired: EDT, EDP, atau Murni. Kakak sudah pilih EDP 50ml sebelumnya. Mau tetap EDP atau ganti kualitas?"
+        }
+      ],
+      "tools": [
+        "cekOngkir",
+        "simpanDataPelanggan",
+        "simpanDraftPesanan"
+      ]
+    }
+  ]
+}

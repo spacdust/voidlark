@@ -7,13 +7,14 @@ const escapeHtml = (value: unknown) => String(value ?? '')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 
-export const renderLoginPage = (error = '') => `<!doctype html>
+export const renderLoginPage = (error = '', nonce = '') => `<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Login Admin · Voidlark</title>
-  <script>
+  <title>Voidlark Dashboard</title>
+  <link rel="icon" href="/admin/assets/voidlark-logo-clean.svg" type="image/svg+xml">
+  <script nonce="${escapeHtml(nonce)}">
     (() => {
       const mode = localStorage.getItem('voidlark-theme') || 'system';
       const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -55,5 +56,5 @@ export const renderLoginPage = (error = '') => `<!doctype html>
     <div class="login-body">${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}<form method="post" action="/admin/login" data-login-form><label for="password">Password admin</label><div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button class="eye" type="button" aria-label="Tampilkan password" aria-pressed="false" data-password-toggle><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><button class="submit" data-login-submit>Masuk</button></form><p class="hint"><span class="hint-dot"></span>Sesi berakhir otomatis setelah 8 jam.</p></div>
     <div class="login-foot"><span>Secure admin</span><span>Voidlark v1</span></div>
   </section></main><div class="auth-overlay" data-auth-overlay aria-live="polite"><div class="auth-state"><div class="auth-mark"><span class="auth-spinner"></span><span class="auth-check"></span></div><strong data-auth-title>Memeriksa akses</strong><span data-auth-copy>Menyiapkan dashboard admin…</span></div></div>
-  <script>const b=document.querySelector('[data-password-toggle]'),i=document.querySelector('#password'),f=document.querySelector('[data-login-form]'),s=document.querySelector('[data-login-submit]'),card=document.querySelector('.login'),overlay=document.querySelector('[data-auth-overlay]');b?.addEventListener('click',()=>{const show=i.type==='password';i.type=show?'text':'password';b.setAttribute('aria-pressed',String(show));b.setAttribute('aria-label',show?'Sembunyikan password':'Tampilkan password');i.focus()});f?.addEventListener('submit',()=>{s.disabled=true;s.textContent='Sedang masuk…';card.classList.add('is-submitting');overlay.dataset.state='loading'});</script>
+  <script nonce="${escapeHtml(nonce)}">const b=document.querySelector('[data-password-toggle]'),i=document.querySelector('#password'),f=document.querySelector('[data-login-form]'),s=document.querySelector('[data-login-submit]'),card=document.querySelector('.login'),overlay=document.querySelector('[data-auth-overlay]');b?.addEventListener('click',()=>{const show=i.type==='password';i.type=show?'text':'password';b.setAttribute('aria-pressed',String(show));b.setAttribute('aria-label',show?'Sembunyikan password':'Tampilkan password');i.focus()});f?.addEventListener('submit',()=>{s.disabled=true;s.textContent='Sedang masuk…';card.classList.add('is-submitting');overlay.dataset.state='loading'});</script>
 </body></html>`;

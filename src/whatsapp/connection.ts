@@ -382,12 +382,12 @@ export const startWhatsAppConnection = async (sessionId = 'legacy') => {
 
                 const chatState = await getChatState(jid);
                 const draftOrder = await getDraftOrder(jid);
-                const knowledgeContext = `${getKnowledgeBase()}\n\nCUSTOMER STATE:\n${JSON.stringify({ state: chatState, draftOrder }, null, 2)}`;
+                const knowledgeContext = getKnowledgeBase();
                 const defaultCsName = (await import('../config/business.js')).getBusinessConfig().csName;
                 const effectiveCsName = runtimeSessionId === 'legacy' || runtimeSessionId === 'pending'
                     ? defaultCsName
                     : globalWhatsAppManager.getEffectiveCsName(runtimeSessionId, defaultCsName);
-                const result = await askAgent(text, knowledgeContext, previousHistory, jid, effectiveCsName);
+                const result = await askAgent(text, knowledgeContext, previousHistory, jid, effectiveCsName, { chatState, draftOrder });
 
                 await saveMessage(jid, 'assistant', result.text);
                 await outboundWorker.enqueue(jid, { text: result.text }, `reply:${msg.key.id}`, 'transactional', result.postPaymentHandoff ? {

@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-07-27T02:56:20.438Z",
+  "scenarios": [
+    {
+      "id": 2,
+      "name": "Referensi merek luar",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ada yang mirip Mykonos Monaco Royale?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Mykonos Monaco Royale itu fresh fruity dengan pear, melon, green notes, cedarwood, caramel, musk — kayanya cocok sama karakter Musky Pea dari katalog kita. Aroma musk yang hangat, fresh, dan sedikit powdery, mirip kesan personal dan nyaman dari Monaco Royale. Ada juga Clive Five, lebih ke arah glamour woody-floral. Karakternya lebih elegan dan berani.\n\nDari dua itu, Musky Pea paling mendekati menurutku. Mau aku jelasin lebih detail soal Musky Pea?"
+        },
+        {
+          "role": "user",
+          "content": "Iya, carikan produk Aromatique yang notesnya paling mendekati"
+        },
+        {
+          "role": "assistant",
+          "content": "Musky Pea dari Aromatique punya karakter musk-powdery: lembut, creamy, clean, dan nyaman — dekat dengan nuansa personal dan hangat dari Mykonos Monaco Royale. Kalau dari sisi fresh fruity-nya, kita juga punya opsi Inspired dengan aroma fruity segar yang ringan. Musky Pea masuk ke kelompok Parfum Karakter dengan kualitas Super Premium atau Platinum.\n\nSementara Inspired punya kualitas EDT, EDP, dan Murni dengan harga lebih terjangkau. Mau coba yang mana, Kak? Musky Pea yang lebih personal dan tahan lama, atau Inspired yang lebih fresh dan ekonomis?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pilih yang paling mirip. Klasifikasinya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Musky Pea masuk ke Parfum Karakter — basic Eropa, aroma kompleks dengan 3 notes wangi, menyesuaikan suhu tubuh, dan longlasting. Keluarga aromanya Musk-Powdery (sub dari Animalic): lembut, creamy, clean, sensual, dan hangat — mirip kesan cozy personal dari Monaco Royale. Mau lanjut lihat pilihan kualitas dan ukurannya, Kak? Ada Super Premium (70%) dan Platinum (90%)."
+        },
+        {
+          "role": "user",
+          "content": "Kasih pilihan ukuran dan harganya ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu Kak, ini untuk Musky Pea Parfum Karakter: Super Premium (70% ekstrak): 30ml Rp120.000 (200g) 50ml Rp160.000 (300g) 100ml Rp310.000 (450g) Platinum (90% ekstrak, lebih strong): 30ml Rp135.000 (200g) 50ml Rp180.000 (300g) 100ml Rp360.000 (450g) Mau kualitas dan ukuran yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Ambil 50ml yang kualitas tengah. Nama Dina, WA 081298765432, alamat Bantul, Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Sebentar aku rekap dulu ya, Kak. Produk: Musky Pea - Parfum Karakter Kualitas: Super Premium (70%) Ukuran: 50ml Harga: Rp160.000 Jumlah: 1 Subtotal: Rp160.000 Sebelum lanjut ke ongkir, aku tanya dulu — alamat Bantul bagian mana ya, Kak? Biar aku cek ongkirnya lebih akurat."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ]
+    }
+  ]
+}

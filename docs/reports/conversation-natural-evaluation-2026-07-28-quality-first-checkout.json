@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-07-28T10:02:31.195Z",
+  "scenarios": [
+    {
+      "id": 5,
+      "name": "Buru-buru mau membeli",
+      "tone": "buru-buru",
+      "messages": [
+        "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?",
+        "Pilih satu aja yang aman",
+        "EDP 30ml ready harga berapa?",
+        "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau melihat kebutuhan Kakak, Sun Girl dari Parfum Karakter paling mendekati. Karakter utamanya glamour."
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aja yang aman"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau melihat kebutuhan Kakak, Sun Girl dari Parfum Karakter paling mendekati. Karakter utamanya glamour."
+        },
+        {
+          "role": "user",
+          "content": "EDP 30ml ready harga berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau melihat kebutuhan Kakak, Alisya Ashley dari Parfum Inspired paling mendekati. Karakter utamanya glamour. Sebelum aku hitung ongkir dan lanjutkan pesanan, pastikan produk ini cocok ya, Kak."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "customer": {
+          "name": "Dita",
+          "phone": "081399887766",
+          "address": "Maguwoharjo Depok Sleman"
+        },
+        "productName": "Alisya Ashley"
+      }
+    }
+  ]
+}

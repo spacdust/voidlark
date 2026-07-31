@@ -1,0 +1,207 @@
+{
+  "generatedAt": "2026-07-29T08:09:32.417Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Mahasiswa santai dengan budget ketat",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, aku masih mahasiswa nih, budget mentok 55 ribu",
+        "Sukanya fresh agak green gitu, jangan yang manis banget",
+        "Pilihkan satu yang paling masuk akal dong",
+        "Yang itu masuk inspired apa karakter ya?",
+        "Kalau botol paling kecil, harga semua kualitasnya berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, aku masih mahasiswa nih, budget mentok 55 ribu"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Untuk budget Rp55.000, pilihan yang paling pas itu Parfum Inspired kualitas EDT. Wanginya ringan, cocok buat kuliah atau kegiatan harian, dan harganya ramah di kantong.\n\nBerikut ukuran dan harganya:\n1.\n30ml - Rp35.000\n2.\n50ml - Rp45.000\n3.\n100ml - Rp55.000\n\nNah, kalau ambil yang 100ml, budget Kakak pas banget Rp55.000. Tapi kalau mau lebih hemat, yang 30ml atau 50ml juga opsi bagus.\n\nKakak suka aroma yang seperti apa? Biar aku bantu rekomendasikan varian yang cocok 😊"
+        },
+        {
+          "role": "user",
+          "content": "Sukanya fresh agak green gitu, jangan yang manis banget"
+        },
+        {
+          "role": "assistant",
+          "content": "Siap, Kak. Berarti arahnya fresh, sementara sisi manisnya perlu dihindari. Aku akan menyaring nama produk dari katalog berdasarkan keluarga aroma itu dan mengecek profil parfum acuannya bila detail notes dibutuhkan.\n\nKalau kebutuhan pemakaian dan budget sudah disebutkan, aku bisa langsung pilihkan satu yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Pilihkan satu yang paling masuk akal dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke Angelina jolie dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Pilihan yang paling pas dan masih sesuai budget: EDT 30ml seharga Rp35.000."
+        },
+        {
+          "role": "user",
+          "content": "Yang itu masuk inspired apa karakter ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Angelina jolie masuk Parfum Inspired, Kak. Jadi pilihan yang tadi tetap di kelompok Parfum Inspired; bukan Parfum Karakter."
+        },
+        {
+          "role": "user",
+          "content": "Kalau botol paling kecil, harga semua kualitasnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired Ukuran 30ml:\n\nEDT 30ml: Rp35.000\nEDP 30ml: Rp60.000\nMurni 30ml: Rp120.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Angelina jolie",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 35000,
+        "subtotal": 35000,
+        "maxBudget": 55000
+      }
+    },
+    {
+      "id": 5,
+      "name": "Referensi fireplace dari luar katalog",
+      "tone": "penasaran",
+      "messages": [
+        "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?",
+        "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?",
+        "Aku pengin satu pilihan aja biar nggak bingung",
+        "Yang direkomendasiin itu aromanya gimana?",
+        "Kalau ukuran paling kecil harganya berapa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku sudah mencari referensi Maison Margiela By the Fireplace, Kak. This woody fragrance has a blend of cloves, pink pepper, orange blossom chestnut, guaiac wood, juniper, vanilla, peru balsam, and cashmeran Untuk kandidat dari katalog Aromatique, aku belum mau menebak agar rekomendasinya tidak salah. Aku bantu teruskan ke admin untuk mencocokkan pilihan terdekat ya."
+        },
+        {
+          "role": "user",
+          "content": "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dari produk toko, yang paling dekat berdasarkan profil referensinya adalah Oran cle, Kak. Pencocokannya mengarah ke keluarga aroma fresh, floral, woody, glamour.\n\nOran cle tetap produk internal yang berbeda dari Maison Margiela By the Fireplace, jadi susunan akhirnya tidak harus identik. Aku pilih satu ini supaya pilihannya jelas."
+        },
+        {
+          "role": "user",
+          "content": "Aku pengin satu pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Yang bisa dipastikan, pilihannya memang Super Premium, Platinum. Detail ketahanan atau hasil pemakaiannya belum dicantumkan, jadi aku nggak mau menebak. Kalau Kakak kasih tahu kebutuhan dan budgetnya, aku bantu arahkan ke satu pilihan yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Yang direkomendasiin itu aromanya gimana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik, Kak. Sebelum aku jelaskan detail aromanya, aku perlu pastikan dulu produk yang dimaksud. Dari hasil referensi tadi, Oran cle cocoknya masuk ke kelompok Parfum Karakter. Parfum Karakter ini punya 3 notes wangi (top, heart, base), jadi aromanya lebih berlapis dan ada perubahannya dari awal sampai akhir pemakaian.\n\nUntuk Oran cle sendiri, karena aku nggak punya catatan notes spesifiknya (seperti kombinasi jeruk, bunga, kayu, dll), aku nggak mau mengarang detailnya, Kak. Tapi yang pasti, dari karakteristik referensinya, Oran cle masuk ke keluarga aroma fresh, floral, woody, glamour — jadi kesegaran ada, sentuhan bunga, dan ada dasar kayu yang hangat.\n\nKalau boleh tahu, Kakak lebih suka aroma yang segar-ringan buat sehari-hari, atau yang hangat-kuat buat malam? Biar aku bisa bantu pilihkan kualitas yang paling pas dari Parfum Karakter."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil harganya berapa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Oran cle",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Mengubah jumlah lalu checkout",
+      "tone": "membeli",
+      "messages": [
+        "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian",
+        "Kualitas yang paling sesuai yang mana?",
+        "Harga satu botolnya berapa?",
+        "Jadi dua botol ya, total produknya berapa?",
+        "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian"
+        },
+        {
+          "role": "assistant",
+          "content": "Bodyshop Oceanus bisa dipertimbangkan, Kak.\n\nDari pengaturan pemakaian pada Produk & Harga, kualitas EDT 50ml paling sesuai dengan kebutuhan harian."
+        },
+        {
+          "role": "user",
+          "content": "Kualitas yang paling sesuai yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Bodyshop Oceanus dari Parfum Inspired 50ml, Kak. Dari pilihan yang tersedia, ini yang paling dekat dengan kebutuhan yang tadi Kakak jelaskan."
+        },
+        {
+          "role": "user",
+          "content": "Harga satu botolnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired:\n\nEDT\n30ml: Rp35.000\n50ml: Rp45.000\n100ml: Rp55.000\n\nEDP\n30ml: Rp60.000\n50ml: Rp75.000\n100ml: Rp85.000\n\nMurni\n30ml: Rp120.000\n50ml: Rp150.000\n100ml: Rp165.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Jadi dua botol ya, total produknya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas dan ukuran dulu, Kak? Harga mengikuti kombinasi variasi pada katalog."
+        },
+        {
+          "role": "user",
+          "content": "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Produk Bodyshop Oceanus sudah tercatat, Kak. Pilihan kualitas dan ukuran belum lengkap, jadi aku belum hitung ongkir. Pilihan yang mau dipakai yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Bodyshop Oceanus",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Ukuran": "50ml"
+        },
+        "customer": {
+          "name": "Fajar",
+          "phone": "081287654321",
+          "address": "Mantrijeron Yogyakarta"
+        }
+      }
+    }
+  ]
+}

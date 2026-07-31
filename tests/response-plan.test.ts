@@ -134,3 +134,9 @@ test('separates intro ending with colon from numbered list items', () => {
     assert.match(result.bubbles[2], /^2\.\s+Bacarat La Rose/, 
         'Third bubble should start with "2. Bacarat La Rose"');
 });
+
+test('long numbered lists stay intact without exceeding bubble limit', () => {
+    const result = buildResponsePlan('Pilihan:\n\n1. Satu lengkap.\n\n2. Dua lengkap.\n\n3. Tiga lengkap.\n\n4. Empat lengkap.');
+    assert.equal(result.bubbles.length, 3);
+    assert.match(result.bubbles[2], /2\. Dua lengkap[\s\S]*4\. Empat lengkap/);
+});

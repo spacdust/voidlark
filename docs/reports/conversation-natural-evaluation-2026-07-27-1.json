@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-07-27T05:25:06.055Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Santai dan banyak tanya",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, mau nanya2 parfum dong",
+        "Bedanya inspired sama karakter apaan ya?",
+        "Kalau buat ngantor yang nggak bikin pusing enaknya mana?",
+        "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?",
+        "Yang pertama berapaan kak ukuran kecilnya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, mau nanya2 parfum dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Boleh banget, tanya-tanya dulu. Kak lagi cari parfum untuk sendiri atau untuk hadiah? Ada bayangan mau aroma yang seperti apa?"
+        },
+        {
+          "role": "user",
+          "content": "Bedanya inspired sama karakter apaan ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke Kak, gini bedanya: Parfum Inspired — basic Asia, 1 note wangi aja, aromanya konstan dari awal sampai akhir. Cocok kalau mau wangi simpel dan ringan, disarankan disemprot ke baju. Parfum Karakter — basic Eropa, aromanya lebih kompleks, punya 3 notes wangi (top, middle, base). Wanginya bisa berubah menyesuaikan suhu tubuh, jadi lebih tahan lama dan cocok dipakai di kulit. Intinya: kalau mau wangi yang berlapis dan longlasting, ambil Karakter. Kalau mau simpel dan ringan, Inspired udah cukup. Kak lebih condong ke yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat ngantor yang nggak bikin pusing enaknya mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired. Wangi ringan, 1 note, tidak kompleks. Tidak bikin pusing. Aman semprot ke baju, cocok ruangan tertutup. Mau level EDT, EDP, atau Murni?"
+        },
+        {
+          "role": "user",
+          "content": "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, belum ada daftar aroma lengkap di sistem. Tapi dari referensi yang ada, EA Blue Emotion (fresh citrus) dan Black Opium (manis vanilla) cocok buat gambaran Kakak. Kalau mau yang fresh-manis seimbang, EA Blue Emotion bisa jadi pilihan. Wangi citrus segar, ada sentuhan manis ringan. Tertarik coba salah satu, Kak? Mau ukuran dan level yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama berapaan kak ukuran kecilnya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [
+        "cariReferensiProduk"
+      ],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Kualitas": "EDT"
+        }
+      }
+    }
+  ]
+}

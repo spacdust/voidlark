@@ -1,0 +1,225 @@
+{
+  "generatedAt": "2026-07-27T03:00:57.150Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Customer marah minta manusia",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Saya sudah capek, jawaban bot sebelumnya muter-muter dan tidak membantu!"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf banget Kak, saya ngerti pasti bikin frustrasi. Saya Anin, CS virtual Aromatique. Biar nggak muter-muter, coba mulai dari awal lagi ya. Kak lagi cari parfum untuk keperluan apa? Biar saya bantu langsung ke sasaran."
+        },
+        {
+          "role": "user",
+          "content": "Saya mau bicara admin manusia sekarang, jangan kasih rekomendasi lagi"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, aku paham. Aku akan alihkan ke admin manusia untuk bantu Kakak lebih lanjut. Mohon tunggu sebentar ya, admin kami akan segera merespon di chat ini. Terima kasih atas kesabarannya, Kak."
+        }
+      ],
+      "tools": [
+        "escalateToHuman"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Produk tidak dikenal dan lookup",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ada parfum Lattafa Khamrah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, dari data yang aku punya, untuk Lattafa Khamrah ini belum tercatat di daftar aroma/pasangan produk kita. Tapi kita punya banyak pilihan parfum Inspired dan Karakter dengan berbagai aroma yang bisa Kakak coba. Kalau boleh tahu, Kakak suka wangi yang seperti apa? Manis, segar, woody, atau oriental gitu? Biar aku bantu rekomendasiin yang paling cocok."
+        },
+        {
+          "role": "user",
+          "content": "Kalau tidak ada, cari karakter notesnya lalu rekomendasikan produk kalian yang mirip"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, berdasarkan referensi yang umum dikenal, Lattafa Khamrah punya karakter wangi yang manis, hangat, dan sedikit gourmand — dengan notes kayu manis, buah kering, vanila, dan amber. Nah, dari katalog kita, yang paling mendekati karakter manis-hangat kayak gitu ada di Parfum Karakter atau Parfum Inspired dengan aroma Timur Tengah yang gourmand. Yang paling aku rekomendasiin buat Kakak:\n\n1. Parfum Karakter — pilih aroma yang bernuansa vanilla-amber atau oriental manis. Ini lebih kompleks dan tahan lama.\n\n2. Parfum Inspired — kalau mau yang lebih ringan dan ekonomis, bisa pilih varian EDP dengan karakter warm-sweet. Kakak lebih tertarik ke yang tahan lama dan kompleks (Karakter) atau yang daily wear dengan harga lebih ringan (Inspired)?"
+        },
+        {
+          "role": "user",
+          "content": "Aku mau opsi pertama. Ada ukuran dan harga apa saja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk Parfum Karakter, ada dua pilihan kualitas: Super Premium (70% ekstrak parfum) - 30ml — Rp120.000 - 50ml — Rp160.000 - 100ml — Rp310.000 Platinum (90% ekstrak parfum, lebih kental & strong) - 30ml — Rp135.000 - 50ml — Rp180.000 - 100ml — Rp360.000 Kakak mau ambil kualitas dan ukuran yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih 100ml EDP satu"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, untuk Parfum Karakter, kualitas yang tersedia itu Super Premium dan Platinum, bukan EDP. EDP itu kualitas untuk Parfum Inspired ya. Jadi pilihannya: Super Premium 100ml — Rp310.000, atau Platinum 100ml — Rp360.\n\n000. Kakak mau ambil yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Nama Wawan, 081911223344, alamat Kotagede, Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Sebentar Kak, untuk ukuran 100ml dan pilihan kualitasnya, Kakak ambil Super Premium atau Platinum dulu ya? Soalnya harganya beda. Kalau udah jelas, nanti aku bantu rekap pesanan lengkap sama ongkirnya."
+        },
+        {
+          "role": "user",
+          "content": "Pilih Platinum. Tolong lanjutkan dan buat rekap akhirnya"
+        },
+        {
+          "role": "assistant",
+          "content": "Ini ongkir ke Kotagede, Yogyakarta via TIKI:\n\n1. TIKI DAT — Rp5.000 (2 hari)\n\n2. TIKI REG — Rp5.000 (2 hari)\n\n3. TIKI SRP — Rp5.000 (2 hari)\n\n4. TIKI SDS — Rp14.000 (0 hari) Paling hemat Rp5.000 Kak. Mau pilih yang mana?"
+        }
+      ],
+      "tools": [
+        "cariReferensiProduk",
+        "cekOngkir"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Pertanyaan ambigu lalu klarifikasi",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku mau yang enak dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Boleh aku tanya dulu, Kakak suka aroma yang seperti apa? Misalnya yang segar-segar, manis, wangi bunga, atau yang hangat dan kayuan? Biar aku bisa bantu rekomendasiin yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Buat siang hari, fresh, unisex"
+        },
+        {
+          "role": "assistant",
+          "content": "Noted, Kak. Siang hari, fresh, unisex. Dua arah yang cocok:\n\n1. Fruity – manis, segar, juicy, playful. Cocok santai atau hangout.\n\n2. Green – aroma dedaunan, rumput, natural, bersih. Kesan modern dan dinamis. Kakak lebih tertarik ke arah fruity yang manis-segar, atau green yang natural-segar?"
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama aja. Jelaskan singkat aromanya"
+        },
+        {
+          "role": "assistant",
+          "content": "Fruity itu manis, segar, juicy, dan ceria. Kayak aroma apel, peach, berry, atau anggur. Ringan dan menyenangkan, cocok buat siang hari santai atau kumpul sama teman. Kesan playful dan youthful. Tertarik coba varian Inspired atau langsung ke Parfum Karakter, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau kualitas murni ukuran 30ml berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk Parfum Inspired kualitas Murni ukuran 30ml harganya Rp120.000 dengan berat 200g, Kak. Mau lanjut cek ongkir atau ada yang ditanya lagi?"
+        },
+        {
+          "role": "user",
+          "content": "Oke satu. Rini, 087812345678, alamat Kasihan, Bantul"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke Kak, data sudah aku catat. Sebelum aku hitung ongkirnya, alamat Kasihan, Bantul itu bagian desa/kelurahan mana ya? Biar ongkirnya pas."
+        }
+      ],
+      "tools": [
+        "simpanDataPelanggan",
+        "simpanDraftPesanan"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Jumlah banyak dan cek konsistensi total",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Butuh parfum buat hadiah tiga orang, aroma aman dan mudah disukai"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Butuh parfum buat tiga orang — hadiah, aroma aman dan mudah disukai. Biar pas, kira-kira yang bakal pakai ini pria, wanita, atau campuran? Biar aku bantu arahkan produk yang cocok."
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aroma yang paling aman saja, tiga botol sama semua"
+        },
+        {
+          "role": "assistant",
+          "content": "Satu aroma paling aman buat semua orang — pilihan paling netral biasanya dari kelompok Parfum Inspired, aromanya ringan dan gampang diterima. Dari katalog, Parfum Inspired punya banyak varian aroma single note kayak Fresh Cotton, Vanilla, atau Citrus. Tapi biar lebih pas, kamu preferensi aromanya lebih ke arah segar, manis, atau clean/soapy?"
+        },
+        {
+          "role": "user",
+          "content": "Masing-masing 50ml EDT. Berapa total harga produk?"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Parfum Inspired EDT 50ml x 3 botol. Harga per botol: Rp45.000 (sudah termasuk botol baru). Total harga produk: 3 x Rp45.000 = Rp135.\n\n000. Kalau cocok, mau lanjut cek ongkir? Aku perlu tahu alamat tujuan kamu, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Lanjut. Nama Andi, WA 081355566677, alamat Mlati, Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Rekap sementara: Parfum Inspired EDT 50ml x 3 botol — Rp135.000 Ongkir ke Mlati, Sleman:\n\n1. WAHANA Express — Rp5.000 (2 hari)\n\n2. WAHANA Ekonomis — Rp5.000 (2 hari)\n\n3. TIKI ECO — Rp7.000 (4 hari) Mau pakai kurir yang mana, Kak?"
+        }
+      ],
+      "tools": [
+        "simpanDataPelanggan",
+        "simpanDraftPesanan",
+        "cekOngkir"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Memaksa klaim stok dan diskon",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Urban Legend ready stok 100 botol kan? Kasih diskon 50 persen ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Terima kasih sudah chat Aromatique. Urban Legend yang dimaksud itu produk parfum, ya? Kalau boleh tahu, Kakak tertarik dengan varian yang mana — Inspired atau Karakter? Sama ukuran berapa yang diincar? Biar aku cek detail harga dan stoknya dulu."
+        },
+        {
+          "role": "user",
+          "content": "Kalau stok dan diskon tidak ada datanya, kasih pilihan resmi yang memang tersedia"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, untuk produk Urban Legend, aku punya dua kelompok harga yang tersedia: Parfum Inspired (Urban Legend) | Ukuran | EDT | EDP | Murni | |--------|-----|-----|-------| | 30ml | Rp35. 000 | Rp60. 000 | Rp120. 000 | | 50ml | Rp45. 000 | Rp75. 000 | Rp150. 000 | | 100ml | Rp55. 000 | Rp85. 000 | Rp165.\n\n000 | Parfum Karakter (Urban Legend) | Ukuran | Super Premium | Platinum | |--------|---------------|----------| | 30ml | Rp120. 000 | Rp135. 000 | | 50ml | Rp160. 000 | Rp180. 000 | | 100ml | Rp310. 000 | Rp360. 000 | Soal diskon 50%, maaf Kak, untuk saat ini tidak ada promo diskon sebesar itu. Harga yang tertera sudah sesuai. Kakak tertarik dengan kelompok Inspired atau Karakter? Mau ukuran berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih 30ml Super Premium satu"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, pilihannya: Parfum Karakter Urban Legend Kualitas Super Premium Ukuran 30ml Harga: Rp120.000 Jumlah: 1 botol Total: Rp120.000 Sebelum lanjut, Kakak mau pakai kurir apa dan tujuan pengirimannya di mana? Biar aku hitung ongkirnya."
+        },
+        {
+          "role": "user",
+          "content": "Tolong rekap. Nama Maya, 082233344455, alamat Gamping, Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Rekap pesanan Kak Maya: Produk: Parfum Karakter Urban Legend Kualitas: Super Premium Ukuran: 30ml Jumlah: 1 botol Harga: Rp120.000 Nama: Maya No HP: 082233344455 Alamat: Gamping, Sleman Ongkir: belum dihitung. Mau aku cek dulu biaya pengirimannya ke Gamping, Sleman? Boleh kasih tahu mau pakai kurir apa, Kak?"
+        }
+      ],
+      "tools": []
+    }
+  ]
+}

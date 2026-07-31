@@ -4,6 +4,11 @@
 
 Voidlark adalah bot Customer Service WhatsApp berbasis AI untuk konsultasi, dukungan, penjualan, draft pesanan, pembayaran manual, ongkir, lookup referensi, dan handoff ke admin. Engine dan admin harus tetap generik untuk bisnis fisik maupun digital; aturan industri tidak boleh di-hardcode di `src/`.
 
+## Non-Goal
+
+- Voidlark bukan sistem inventory dan tidak mengelola jumlah stok, mutasi stok, reservasi, sinkronisasi gudang/POS, atau pengurangan stok setelah order.
+- Kualitas percakapan CS tetap fokus utama. Bila status stok tidak tersedia pada Knowledge, bot menyampaikan batas tersebut dan mengarahkan konfirmasi ke admin tanpa mengarang availability.
+
 ## Tech Stack
 
 - Runtime: Node.js, TypeScript, `tsx`, dan `tsc`.
@@ -148,6 +153,14 @@ Route: `/admin/sandbox`.
 - Timeout preview 75 detik dan retry satu kali untuk timeout/connection transient.
 - Simulator memilih potongan Knowledge yang relevan berdasarkan pesan dan riwayat, dengan budget 7.000 karakter; riwayat dibatasi 12 pesan dan completion dibatasi 600 token. Penolakan context/TPM di-retry satu kali memakai Knowledge 2.500 karakter dan completion 500 token.
 - Agent WhatsApp produksi juga menggunakan Knowledge relevan maksimal 7.000 karakter, 12 pesan riwayat, dan output maksimal 600 token.
+- Quality-first menjadi prioritas runtime. Waktu proses tambahan boleh dipakai untuk retrieval, state resolution, claim validation, dan formatting selama meningkatkan ketepatan jawaban; latency bukan acceptance utama.
+- Quality-first mencakup isi dan cara penyampaian. Jalur deterministik wajib tetap hangat, menjawab kebutuhan langsung, memberi alasan yang mudah dipahami customer, dan melanjutkan konteks; istilah proses internal seperti `evidence`, `overlap`, `kandidat`, `ranking`, `validator`, atau status lookup tidak boleh muncul pada chat.
+- Batas anti-halusinasi tidak boleh berubah menjadi jawaban cuek. Bila fakta belum cukup, bot menyebut bagian yang belum bisa dipastikan, menjelaskan risiko salah secara singkat, lalu menawarkan langkah paling relevan tanpa membuang fakta lain yang sudah diketahui.
+- Detail notes harus informatif tetapi mudah dipindai di WhatsApp. Matcher boleh memakai seluruh notes terverifikasi, sedangkan copy customer merangkum maksimal tujuh notes utama yang relevan dan menandainya sebagai contoh, bukan daftar lengkap.
+- Follow-up detail produk wajib konsisten dengan alasan rekomendasi sebelumnya. Notes pembanding yang sudah disebut pada riwayat diprioritaskan dalam ringkasan berikutnya tanpa hardcode nama produk atau jenis note tertentu.
+- Dispatcher intent menyelesaikan relasi/identitas produk, edukasi, perbandingan, harga, stok, durasi, safety, dan checkout sebelum konsultasi generik. Formatter tidak boleh dipakai untuk menutupi jawaban upstream yang salah.
+- State parsial boleh diserap dari satu rekomendasi bot yang jelas, tetapi daftar banyak pilihan tidak boleh dianggap pilihan final. Alias klasifikasi satu kata hanya valid dekat konteks kelompok/produk/harga/variasi; frasa biasa seperti “karakter aromanya” tidak boleh memindahkan kelompok transaksi.
+- WhatsApp live menerima state dan draft pesanan sebagai kontrak terstruktur terpisah dari Knowledge retrieval. Pemotongan Knowledge atau history tidak boleh menghilangkan pilihan customer yang sudah terkunci.
 - Simulator mendeteksi completion yang terpotong melalui `finish_reason` dan pola akhir kalimat; satu continuation request dilakukan dengan context ringkas lalu digabungkan ke jawaban pertama tanpa pengulangan.
 - Simulator mengubah jawaban final menjadi 1-3 bubble adaptif. Paragraf bermakna dipertahankan, teks panjang hanya dipisah pada akhir kalimat, dan bubble ditampilkan bertahap dengan typing delay.
 - Reset atau request baru membatalkan request/bubble simulator sebelumnya agar respons lama tidak muncul setelah konteks berubah.
@@ -155,8 +168,35 @@ Route: `/admin/sandbox`.
 - Typing indicator pertama memiliki durasi minimum 650 ms agar tetap terlihat pada provider berlatensi rendah.
 - Script simulator harus lolos pemeriksaan sintaks setelah dirender dari template HTML; newline riwayat multi-bubble disimpan sebagai escape `\n\n`, bukan newline literal pada source JavaScript browser.
 - Final-output guard melarang dan menghapus DSML, XML tool markup, `environment_details`, workspace metadata, serta aksara China; jawaban yang terkontaminasi diregenerasi dalam Bahasa Indonesia sebelum masuk response plan.
-- Simulator melakukan deterministic external lookup untuk intent perbandingan produk yang jelas (`mirip X`, `dupe X`, dan follow-up `yang paling mirip`). Web lookup terjadi sebelum model menjawab, sehingga tidak bergantung pada kualitas native tool calling model.
+- Simulator dan WhatsApp live melakukan deterministic external lookup untuk intent perbandingan produk luar serta detail notes produk katalog yang belum lengkap. Web lookup terjadi sebelum jawaban rekomendasi, sehingga tidak bergantung pada kualitas native tool calling model.
 - Evidence guard memverifikasi klaim format produk terhadap Knowledge relevan. `roll on` dan `spray` tidak boleh ditawarkan bila tidak tercantum dalam bukti yang diterima model.
+- Resolver budget membedakan permintaan harga murni dari kebutuhan deskriptif. Permintaan seperti “budget 50 ribu, yang fresh” tetap masuk alur rekomendasi berbasis Knowledge; daftar kombinasi harga hanya dipakai untuk pertanyaan budget murni.
+- Batas budget dibaca dari percakapan customer terbaru dan dipertahankan pada follow-up. Bila hanya satu kelompok harga yang masuk budget, rekomendasi produk dan variasinya wajib tetap berada di kelompok tersebut.
+- Budget adalah batas maksimum, bukan target pengeluaran. Ranking kebutuhan menentukan kualitas lebih dahulu; sistem lalu memilih harga terendah pada kualitas yang cocok. Bila kebutuhan tidak memberi sinyal kualitas, pilihan termurah harus dilabeli sebagai opsi paling hemat, bukan paling cocok.
+- Perbandingan dua nilai variasi dihitung deterministik hanya bila sumbu lain sama atau sudah terkunci. Ambiguitas tidak boleh dijawab memakai dua kombinasi berbeda.
+- Nama pada daftar rekomendasi bernomor dipertahankan untuk rujukan “yang pertama/kedua/ketiga/terakhir”, termasuk nama produk yang bukan nilai variasi harga.
+- Pilihan hanya berubah dari bahasa pemilihan eksplisit pada turn customer terbaru. Nilai yang muncul dalam penjelasan, perbandingan, atau riwayat lama tidak boleh diam-diam menjadi pilihan aktif.
+- Ordinal diselesaikan dari daftar pilihan relevan terbaru. Ordinal nama produk didahulukan dari daftar variasi lama, lalu nama produk dibawa ke jawaban harga dan state.
+- Rekomendasi produk normal memakai nama item yang benar-benar ditemukan di Knowledge. Label keluarga atau karakter hanya menjadi alasan rekomendasi, bukan nama produk baru.
+- Pada domain fragrance, kandidat Parfum Inspired dicari memakai nama Inspired asli dari workbook. Kandidat Parfum Karakter wajib dipetakan ke pasangan Inspired dan lookup tetap memakai nama Inspired; copy customer menyebut Inspired sebagai acuan, bukan notes Karakter yang identik.
+- Hasil external lookup untuk katalog hanya boleh menambah notes, family, karakter aroma, dan target pemakai. Harga, stok, ketersediaan, diskon, draft, ongkir, dan checkout tidak boleh berasal dari web.
+- Klaim padanan produk luar “paling dekat” memerlukan profil luar dan kandidat katalog yang sama-sama lolos identity/notes validation serta memiliki overlap notes. Nama item bukan notes evidence; family KB hanya prefilter. Bila overlap tidak ditemukan, bot wajib menyatakan belum menemukan padanan spesifik.
+- Saat customer pertama kali menyebut produk luar yang tidak dijual, bot menjelaskan ringkasan notes hasil lookup dan menawarkan pencarian alternatif sebelum memilih produk toko. Persetujuan singkat pada turn berikutnya harus terhubung ke produk luar terakhir.
+- Permintaan alternatif produk luar memberi maksimal tiga tier bila evidence cukup: pilihan pertama `paling mendekati` wajib memiliki note overlap; tier berikutnya boleh memakai family dan notes lookup kandidat untuk menawarkan arah berbeda seperti lebih fresh, woody, floral, atau manis. Tier berbasis family tidak boleh disebut sama dekatnya dengan tier pertama.
+- Daftar dua atau tiga kandidat tidak mengubah pilihan transaksi. Produk dan kelompok baru terkunci setelah customer memilih ordinal/nama atau secara eksplisit meminta satu pilihan.
+- Pada copy customer, hubungan produk Karakter dan Inspired menyebut kedua nama konkretnya. Frasa generik seperti `parfum acuannya` tidak boleh menggantikan nama parfum yang sedang dijelaskan bila nama tersebut sudah diketahui.
+- Validator external notes wajib mengikat identitas parfum, konteks fragrance, dan struktur notes. Hasil celebrity ambiguity, ranking/review generik, identitas berbeda, prose web yang menempel pada nama note, atau konflik target pemakai wajib diabaikan.
+- Permintaan dua rekomendasi wajib mempertahankan dua nama katalog berbeda dan memberi alasan notes per item bila evidence tersedia. Jika kelompok belum dipilih, domain fragrance memakai Parfum Inspired secara konsisten; Karakter hanya dipakai setelah pilihan kelompok jelas.
+- Final-output guard membatasi balasan ke maksimal satu pertanyaan semantik. Permintaan manusia eksplisit diproses sebelum model; kalimat bersyarat tidak membuat handoff sampai customer benar-benar meminta. Mode live mencatat handoff, mode preview menandai state simulasi.
+- Claim guard bukan tahap output terakhir. Setiap jawaban yang ditulis ulang oleh claim guard wajib melewati sanitizer customer-facing lagi sebelum response plan, preview, atau WhatsApp.
+- Pertanyaan stok wajib menjawab fakta harga/variasi yang tersedia tanpa mengarang availability. Bila Knowledge tidak memuat status stok, bot menyatakan perlu konfirmasi admin; pertanyaan tersebut tidak mengubah pilihan transaksi. Tidak ada rencana menambah subsistem inventory.
+- Saat customer meminta pendapat setelah membandingkan dua ukuran/kapasitas, resolver mempertahankan sumbu variasi lain. Tanpa kebutuhan eksplisit untuk nilai lebih besar, rekomendasi memilih opsi lebih hemat dan menyebut selisihnya.
+- Permintaan rekomendasi gender+harga yang belum memuat kebutuhan cukup tidak boleh menghasilkan daftar nama dari model. Bot meminta budget atau konteks penggunaan; nama produk hanya berasal dari kandidat Knowledge.
+- Label taksonomi internal wajib diterjemahkan ke bahasa customer. Istilah seperti `glamour` tidak tampil bila kebutuhan dapat dinyatakan sebagai `manis` atau `elegan`.
+- Pertanyaan durasi mendapat jawaban deterministik bila Knowledge tidak memuat angka durasi. Claim guard live dan preview menolak durasi numerik maupun klaim kualitatif seperti `tahan lama` tanpa evidence.
+- Claim guard juga memvalidasi janji penggunaan dan kecocokan seperti jumlah semprotan, bebas noda, hemat jangka panjang, unisex, penyesuaian suhu tubuh, serta klaim tidak menyengat.
+- Hasil ongkir dibandingkan dengan kebutuhan `hari ini` atau `besok`. Bila tidak ada estimasi yang memenuhi, balasan wajib menyatakan risikonya; estimasi kurir tidak boleh disebut sebagai jaminan.
+- Checkout dengan produk, variasi, jumlah, dan harga terkunci memakai fallback checkout internal; fallback pencocokan referensi luar tidak boleh mengambil alih alur tersebut.
 - Saat web reference sudah tersedia, simulator menjalankan completion tanpa tool schema untuk mencegah duplicate lookup dan DSML. Safe fallback tetap menyampaikan fakta web yang ditemukan, tetapi tidak mengarang kandidat katalog.
 - Endpoint simulator melakukan sanitasi final pada reply dan seluruh bubble sebelum serialisasi JSON.
 - Matching aroma produk luar dilakukan oleh kode: ekstrak notes/family dari web, load pasangan Inspired->Karakter dari XLSX, skor kandidat, lalu berikan hanya kandidat terverifikasi kepada model. Model tidak bebas menciptakan nama kandidat.
@@ -200,6 +240,8 @@ Alur:
 4. beberapa key dipisahkan koma dan dirotasi saat limit atau invalid,
 5. hasil disimpan di `lookup_cache` selama 7 hari,
 6. hasil web hanya referensi; bukan bukti stok atau harga toko.
+
+Untuk katalog fragrance, lookup juga dipakai saat nama produk sudah internal tetapi detail notes belum cukup. Nama Inspired menjadi identitas pencarian. Nama Karakter dipetakan ke pasangan Inspired pada workbook, lalu hasilnya hanya dijelaskan sebagai profil acuan yang dapat dimodifikasi. Cache tetap 7 hari; hasil ambigu atau konflik kebutuhan customer ditolak.
 
 Brave input sudah dihapus dari UI karena tidak menjadi free-tier utama. Dukungan backend lama dipertahankan untuk kompatibilitas env lama.
 
@@ -317,6 +359,33 @@ Perkiraan readiness bersifat gate-based, bukan persentase. Status saat ini: stag
 - Update `docs/PRD.md` jika arsitektur, aturan, requirement, atau workflow berubah.
 - Update `docs/ROADMAP.md` jika audit, prioritas, roadmap, atau pekerjaan lanjutan berubah.
 - Jangan membuat atau menggunakan kembali folder `.agents/` maupun file `.agents/AGENTS.md`.
+
+## Kontrak Universal Produk & Percakapan
+
+- Engine tidak boleh hard-code nama industri, produk, kualitas, paket, ukuran, kapasitas, durasi, atau nilai variasi bisnis.
+- Produk & Harga menjadi sumber kebenaran untuk kelompok harga, sumbu variasi, kombinasi nilai, harga, dan berat pengiriman. Nama item serta detail produk tetap berasal dari Knowledge.
+- Kelompok harga boleh memiliki `domainRole` opsional untuk plugin yang membutuhkan relasi antarkolom Knowledge. `reference` menandai kelompok yang memakai nama referensi asli untuk lookup; `modified` menandai produk internal pasangan modifikasi. Metadata diatur dari Produk & Harga dan tidak boleh disimpulkan dari nama kelompok di core.
+- Nama sumbu dan nilai wajib dibaca dari skema aktif. Contoh bisnis hanya boleh berada di Knowledge, Config, fixture test, dan plugin domain opsional.
+- Harga satuan, subtotal, total, selisih, serta filter budget yang dapat diturunkan dari katalog harus dihitung deterministik. Model hanya merangkai bahasa dan tidak boleh mengganti angka.
+- Produk & Harga terstruktur selalu menjadi sumber kebenaran harga bila berbeda dari teks Knowledge lama.
+- Pilihan parsial dari rekomendasi dipertahankan lintas-turn. Rujukan natural seperti “yang pertama”, “yang kedua”, “yang tadi”, dan pilihan terkecil diselesaikan terhadap rekomendasi serta urutan skema aktif.
+- State pilihan hanya boleh berubah dari pilihan eksplisit customer pada turn terbaru; deskripsi assistant dan perbandingan tidak menjadi pilihan.
+- Permintaan nilai terkecil tanpa variasi lain menampilkan seluruh kombinasi pada nilai terkecil. Jika variasi lain disebut eksplisit, jawaban fokus pada kombinasi tersebut.
+- Klaim stok, diskon, garansi, durasi, format, spesifikasi, dan fakta produk lain wajib didukung evidence. Ketidaktersediaan evidence tidak boleh diubah menjadi klaim negatif atau positif.
+- Pada domain fragrance, nama pasangan dan keluarga berasal dari workbook Knowledge; jumlah note serta konsentrasi berasal dari blok `KLAIM PRODUK TERVERIFIKASI`; kelompok, alias, variasi, urutan tier harga, harga, dan berat berasal dari Produk & Harga; sapaan dan detail copy berasal dari Gaya Balasan; flow checkout berasal dari Profil & Alur.
+- Runtime matcher hanya boleh membaca hasil corpus Knowledge yang berstatus aktif. File pada folder upload yang belum berhasil diaktifkan bukan sumber rekomendasi. Cache matcher wajib terikat pada isi corpus aktif.
+- Kecocokan penggunaan terhadap kombinasi produk berasal dari `recommendationTags` pada Produk & Harga. Core tidak boleh memetakan istilah penggunaan ke nama tier tertentu. Tanpa tag cocok, fallback harga termurah boleh dipakai tetapi tidak boleh disebut sebagai rekomendasi penggunaan.
+- Kesimpulan semantik klaim harus berasal dari kalimat Knowledge utuh. Parser tidak boleh mengambil angka lalu menambahkan arti bisnis yang tidak terdapat pada kalimat sumber.
+- Semua output `askAgent`, termasuk deterministic reply dan fallback, wajib melewati batas Gaya Balasan yang sama. Sapaan, panjang, gaya jual, dan kebijakan emoji tidak boleh hanya berlaku pada output model.
+- Menyimpan Profil & Alur wajib menyinkronkan prompt aktif dari Prompt Builder. `enableShipping` produk fisik harus mengikuti switch Admin; instruksi pembayaran kosong harus tetap kosong dan tidak boleh diganti default atau hasil karangan model.
+- External lookup hanya boleh memperkaya notes, family, karakteristik, dan target pemakai. Harga, stok, ketersediaan, variasi, berat, draft, dan transaksi tidak boleh diambil dari web. Target pemakai eksplisit wajib fail-closed bila tidak ada satu hasil external yang cocok dan cukup jelas.
+- Klaim berisiko customer seperti safety/pemakaian, durability kualitatif, social proof, bonus/kelengkapan, dan comparative marketing hanya boleh digunakan bila dicatat pada blok Knowledge `KLAIM PRODUK TERVERIFIKASI`. Teks Knowledge umum tidak cukup untuk mengesahkan janji tersebut.
+- Pertanyaan harga, stok, atau ketersediaan bukan pilihan produk. State transaksi hanya berubah setelah bahasa pilihan eksplisit; checkout setelah pertanyaan lintas-kelompok wajib meminta konfirmasi nama produk yang cocok sebelum ongkir.
+- Sanitizer customer-facing wajib mempertahankan line break WhatsApp. Repair klaim harus menulis ulang balasan utuh dan memvalidasinya kembali; pemotongan frasa tidak boleh meninggalkan label, tanda baca, atau kalimat gantung.
+- Order final wajib gagal tertutup sampai produk, jumlah, seluruh sumbu variasi, harga katalog, field checkout terkonfigurasi, dan data pengiriman wajib lengkap. Prompt model tidak boleh menjadi satu-satunya pengaman transaksi.
+- Perubahan kelompok atau klasifikasi wajib menghapus nama produk lama sampai produk baru dipilih atau direkomendasikan dari Knowledge.
+- Output WhatsApp harus berupa daftar vertikal yang mudah dibaca, tanpa tabel Markdown, bullet strip, nominal terpotong, label variasi berulang pada setiap baris, atau pertanyaan penutup yang menempel pada item daftar maupun peringatan pengiriman.
+- Setiap perubahan arsitektur, perilaku produk, aturan percakapan, atau hasil evaluasi penting wajib memperbarui `CHANGELOG.md` dan dokumen kanonis terkait pada turn yang sama.
 
 ## Runtime Status Terbaru — 2026-07-23
 

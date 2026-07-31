@@ -2,18 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { parseWeightRows } from '../src/admin/server.js';
 import { estimateConfiguredShippingWeightGrams } from '../src/api/rajaongkir.js';
-import { buildClosingOrderRule } from '../src/ai/agent.js';
+import { buildClosingOrderRule, buildOrderConfirmationInstruction } from '../src/ai/agent.js';
 import { validateBusinessHoursConfig } from '../src/chat/business-hours.js';
-
-test('repeatable shipping weight rows keep valid positive gram values', () => {
-    assert.deepEqual(
-        parseWeightRows(['30ml', ' 100ml ', '', 'invalid'], ['110', '260.4', '50', 'nope']),
-        { '30ml': 110, '100ml': 260 },
-    );
-    assert.deepEqual(parseWeightRows('single', '75'), { single: 75 });
-});
 
 test('runtime shipping parsing honors arbitrary configured labels', () => {
     assert.equal(estimateConfiguredShippingWeightGrams('2 x 60ml dan 1 paket besar', { '60ml': 140, 'paket besar': 500 }, 900), 780);
@@ -34,6 +25,21 @@ test('post-order handoff controls whether payment instructions are sent', () => 
     const automaticRule = buildClosingOrderRule({ ...baseConfig, handoffAfterPaymentSummary: false });
     assert.match(automaticRule, /ringkasan pesanan dan instruksi pembayaran/i);
     assert.match(automaticRule, /Transfer ke rekening toko/);
+
+    const handoffResult = buildOrderConfirmationInstruction({ ...baseConfig, handoffAfterPaymentSummary: true });
+    assert.match(handoffResult, /ringkasan saja/i);
+    assert.match(handoffResult, /admin akan melanjutkan/i);
+    assert.doesNotMatch(handoffResult, /Transfer ke rekening toko/);
+
+    const automaticResult = buildOrderConfirmationInstruction({ ...baseConfig, handoffAfterPaymentSummary: false });
+    assert.match(automaticResult, /Transfer ke rekening toko/);
+
+    const emptyPaymentRule = buildClosingOrderRule({ ...baseConfig, paymentInstructions: '', handoffAfterPaymentSummary: false });
+    assert.match(emptyPaymentRule, /Instruksi pembayaran belum diatur/i);
+    assert.doesNotMatch(emptyPaymentRule, /INSTRUKSI BAYAR:/i);
+    const emptyPaymentResult = buildOrderConfirmationInstruction({ ...baseConfig, paymentInstructions: '', handoffAfterPaymentSummary: false });
+    assert.match(emptyPaymentResult, /jangan membuat cara bayar sendiri/i);
+    assert.doesNotMatch(emptyPaymentResult, /INSTRUKSI BAYAR:/i);
 });
 
 test('business-hours validation rejects values that can break inbound processing', () => {
@@ -59,10 +65,12 @@ test('config UI preserves hidden sales flow and exposes friendly operational con
 
     assert.doesNotMatch(routes, /name="salesFlow"/);
     assert.match(routes, /salesFlow: previous\.salesFlow/);
-    assert.match(routes, /name="shippingWeightLabel"/);
-    assert.match(routes, /name="shippingWeightGrams"/);
-    assert.match(routes, /data-add-weight/);
+    assert.doesNotMatch(routes, /name="shippingWeightLabel"|name="shippingWeightGrams"|data-add-weight/);
+    assert.doesNotMatch(routes, /name="orderFields"|name="orderFieldsCustom"/);
+    assert.match(routes, /Nama produk, seluruh variasi, harga, dan berat pengiriman mengikuti Produk & Harga/);
+    assert.match(source, /Berat pengiriman \(gram\)/);
     assert.match(routes, /name="handoffAfterPaymentSummary"/);
+    assert.match(source, /name="externalReferenceRules"/);
     assert.match(routes, /name="businessTimezone"/);
     assert.match(routes, /name="optOutKeywords"/);
     assert.doesNotMatch(routes, /name="businessHoursJson"|name="consentJson"/);

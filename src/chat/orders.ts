@@ -1,4 +1,6 @@
 import { pool, type Database } from '../config/db.js';
+import { getBusinessConfig, type BusinessConfig } from '../config/business.js';
+import { readProductCatalog, resolveCatalogOffer, type ProductCatalog } from '../catalog/product-catalog.js';
 
 export type ChatStage =
     | 'consulting'
@@ -14,7 +16,7 @@ export interface DraftOrder {
     jid: string;
     productName?: string;
     aroma?: string;
-    variant?: 'inspired' | 'karakter';
+    variant?: string;
     quality?: string;
     sizeMl?: number;
     packageSize?: string;
@@ -121,19 +123,68 @@ export const buildOrderSummary = (order: OrderRow) => {
     return lines.join('\n');
 };
 
+const recordValue = (value: unknown): Record<string, unknown> => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
+    if (typeof value !== 'string') return {};
+    try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+        return {};
+    }
+};
+
+export const validateDraftOrderForConfirmation = (
+    draft: OrderRow,
+    config: BusinessConfig = getBusinessConfig(),
+    catalog: ProductCatalog = readProductCatalog(),
+) => {
+    const product = String(draft.product_name || draft.aroma || '').trim();
+    if (!product) return { valid: false as const, error: 'Draft belum punya produk.' };
+    const quantity = Number(draft.quantity);
+    if (!Number.isInteger(quantity) || quantity <= 0) return { valid: false as const, error: 'Jumlah produk belum dipilih.' };
+
+    const options = recordValue(draft.options);
+    if (catalog.schemes.length) {
+        const offer = resolveCatalogOffer({
+            classification: String(draft.variant || ''),
+            attributes: Object.keys(options).length ? Object.fromEntries(Object.entries(options).map(([key, value]) => [key, String(value)])) : undefined,
+            quality: draft.quality ? String(draft.quality) : undefined,
+            sizeMl: Number(draft.size_ml) || undefined,
+            quantity,
+        }, catalog);
+        if (!offer.valid) return { valid: false as const, error: `Pilihan produk belum lengkap: ${offer.error}` };
+        if (Number(draft.product_price) !== offer.unitPrice) return { valid: false as const, error: 'Harga draft belum cocok dengan katalog aktif.' };
+    } else if (!Number.isFinite(Number(draft.product_price)) || Number(draft.product_price) < 0) {
+        return { valid: false as const, error: 'Harga produk belum terverifikasi.' };
+    }
+
+    const customerData = recordValue(draft.customer_data);
+    const checkoutValues: Record<string, unknown> = {
+        ...customerData,
+        name: draft.customer_name ?? customerData.name,
+        phone: draft.phone ?? customerData.phone,
+        address: draft.address ?? customerData.address,
+    };
+    const missingCheckout = config.checkoutFields.filter((field) => !String(checkoutValues[field] ?? '').trim());
+    if (missingCheckout.length) return { valid: false as const, error: `Data checkout masih kurang: ${missingCheckout.join(', ')}.` };
+    if (config.enableShipping) {
+        if (!String(draft.address || checkoutValues.address || '').trim()) return { valid: false as const, error: 'Alamat pengiriman belum lengkap.' };
+        if (!String(draft.shipping_option || '').trim() || !Number.isFinite(Number(draft.shipping_cost))) {
+            return { valid: false as const, error: 'Pilihan kurir dan ongkir belum dikunci.' };
+        }
+    }
+    return { valid: true as const };
+};
+
 export const confirmDraftOrder = async (jid: string, note?: string, database: Database = pool) => {
     const draft = await getDraftOrder(jid, database);
     if (!draft) {
         return { ok: false as const, error: 'Belum ada draft pesanan untuk customer ini.' };
     }
 
-    const product = draft.product_name || draft.aroma;
-    if (!product) {
-        return { ok: false as const, error: 'Draft belum punya produk.' };
-    }
-    if (!draft.customer_name && !draft.phone) {
-        return { ok: false as const, error: 'Data checkout masih kurang (nama/HP).' };
-    }
+    const validation = validateDraftOrderForConfirmation(draft);
+    if (!validation.valid) return { ok: false as const, error: validation.error };
 
     await database.transaction(async (transaction) => {
         await transitionOrder(transaction, draft, 'awaiting_payment');
@@ -224,10 +275,16 @@ export const getChatState = async (jid: string): Promise<{ stage: ChatStage; dat
 };
 
 export const setChatState = async (jid: string, stage: ChatStage, data: Record<string, unknown> = {}, database: Database = pool) => {
+    const current = await database.query('SELECT data FROM chat_state WHERE jid = $1', [jid]);
+    const previous = current.rows[0]?.data;
+    const merged = {
+        ...(previous && typeof previous === 'object' && !Array.isArray(previous) ? previous : {}),
+        ...data,
+    };
     await database.query(
         `INSERT INTO chat_state (jid, stage, data) VALUES ($1, $2, $3::jsonb)
          ON CONFLICT (jid) DO UPDATE SET stage = EXCLUDED.stage, data = EXCLUDED.data, updated_at = NOW()`,
-        [jid, stage, JSON.stringify(data)]
+        [jid, stage, JSON.stringify(merged)]
     );
 };
 
@@ -272,6 +329,13 @@ export const getDraftOrder = async (jid: string, database: Database = pool) => {
         [jid]
     );
     return rows[0] || null;
+};
+
+export const clearDraftProductName = async (jid: string, database: Database = pool) => {
+    await database.query(
+        "UPDATE orders SET product_name = NULL, aroma = NULL, updated_at = NOW() WHERE jid = $1 AND status = 'draft'",
+        [jid],
+    );
 };
 
 export const clearOrderState = async (jid: string) => {

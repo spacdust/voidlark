@@ -1,0 +1,142 @@
+{
+  "generatedAt": "2026-07-29T08:18:18.634Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Berubah dari Inspired ke pasangan Karakter",
+      "tone": "berubah-pikiran",
+      "messages": [
+        "Aku mau Angelina jolie versi Inspired EDP 30ml, Kak",
+        "Harganya berapa?",
+        "Eh pengin lihat versi Karakter pasangannya juga deh",
+        "Nama Karakternya apa dan harga 30ml-nya ada apa aja?",
+        "Oke ambil yang Super Premium 30ml satu"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau Angelina jolie versi Inspired EDP 30ml, Kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Inspired EDP 30ml, harganya Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "Harganya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Eh pengin lihat versi Karakter pasangannya juga deh"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, data durasi pemakaian belum tercantum di informasi produk. Hasil aktual juga dapat berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Nama Karakternya apa dan harga 30ml-nya ada apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nDari pilihan ini, kualitas mana yang paling sesuai kebutuhan Kakak?"
+        },
+        {
+          "role": "user",
+          "content": "Oke ambil yang Super Premium 30ml satu"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Karakter Super Premium 30ml, harganya Rp120.000."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Karakter",
+        "attributes": {
+          "quality": "Super Premium",
+          "size": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 120000,
+        "subtotal": 120000
+      }
+    },
+    {
+      "id": 10,
+      "name": "Pemula santai banyak bertanya",
+      "tone": "ceria",
+      "messages": [
+        "Wkwk aku gapaham parfum sama sekali, Kak",
+        "Fresh, floral, woody tuh gampangnya beda apa?",
+        "Aku cewek, sering panas-panasan, dan nggak suka manis",
+        "Kasih dua rekomendasi yang paling nyambung dong",
+        "Yang kedua itu nama aslinya atau nama Karakter?",
+        "Kalau ukuran paling kecil semua kualitasnya berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Wkwk aku gapaham parfum sama sekali, Kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Tenang aja, justru di sini aku bantu biar Kakak lebih paham dan nemu parfum yang cocok. 😊\n\nKakak lebih suka buat ke kantor/kuliah, atau lebih sering dipakai pas hangout malam? Biar aku bantu arahkan pilihan yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Fresh, floral, woody tuh gampangnya beda apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Gampangnya begini, Kak:\n\n1. Fresh â€” kesannya ringan dan segar. Arah ini bisa muncul dari nuansa buah, citrus, aquatic, atau green, tergantung susunan aromanya.\n\n2. Floral â€” fokusnya bunga-bungaan, misalnya mawar, melati, atau lily. Kesannya bisa lembut sampai kaya dan elegan.\n\n3. Woody â€” fokusnya kayu-kayuan, misalnya cedarwood, sandalwood, vetiver, atau patchouli. Kesannya cenderung hangat dan lebih dalam.\n\nKalau sering dipakai saat cuaca panas, arah fresh biasanya paling mudah dijadikan titik awal. Setelah itu baru aku saring lagi sesuai selera manis, audience, dan budget."
+        },
+        {
+          "role": "user",
+          "content": "Aku cewek, sering panas-panasan, dan nggak suka manis"
+        },
+        {
+          "role": "assistant",
+          "content": "Siap, Kak. Berarti rekomendasinya perlu nyaman untuk cuaca panas dan sisi manisnya harus dihindari. Aku akan menyaring pilihan berdasarkan audience serta profil aroma yang tersedia, bukan sekadar nama variannya.\n\nDari fresh, floral, dan woody yang tadi dibahas, Kak paling tertarik ke arah mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua rekomendasi yang paling nyambung dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah fresh yang dicari:\n\n1. Bodyshop Oceanus — keluarga fresh, dengan arah notes teratai air.\n\n2. annasui dolly girl — keluarga fresh.\n\nDari dua ini, mana yang paling menarik?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua itu nama aslinya atau nama Karakter?"
+        },
+        {
+          "role": "assistant",
+          "content": "Barbie adalah nama Parfum Karakter, Kak. Pasangan Parfum Inspired-nya adalah annasui dolly girl."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil semua kualitasnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "annasui dolly girl",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "generatedAt": "2026-07-27T05:06:22.679Z",
+  "scenarios": [
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Baik, aku jelasin perbedaan tiga kualitas Parfum Inspired ya: 1. EDT (2:1) – 66% bibit, 34% pelarut. Aroma cenderung lembut, aman semprot langsung ke baju tanpa noda. Cocok kalau suka wangi yang ringan. 2. EDP (3:1) – 75% bibit, 25% pelarut. Aroma lebih strong, tetap bisa disemprot ke baju tapi kasih jarak sekitar 30 cm biar ga bernoda. Paling direkomendasiin karena aromanya udah kuat tapi praktis. 3. Murni (Extrait) – 100% bibit, tanpa pelarut. Aroma paling kuat, teksturnya kental dan berminyak, spraynya ga menyebar. Proyeksi lebih dekat ke kulit, cocok buat yang suka wangi intens di area pribadi. Kira-kira Kakak suka wangi yang soft, strong, atau yang paling intens?"
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "EDT: 2-4 jam di kulit, 4-6 jam di baju. EDP: 4-6 jam di kulit, 6-8 jam di baju. Murni: 6-8 jam di kulit, bisa lebih di baju. Mau pilih yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dengan budget maksimal Rp100.000, pilihan yang tersedia: Parfum Inspired EDT\n30ml: Rp35.000\nParfum Inspired EDT\n50ml: Rp45.000\nParfum Inspired EDT\n100ml: Rp55.000\nParfum Inspired EDP\n30ml: Rp60.000\nParfum Inspired EDP\n50ml: Rp75.000\nParfum Inspired EDP\n100ml: Rp85.000\nKakak mau pilih yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitasnya dulu, Kak? Harga ukuran 30ml dan 50ml berbeda untuk EDT, EDP, Murni, Super Premium, dan Platinum."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih EDP 50ml. Wangi lebih kuat, tahan lama, cocok kondangan malam. Mau EDP 50ml aja Kak?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "Murni",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 150000,
+        "subtotal": 150000
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Senang bisa bantu cari kado anniversary buat pasangan. Sebelum aku rekomendasiin, boleh tahu dulu sedikit? Pasangan Kakak cowok atau cewek? Terus ada preferensi aroma tertentu nggak? Misalnya suka aroma yang segar, manis, woody, atau floral?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Pasangan cowok dan cewek, wanginya elegan buat malam hari. Bisa pakai bareng. Bagus. Dari katalog Aromatique, ada dua kelompok yang cocok: 1. Parfum Karakter — aroma lebih kompleks, berkelas, tahan lama. Pilihan kualitas Super Premium atau Platinum. Cocok banget buat malam spesial. 2. Parfum Inspired — ringan tapi tetap wangi. Ada level EDT, EDP, dan Murni. Kalau mau elegan dan berkesan buat anniversary, aku lebih rekomendasiin Parfum Karakter. Wanginya lebih eksklusif dan cocok dipakai berdua. Mau aku jelasin varian ukuran dan harganya? Atau langsung incer ukuran berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Dua pilihan: 1. Super Premium (70% ekstrak parfum) – wangi elegan, tahan lama\n2. Platinum (90% ekstrak parfum) – lebih kuat, lebih tahan lama, cocok momen spesial Keduanya bisa pilih aroma sesuai selera.\n\nMau pilih yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Platinum: Platinum\n30ml: Rp135.000\nPlatinum\n50ml: Rp180.000\nPlatinum\n100ml: Rp360.000\nKakak mau ukuran yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak buru-buru kok. Kalau nanti udah fix ukuran sama aroma yang diinginkan, langsung chat aja ya. Aku siap bantu kapan aja 🫶"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    }
+  ]
+}

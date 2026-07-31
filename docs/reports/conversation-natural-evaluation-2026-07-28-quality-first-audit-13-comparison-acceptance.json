@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-07-28T11:00:54.645Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Santai dan banyak tanya",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, mau nanya2 parfum dong",
+        "Bedanya inspired sama karakter apaan ya?",
+        "Kalau buat ngantor yang nggak bikin pusing enaknya mana?",
+        "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?",
+        "Yang pertama berapaan kak ukuran kecilnya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, mau nanya2 parfum dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Boleh banget, tanya-tanya dulu. Ada preferensi aroma tertentu?"
+        },
+        {
+          "role": "user",
+          "content": "Bedanya inspired sama karakter apaan ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Pilihan yang tersedia adalah Parfum Karakter, Parfum Inspired. Detail perbedaan pemakaian atau ketahanannya belum tercantum sebagai klaim produk terverifikasi. Aku bisa bantu pilih berdasarkan kebutuhan dan budget Kakak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat ngantor yang nggak bikin pusing enaknya mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP.\n\nMau ukuran berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?"
+        },
+        {
+          "role": "assistant",
+          "content": "Angelina jolie dari Parfum Inspired masuk kategori aroma fresh. Ini pilihan terdekat dari data aroma yang tersedia."
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama berapaan kak ukuran kecilnya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired Ukuran 30ml:\n\nEDT 30ml: Rp35.000\nEDP 30ml: Rp60.000\nMurni 30ml: Rp120.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Angelina jolie",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Kualitas": "EDP"
+        }
+      }
+    }
+  ]
+}

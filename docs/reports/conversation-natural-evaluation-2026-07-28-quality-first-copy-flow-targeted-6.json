@@ -1,0 +1,179 @@
+{
+  "generatedAt": "2026-07-28T11:59:18.102Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Santai dan banyak tanya",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, mau nanya2 parfum dong",
+        "Bedanya inspired sama karakter apaan ya?",
+        "Kalau buat ngantor yang nggak bikin pusing enaknya mana?",
+        "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?",
+        "Yang pertama berapaan kak ukuran kecilnya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, mau nanya2 parfum dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Boleh banget, mau tanya-tanya soal apa dulu nih? Biar aku bisa bantu rekomendasi yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Bedanya inspired sama karakter apaan ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Bedanya ada di susunan aromanya, Kak.\n\nParfum Inspired punya 1 note, jadi karakter wanginya konsisten dari awal sampai akhir. Parfum Karakter punya 3 notes, jadi profil aromanya terasa lebih berlapis.\n\nKalau Kakak suka wangi yang simpel dan konsisten, arahnya ke Inspired. Kalau lebih suka aroma yang berlapis, arahnya ke Karakter."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat ngantor yang nggak bikin pusing enaknya mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kebutuhan harian seperti ngantor atau kuliah, aku lebih condong ke Parfum Inspired level EDT, Kak. Inspired punya 1 note yang konsisten, sedangkan EDT adalah konsentrasi paling rendah dari tiga level Inspired, yaitu 66% bibit.\n\nIni pilihan awal yang paling sederhana. Untuk aromanya, Kakak lebih suka fresh, manis, floral, atau woody?"
+        },
+        {
+          "role": "user",
+          "content": "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke Angelina jolie dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Sisi fresh-nya paling jelas cocok. Detail seberapa terasa nuansa manis pada tiap varian belum dirinci, jadi aku nggak akan menebak."
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama berapaan kak ukuran kecilnya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired Ukuran 30ml:\n\nEDT 30ml: Rp35.000\nEDP 30ml: Rp60.000\nMurni 30ml: Rp120.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Angelina jolie",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Kualitas": "EDT"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Marah karena jawaban berulang",
+      "tone": "marah",
+      "messages": [
+        "Dari tadi ditanya aroma terus, saya cuma mau tahu harga EDP 50ml!",
+        "Iya itu. Harganya berapa?",
+        "Jangan muter lagi ya. Kalau masih nggak jelas saya mau admin."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Dari tadi ditanya aroma terus, saya cuma mau tahu harga EDP 50ml!"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml harganya Rp75.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Iya itu. Harganya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml harganya Rp75.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Jangan muter lagi ya. Kalau masih nggak jelas saya mau admin."
+        },
+        {
+          "role": "assistant",
+          "content": "Iya, Kak. Biar nggak muter: Parfum Inspired EDP 50ml harganya Rp75.000 per item."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 75000,
+        "subtotal": 75000
+      }
+    },
+    {
+      "id": 5,
+      "name": "Buru-buru mau membeli",
+      "tone": "buru-buru",
+      "messages": [
+        "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?",
+        "Pilih satu aja yang aman",
+        "EDP 30ml ready harga berapa?",
+        "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma manis, aku paling mengarah ke Sun Girl dari Parfum Karakter, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga glamour."
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aja yang aman"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Sun Girl dari Parfum Karakter, Kak. Dari pilihan yang tersedia, ini yang paling dekat dengan kebutuhan yang tadi Kakak jelaskan."
+        },
+        {
+          "role": "user",
+          "content": "EDP 30ml ready harga berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "EDP 30ml masuk kelompok Parfum Inspired, jadi berbeda dari Sun Girl di Parfum Karakter yang tadi direkomendasikan.\n\nParfum Inspired EDP 30ml harganya Rp60.000 per item, Kak.\n\nStatus stok saat ini belum dicantumkan, jadi perlu dikonfirmasi ke admin sebelum pesanan diproses."
+        },
+        {
+          "role": "user",
+          "content": "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, berarti pilihannya lanjut ke Parfum Inspired EDP 30ml seharga Rp60.000, Kak. Untuk kebutuhan yang tadi, produk yang paling dekat adalah Alisya Ashley.\n\nSebelum aku hitung ongkir, pastikan pilihan produk ini cocok ya, Kak."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "customer": {
+          "name": "Dita",
+          "phone": "081399887766",
+          "address": "Maguwoharjo Depok Sleman"
+        },
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "productName": "Alisya Ashley"
+      }
+    }
+  ]
+}

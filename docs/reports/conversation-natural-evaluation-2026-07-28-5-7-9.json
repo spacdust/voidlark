@@ -1,0 +1,191 @@
+{
+  "generatedAt": "2026-07-28T08:40:21.127Z",
+  "scenarios": [
+    {
+      "id": 5,
+      "name": "Buru-buru mau membeli",
+      "tone": "buru-buru",
+      "messages": [
+        "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?",
+        "Pilih satu aja yang aman",
+        "EDP 30ml ready harga berapa?",
+        "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Siap bantu cepet! Untuk aroma manis dan lembut cocoknya ambil dari keluarga Sweet/Gourmand atau Floral. Dua rekomendasi yang pas: 1. Vanilla dari keluarga Sweet/Gourmand — manis, creamy, comforting, cocok banget buanget buat kesan lembut dan hangat.\n2. White Floral — wangi bunga yang lembut, elegan, dan feminin.\n\nKak lebih suka yang wangi vanilla creamy atau wangi bunga yang soft?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aja yang aman"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku rekomendasikan Baccarat Oud Silk Mood dari Parfum Karakter, Kak. Arahnya glamour dan nama produknya tercantum di katalog internal."
+        },
+        {
+          "role": "user",
+          "content": "EDP 30ml ready harga berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke MAGUWOHARJO, DEPOK, SLEMAN, DI YOGYAKARTA, 55282:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari) Paling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana? Karena dibutuhkan besok, pilih layanan dengan estimasi maksimal 1 hari. Estimasi kurir bukan jaminan waktu tiba."
+        }
+      ],
+      "tools": [
+        "cekOngkir"
+      ],
+      "state": {
+        "productName": "Baccarat Oud Silk Mood",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "customer": {
+          "name": "Dita",
+          "phone": "081399887766",
+          "address": "Maguwoharjo Depok Sleman"
+        },
+        "shippingEvidence": "Ongkir ke MAGUWOHARJO, DEPOK, SLEMAN, DI YOGYAKARTA, 55282:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?\n\nKarena dibutuhkan besok, pilih layanan dengan estimasi maksimal 1 hari. Estimasi kurir bukan jaminan waktu tiba."
+      }
+    },
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. 1. EDT (2:1) – 66% bibit, aroma lembut, aman semprot ke baju tanpa noda.\n2. EDP (3:1) – 75% bibit, aroma lebih strong, bisa ke baju dengan jarak spray.\n3. Murni (Extrait) – 100% bibit, aroma paling kuat, tekstur kental berminyak, semprotan tidak menyebar, proyeksi dekat ke kulit.\n\nKakak ada preferensi tertentu?"
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku rekomendasikan Sun Girl dari Parfum Karakter, Kak. Arahnya glamour dan nama produknya tercantum di katalog internal."
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas yang mau dibandingkan, Kak? Setelah itu aku hitung selisih 30ml dan 50ml."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, harga produk itu belum tercantum pada katalog yang aku pegang. Aku bantu konfirmasi ke admin dulu ya."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Sun Girl",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Senang banget bisa bantu cari kado anniversary buat pasangan. Sebelum aku rekomendasiin, pasangan Kakak cowok atau cewek?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Wah, cocok banget berarti cari aroma unisex yang elegan buat malam hari. Aku bisa bantu arahkan ke beberapa pilihan. Sebelum itu Kak, pasangan Kakak lebih suka aroma yang hangat dan manis, atau yang segar dan maskulin? Biar aku bisa rekomendasiin yang paling pas."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Dua pilihan Parfum Karakter yang terverifikasi: 1. Sun Girl – arah glamour. 2. Agolie – arah glamour. Kakak lebih tertarik yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter: Super Premium\n30ml: Rp120.000\nSuper Premium\n50ml: Rp160.000\nSuper Premium\n100ml: Rp310.000\nPlatinum\n30ml: Rp135.000\nPlatinum\n50ml: Rp180.000\nPlatinum\n100ml: Rp360.000\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak buru-buru. Silakan diskusi dulu sama pasangan. Kalau nanti sudah mantap pilih ukuran dan kualitasnya, tinggal chat aku lagi ya. Siap bantu kapan aja 😊"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Agolie",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-07-29T03:31:06.999Z",
+  "scenarios": [
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique! Wah, anniversary momen spesial banget. Boleh aku tanya dulu, pasangan Kakak cowok atau cewek? Biar aku bisa bantu rekomendasiin aroma yang cocok."
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kesan elegan di malam hari, aku bisa bantu pilihkan dari keluarga aroma yang sesuai, Kak. Tapi data varian yang tersedia belum memberi label khusus unisex, jadi aku nggak mau memastikan sesuatu yang belum dicantumkan.\n\nKalau tetap ingin dipertimbangkan bersama pasangan, aku bisa kasih dua pilihan aroma elegan sebagai shortlist."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah elegan yang Kakak cari:\n\n1. Bacarat Rouge — keluarga elegan, dengan arah notes saffron, melati, amberwood, ambergris, dan hedione.\n\n2. Beneton Hot — keluarga elegan, dengan arah notes brazilian rosewood, mandarin orange, lemon, bergamot, apricot, iris, water jasmine, dan lily of the valley.\n\nDari dua ini, mana yang paling menarik buat Kakak?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Beneton Hot\n\nParfum Inspired:\n\nEDT\n30ml: Rp35.000\n50ml: Rp45.000\n100ml: Rp55.000\n\nEDP\n30ml: Rp60.000\n50ml: Rp75.000\n100ml: Rp85.000\n\nMurni\n30ml: Rp120.000\n50ml: Rp150.000\n100ml: Rp165.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak buru-buru kok 😊\n\nNanti kalau sudah diskusi sama pasangan, tinggal chat aja lagi ya. Bisa langsung pilih ukuran sama kualitas yang diinginkan. Aku bantu siapin sama cek ongkirnya juga kalau sudah tahu tujuannya.\n\nSelamat anniversary ya Kak! 🎉"
+        }
+      ],
+      "tools": [
+        "external:cache",
+        "external:tavily"
+      ],
+      "state": {
+        "productName": "Beneton Hot",
+        "classification": "Parfum Inspired"
+      }
+    }
+  ]
+}

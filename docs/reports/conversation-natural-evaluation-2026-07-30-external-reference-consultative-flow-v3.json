@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-07-30T06:19:06.863Z",
+  "scenarios": [
+    {
+      "id": 5,
+      "name": "Referensi fireplace dari luar katalog",
+      "tone": "penasaran",
+      "messages": [
+        "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?",
+        "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?",
+        "Aku pengin satu pilihan aja biar nggak bingung",
+        "Yang direkomendasiin itu aromanya gimana?",
+        "Kalau ukuran paling kecil harganya berapa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maison Margiela By the Fireplace belum ada di katalog kami, Kak. Berdasarkan hasil pencarianku, Maison Margiela By the Fireplace punya beberapa notes utama seperti kelopak bunga jeruk, kayu guaiac, vanila, pink pepper, minyak cengkeh, kastanye, dan kayu cade.\n\nKalau Kakak mau, aku bisa carikan hingga tiga parfum dari katalog kami yang notes-nya paling mendekati Maison Margiela By the Fireplace. Mau aku carikan?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku menemukan 3 pilihan dari katalog yang notes-nya mendekati Maison Margiela By the Fireplace, Kak:\n\n1. Squad Girl — Paling mendekati. Body Shop Vanila memiliki kesamaan pada notes vanila dengan Maison Margiela By the Fireplace. Karena Squad Girl merupakan racikan berbeda, hasil akhirnya tidak akan persis sama dengan Maison Margiela By the Fireplace.\n\n2. aqualuzz — Alternatif yang lebih fresh. Bodyshop Oceanus berada pada arah aroma fresh, floral, woody, manis, dengan notes utama seperti ozonic, beri, violet, dan mawar. Karena aqualuzz merupakan racikan berbeda, hasil akhirnya tidak akan persis sama dengan Maison Margiela By the Fireplace.\n\n3. 320 — Alternatif yang lebih fresh. Britney Fantasy berada pada arah aroma fresh, floral, manis, dengan notes utama seperti kiwi, red litchi, quince, dan anggrek. Karena 320 merupakan racikan berbeda, hasil akhirnya tidak akan persis sama dengan Maison Margiela By the Fireplace.\n\nKalau Kakak mau, aku bisa bantu pilihkan satu berdasarkan sisi aroma yang paling disukai."
+        },
+        {
+          "role": "user",
+          "content": "Aku pengin satu pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau mau satu pilihan, aku paling merekomendasikan Squad Girl, Kak. Body Shop Vanila memiliki kesamaan pada notes vanila dengan Maison Margiela By the Fireplace. Karena Squad Girl merupakan racikan berbeda, hasil akhirnya tidak akan persis sama dengan Maison Margiela By the Fireplace."
+        },
+        {
+          "role": "user",
+          "content": "Yang direkomendasiin itu aromanya gimana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Squad Girl dikembangkan dari profil Body Shop Vanila, Kak. Beberapa notes utama Body Shop Vanila adalah vanila, lemon, orange blossom, aprikot, persik, plum, dan ylang-ylang. Racikannya sudah dimodifikasi, jadi susunan akhirnya bisa berbeda dan tidak persis sama dengan Body Shop Vanila."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil harganya berapa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Squad Girl",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

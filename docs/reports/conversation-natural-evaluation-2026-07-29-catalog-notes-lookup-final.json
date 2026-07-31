@@ -1,0 +1,615 @@
+{
+  "generatedAt": "2026-07-29T03:18:25.121Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Santai dan banyak tanya",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, mau nanya2 parfum dong",
+        "Bedanya inspired sama karakter apaan ya?",
+        "Kalau buat ngantor yang nggak bikin pusing enaknya mana?",
+        "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?",
+        "Yang pertama berapaan kak ukuran kecilnya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, mau nanya2 parfum dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Atau ada kriteria aroma tertentu yang Kakak suka?"
+        },
+        {
+          "role": "user",
+          "content": "Bedanya inspired sama karakter apaan ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Bedanya ada di susunan aromanya, Kak.\n\nParfum Inspired punya 1 note, jadi karakter wanginya konsisten dari awal sampai akhir. Parfum Karakter punya 3 notes, jadi profil aromanya terasa lebih berlapis.\n\nKalau Kakak suka wangi yang simpel dan konsisten, arahnya ke Inspired. Kalau lebih suka aroma yang berlapis, arahnya ke Karakter."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat ngantor yang nggak bikin pusing enaknya mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kebutuhan harian seperti ngantor atau kuliah, aku lebih condong ke Parfum Inspired level EDT, Kak. Inspired punya 1 note yang konsisten, sedangkan EDT adalah konsentrasi paling rendah dari tiga level Inspired, yaitu 66% bibit.\n\nIni pilihan awal yang paling sederhana. Untuk aromanya, Kakak lebih suka fresh, manis, floral, atau woody?"
+        },
+        {
+          "role": "user",
+          "content": "Aku suka yang fresh tapi ada manis dikit. Ada rekomendasi?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke Annasui flight funcy dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Arah parfum aslinya memuat leci, lemon, musk, amber, yuzu, magnolia, freesia, dan mawar, jadi alasan rekomendasinya bukan hanya label fresh."
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama berapaan kak ukuran kecilnya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired Ukuran 30ml:\n\nEDT 30ml: Rp35.000\nEDP 30ml: Rp60.000\nMurni 30ml: Rp120.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Annasui flight funcy",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Kualitas": "EDT"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Marah karena jawaban berulang",
+      "tone": "marah",
+      "messages": [
+        "Dari tadi ditanya aroma terus, saya cuma mau tahu harga EDP 50ml!",
+        "Iya itu. Harganya berapa?",
+        "Jangan muter lagi ya. Kalau masih nggak jelas saya mau admin."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Dari tadi ditanya aroma terus, saya cuma mau tahu harga EDP 50ml!"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml harganya Rp75.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Iya itu. Harganya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 50ml harganya Rp75.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Jangan muter lagi ya. Kalau masih nggak jelas saya mau admin."
+        },
+        {
+          "role": "assistant",
+          "content": "Iya, Kak. Biar nggak muter: Parfum Inspired EDP 50ml harganya Rp75.000 per item."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 75000,
+        "subtotal": 75000
+      }
+    },
+    {
+      "id": 3,
+      "name": "Pelanggan dengan typo",
+      "tone": "typo",
+      "messages": [
+        "kak ada parfume buat cwo yg wanginya kalem ga",
+        "buat kuliah sih, budget 70rb an",
+        "yg fresh aja tp jgn ky minyak kayu putih wkwk",
+        "boleh yg paling aman satu aja"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "kak ada parfume buat cwo yg wanginya kalem ga"
+        },
+        {
+          "role": "assistant",
+          "content": "Bisa aku bantu carikan, Kak. Supaya nggak asal memilih dari label cowok, aku cocokkan dari karakter aroma dan kebutuhan pemakaiannya.\n\nParfumnya lebih sering dipakai untuk kuliah, kantor, harian, atau acara tertentu?"
+        },
+        {
+          "role": "user",
+          "content": "buat kuliah sih, budget 70rb an"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kebutuhan harian seperti ngantor atau kuliah, aku lebih condong ke Parfum Inspired level EDT, Kak. Inspired punya 1 note yang konsisten, sedangkan EDT adalah konsentrasi paling rendah dari tiga level Inspired, yaitu 66% bibit.\n\nIni pilihan awal yang paling sederhana. Untuk aromanya, Kakak lebih suka fresh, manis, floral, atau woody?"
+        },
+        {
+          "role": "user",
+          "content": "yg fresh aja tp jgn ky minyak kayu putih wkwk"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke annasui dolly girl dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Arah parfum aslinya memuat melon, bergamot, apel, cinnamon, mawar, magnolia, violet, dan lily-of-the-valley, jadi alasan rekomendasinya bukan hanya label fresh. Pilihan yang paling pas dan masih sesuai budget: EDT 30ml seharga Rp35.000."
+        },
+        {
+          "role": "user",
+          "content": "boleh yg paling aman satu aja"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih annasui dolly girl, Kak. Untuk kebutuhan yang tadi, pilihannya tetap Parfum Inspired EDT 30ml dengan harga Rp35.000."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "annasui dolly girl",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 35000,
+        "subtotal": 35000,
+        "maxBudget": 70000,
+        "quantity": 1
+      }
+    },
+    {
+      "id": 4,
+      "name": "Ragu dan berubah pikiran",
+      "tone": "ragu-ragu",
+      "messages": [
+        "Aku mau EDP 30ml satu kak",
+        "Eh bentar, yang 50ml selisih berapa?",
+        "Kayaknya 50ml aja deh",
+        "Eh tapi budgetku 65 ribu. Balik 30ml aja ya",
+        "Atas nama Nisa, 081222334455, kirim ke Prambanan Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau EDP 30ml satu kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Inspired EDP 30ml, harganya Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "Eh bentar, yang 50ml selisih berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Harga pilihan sebelumnya Rp60.000, sedangkan EDP 50ml Rp75.000. Selisihnya Rp15.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kayaknya 50ml aja deh"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Inspired EDP 50ml, harganya Rp75.000."
+        },
+        {
+          "role": "user",
+          "content": "Eh tapi budgetku 65 ribu. Balik 30ml aja ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Inspired EDP 30ml, harganya Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "Atas nama Nisa, 081222334455, kirim ke Prambanan Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Pilihan kualitas dan ukurannya sudah jelas, Kak. Nama produknya belum dipilih, jadi aku belum lanjut ke ongkir supaya pesanan tidak salah. Produk mana yang mau dipakai?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "customer": {
+          "name": "Nisa",
+          "phone": "081222334455",
+          "address": "Prambanan Sleman"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "Buru-buru mau membeli",
+      "tone": "buru-buru",
+      "messages": [
+        "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?",
+        "Pilih satu aja yang aman",
+        "EDP 30ml ready harga berapa?",
+        "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma manis, aku paling mengarah ke Axbomba dari Parfum Karakter, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga manis. Arah parfum aslinya memuat white amber, amber, blueberry, lavender, pomegranate, dan kayu cendana, jadi alasan rekomendasinya bukan hanya label manis."
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aja yang aman"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Axbomba dari Parfum Karakter, Kak. Dari pilihan yang tersedia, ini yang paling dekat dengan kebutuhan yang tadi Kakak jelaskan."
+        },
+        {
+          "role": "user",
+          "content": "EDP 30ml ready harga berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "EDP 30ml masuk kelompok Parfum Inspired, jadi berbeda dari Axbomba di Parfum Karakter yang tadi direkomendasikan.\n\nParfum Inspired EDP 30ml harganya Rp60.000 per item, Kak.\n\nStatus stok saat ini belum dicantumkan, jadi perlu dikonfirmasi ke admin sebelum pesanan diproses."
+        },
+        {
+          "role": "user",
+          "content": "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, berarti pilihannya lanjut ke Parfum Inspired EDP 30ml seharga Rp60.000, Kak. Untuk kebutuhan yang tadi, produk yang paling dekat adalah Alisya Ashley.\n\nSebelum aku hitung ongkir, pastikan pilihan produk ini cocok ya, Kak."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "classification": "Parfum Inspired",
+        "customer": {
+          "name": "Dita",
+          "phone": "081399887766",
+          "address": "Maguwoharjo Depok Sleman"
+        },
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "productName": "Alisya Ashley"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Pembeli banyak meminta diskon",
+      "tone": "negosiasi",
+      "messages": [
+        "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?",
+        "Harga normal satuannya berapa?",
+        "Berarti total normal 20 botol berapa?",
+        "Diskonnya beneran nggak ada ya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Penawaran khusus perlu dikonfirmasi ke admin."
+        },
+        {
+          "role": "user",
+          "content": "Harga normal satuannya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Berarti total normal 20 botol berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item. Untuk 20 item, totalnya Rp700.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Diskonnya beneran nggak ada ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Penawaran khusus perlu dikonfirmasi ke admin."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 20,
+        "unitPrice": 35000,
+        "subtotal": 700000
+      }
+    },
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Bedanya terutama di konsentrasi bibitnya, Kak.\n\n1. EDT — 66% bibit.\n\n2. EDP — 75% bibit.\n\n3. Murni — 100% bibit.\n\nJadi urutannya dari konsentrasi paling rendah ke paling tinggi adalah EDT, EDP, lalu Murni. Kalau Kakak kasih tahu parfumnya dipakai untuk apa, aku bisa bantu pilih satu yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma elegan, aku paling mengarah ke Axe Anarki dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga elegan. Arah parfum aslinya memuat white amber, amber, blueberry, lavender, pomegranate, dan kayu cendana, jadi alasan rekomendasinya bukan hanya label elegan. Pilihan yang paling pas dan masih sesuai budget: EDP 30ml seharga Rp60.000."
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000, sedangkan EDP 50ml Rp75.000. Selisihnya Rp15.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau dari dua pilihan tadi, aku pilih EDP 30ml, Kak. EDP tetap sama seperti pilihan sebelumnya, tetapi harganya Rp60.000 dan lebih hemat Rp15.000 daripada EDP 50ml. Kalau belum butuh ukuran lebih besar, pilihan ini lebih masuk akal."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Axe Anarki",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "maxBudget": 100000
+      }
+    },
+    {
+      "id": 8,
+      "name": "Komplain aroma pembelian lama",
+      "tone": "kecewa",
+      "messages": [
+        "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya",
+        "Terlalu manis, bikin eneg",
+        "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak parfum yang kemarin aku beli kok wanginya nggak cocok ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Boleh aku tanya dulu, parfum yang kemarin Kakak beli yang mana ya? Siapa tahu aku bisa bantu cari tahu kenapa kurang cocok atau kasih rekomendasi yang lebih pas."
+        },
+        {
+          "role": "user",
+          "content": "Terlalu manis, bikin eneg"
+        },
+        {
+          "role": "assistant",
+          "content": "Paham, Kak. Berarti arah manisnya kita hindari dulu supaya rekomendasi berikutnya nggak mengulang masalah yang sama.\n\nAku bisa arahkan ke keluarga fresh yang lebih segar atau woody yang lebih berkayu. Kakak lebih condong ke fresh atau woody?"
+        },
+        {
+          "role": "user",
+          "content": "Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik, Kak. Aku hubungkan ke admin sekarang. Pesan Kakak sudah diteruskan dan admin akan melanjutkan di chat ini."
+        }
+      ],
+      "tools": [
+        "escalateToHuman"
+      ],
+      "state": {
+        "handoffReason": "Customer meminta admin: Bisa tukar nggak? Kalau nggak aku mau ngomong sama admin aja"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Senang bisa bantu cari kado anniversary buat pasangan.\n\nKakak lebih suka yang fresh, manis, floral, atau yang hangat dan maskulin?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Untuk kesan elegan di malam hari, aku bisa bantu pilihkan dari keluarga aroma yang sesuai, Kak. Tapi data varian yang tersedia belum memberi label khusus unisex, jadi aku nggak mau memastikan sesuatu yang belum dicantumkan.\n\nKalau tetap ingin dipertimbangkan bersama pasangan, aku bisa kasih dua pilihan aroma elegan sebagai shortlist."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma elegan, aku paling mengarah ke Axbomba dari Parfum Karakter, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga elegan. Arah parfum aslinya memuat white amber, amber, blueberry, lavender, pomegranate, dan kayu cendana, jadi alasan rekomendasinya bukan hanya label elegan."
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter:\n\nSuper Premium\n30ml: Rp120.000\n50ml: Rp160.000\n100ml: Rp310.000\n\nPlatinum\n30ml: Rp135.000\n50ml: Rp180.000\n100ml: Rp360.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai aja, Kak. Nggak buru-buru kok.\n\nKalau nanti pasangan udah lihat dan mau lanjut, tinggal chat aja lagi ya. Nanti kita atur ukuran sama kualitas yang cocok."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Axbomba",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 10,
+      "name": "Salah chat lalu tertarik",
+      "tone": "acak",
+      "messages": [
+        "Kak ini jual case hp samsung nggak?",
+        "Oh parfum toh wkwk salah chat",
+        "Tapi sekalian deh, ada parfum cowok murah nggak?",
+        "Budget 50 ribu, yang fresh ada?",
+        "Kalau EDT 30ml berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ini jual case hp samsung nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Nggak Kak, Aromatique jual parfum aja. Ada yang bisa aku bantu soal parfum?"
+        },
+        {
+          "role": "user",
+          "content": "Oh parfum toh wkwk salah chat"
+        },
+        {
+          "role": "assistant",
+          "content": "Haha gapapa Kak. Kalo lagi butuh rekomendasi parfum, kabarin aja ya 😊"
+        },
+        {
+          "role": "user",
+          "content": "Tapi sekalian deh, ada parfum cowok murah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ada pilihan yang bisa disesuaikan, Kak. Supaya nggak asal memberi label cowok atau menyebut varian yang belum cocok, aku saring dari karakter aroma dan batas harganya.\n\nBudget maksimalnya berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Budget 50 ribu, yang fresh ada?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke annasui dolly girl dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Arah parfum aslinya memuat melon, bergamot, apel, cinnamon, mawar, magnolia, violet, dan lily-of-the-valley, jadi alasan rekomendasinya bukan hanya label fresh. Pilihan yang paling pas dan masih sesuai budget: EDT 30ml seharga Rp35.000."
+        },
+        {
+          "role": "user",
+          "content": "Kalau EDT 30ml berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "annasui dolly girl",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 35000,
+        "subtotal": 35000,
+        "maxBudget": 50000
+      }
+    }
+  ]
+}

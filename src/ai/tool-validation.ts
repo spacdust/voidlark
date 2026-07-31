@@ -9,6 +9,11 @@ export const CekOngkirSchema = z.object({
         .min(3, 'Tujuan pengiriman minimal 3 karakter')
         .max(200, 'Tujuan pengiriman maksimal 200 karakter')
         .describe('Tujuan pengiriman (kota/kecamatan/kelurahan/alamat lengkap)'),
+    classification: z.string().max(100).optional(),
+    attributes: z.record(z.string().max(100), z.string().max(200)).optional(),
+    quality: z.string().max(100).optional(),
+    sizeMl: z.number().int().positive().max(100000).optional(),
+    quantity: z.number().int().positive().max(10000).optional(),
 });
 
 export const SimpanDataPelangganSchema = z.object({

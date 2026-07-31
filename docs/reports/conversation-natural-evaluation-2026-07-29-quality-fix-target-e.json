@@ -1,0 +1,145 @@
+{
+  "generatedAt": "2026-07-29T08:12:56.237Z",
+  "scenarios": [
+    {
+      "id": 5,
+      "name": "Referensi fireplace dari luar katalog",
+      "tone": "penasaran",
+      "messages": [
+        "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?",
+        "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?",
+        "Aku pengin satu pilihan aja biar nggak bingung",
+        "Yang direkomendasiin itu aromanya gimana?",
+        "Kalau ukuran paling kecil harganya berapa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique.\n\nWah, By the Fireplace dari Maison Margiela itu enak banget aromanya — smoky, manis vanilla, ada hangatnya chestnut gitu. Sayangnya kita nggak jual brand original itu, Kak.\n\nTapi kita punya beberapa pilihan parfum yang karakternya bisa mendekati atau searah dengan profil aroma hangat dan manis kayak gitu. Apakah smoky/woody-nya, atau manis vanilla-nya, atau dua-duanya?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dari produk toko, yang paling dekat berdasarkan profil referensinya adalah Oran cle, Kak. Pencocokannya mengarah ke keluarga aroma fresh, floral, woody, glamour.\n\nOran cle tetap produk internal yang berbeda dari Maison Margiela By the Fireplace, jadi susunan akhirnya tidak harus identik. Aku pilih satu ini supaya pilihannya jelas."
+        },
+        {
+          "role": "user",
+          "content": "Aku pengin satu pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Oran cle dari Parfum Karakter, Kak. Dari pilihan yang tersedia, ini yang paling dekat dengan kebutuhan yang tadi Kakak jelaskan."
+        },
+        {
+          "role": "user",
+          "content": "Yang direkomendasiin itu aromanya gimana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Tentu, Kak. Berdasarkan informasi yang ada, parfum ini termasuk dalam kelompok Parfum Karakter. Untuk varian ini, tersedia dua pilihan kualitas:\nSuper Premium — cocok untuk penggunaan harian, ke kantor, atau kuliah.\nPlatinum — lebih cocok untuk malam hari, kondangan, atau acara formal.\n\nUntuk ukuran, tersedia pilihan 30ml, 50ml, dan 100ml.\n\nKak Seli tertarik dengan kualitas dan ukuran yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil harganya berapa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Oran cle",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Mengubah jumlah lalu checkout",
+      "tone": "membeli",
+      "messages": [
+        "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian",
+        "Kualitas yang paling sesuai yang mana?",
+        "Harga satu botolnya berapa?",
+        "Jadi dua botol ya, total produknya berapa?",
+        "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian"
+        },
+        {
+          "role": "assistant",
+          "content": "Bodyshop Oceanus bisa dipertimbangkan, Kak.\n\nDari pengaturan pemakaian pada Produk & Harga, kualitas EDT 50ml paling sesuai dengan kebutuhan harian."
+        },
+        {
+          "role": "user",
+          "content": "Kualitas yang paling sesuai yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Bodyshop Oceanus, Kak. Untuk kebutuhan yang tadi, pilihannya tetap Parfum Inspired EDT 50ml dengan harga Rp45.000."
+        },
+        {
+          "role": "user",
+          "content": "Harga satu botolnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 50ml harganya Rp45.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Jadi dua botol ya, total produknya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 50ml harganya Rp45.000 per item. Untuk 2 item, totalnya Rp90.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke MANTRIJERON, MANTRIJERON, YOGYAKARTA, DI YOGYAKARTA, 55143:\n1. TIKI DAT - Rp5.000 (2 hari)\n2. TIKI REG - Rp5.000 (2 hari)\n3. TIKI SRP - Rp5.000 (2 hari)\n4. TIKI SDS - Rp14.000 (0 hari)\n\nPaling hemat: TIKI DAT Rp5.000.\nKakak mau pakai yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache",
+        "cekOngkir",
+        "simpanDraftPesanan"
+      ],
+      "state": {
+        "stage": "checkout_data",
+        "productName": "Bodyshop Oceanus",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 2,
+        "unitPrice": 45000,
+        "subtotal": 90000,
+        "customer": {
+          "name": "Fajar",
+          "phone": "081287654321",
+          "address": "Mantrijeron Yogyakarta"
+        },
+        "shippingEvidence": "Ongkir ke MANTRIJERON, MANTRIJERON, YOGYAKARTA, DI YOGYAKARTA, 55143:\n1. TIKI DAT - Rp5.000 (2 hari)\n2. TIKI REG - Rp5.000 (2 hari)\n3. TIKI SRP - Rp5.000 (2 hari)\n4. TIKI SDS - Rp14.000 (0 hari)\n\nPaling hemat: TIKI DAT Rp5.000.\nKakak mau pakai yang mana?"
+      }
+    }
+  ]
+}

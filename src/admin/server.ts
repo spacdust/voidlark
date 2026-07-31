@@ -37,13 +37,14 @@ import { globalAiQueueLimiter } from '../ai/ai-queue-limiter.js';
 import { liveness, readiness } from '../operations/health.js';
 import { appLogger } from '../config/logger.js';
 import { ADMIN_STYLES } from './admin-styles.js';
+import { buildVariationCombinations, priceSchemeId, readProductCatalog, writeProductCatalog, type VariationAxis } from '../catalog/product-catalog.js';
 
 const KNOWLEDGE_DIR = path.resolve('knowledge_base');
 const CONFIG_PATH = path.resolve('business.config.json');
 const ENV_PATH = path.resolve('.env');
 const PROMPT_PATH = path.resolve('config', 'system-prompt.txt');
 const PROMPT_BUILDER_PATH = path.resolve('prompt.builder.json');
-const BACKUP_FILES = ['business.config.json', 'config/system-prompt.txt', 'prompt.builder.json'] as const;
+const BACKUP_FILES = ['business.config.json', 'config/system-prompt.txt', 'prompt.builder.json', 'config/product-catalog.json'] as const;
 const LEGACY_BACKUP_FILE_ALIASES: Record<string, typeof BACKUP_FILES[number]> = {
     'system_prompt.txt': 'config/system-prompt.txt',
     'system-prompt.txt': 'config/system-prompt.txt',
@@ -116,11 +117,7 @@ const CHECKOUT_FIELD_OPTIONS = [
 ];
 const ORDER_FIELD_OPTIONS = [
     { value: 'productName', label: 'Nama produk' },
-    { value: 'variant', label: 'Varian' },
-    { value: 'quality', label: 'Level / kualitas' },
-    { value: 'packageSize', label: 'Ukuran / paket' },
     { value: 'quantity', label: 'Jumlah' },
-    { value: 'productPrice', label: 'Harga produk' },
     { value: 'shippingOption', label: 'Kurir' },
     { value: 'shippingCost', label: 'Ongkir' },
 ];
@@ -175,15 +172,22 @@ const DEFAULT_PROMPT_BUILDER = {
         'Jika kebutuhan sudah jelas, berikan 2-3 rekomendasi saja.',
         'Gunakan riwayat dan CUSTOMER STATE. Jangan menanyakan ulang informasi yang sudah disebut customer.',
         'Pahami rujukan seperti "yang tadi", "itu", dan "yang paling mirip" dari konteks percakapan terdekat.',
+        'Setelah produk ditemukan, jelaskan klasifikasi yang didukung Knowledge jika informasi itu membantu customer memilih.',
+        'Tampilkan pilihan variasi dan harga dari Produk & Harga.',
+        'Jelaskan perbedaan pilihan hanya jika customer meminta atau terlihat bingung.',
+        'Setelah customer memilih produk dan seluruh variasi, pertahankan pilihan serta harga tersebut kecuali customer mengubah pilihannya.',
     ].join('\n'),
     productRules: [
-        'Gunakan Knowledge sebagai sumber utama untuk nama produk, kategori, varian, spesifikasi, pilihan, harga, dan ketersediaan.',
-        'Jangan mengarang produk, kategori, varian, harga, stok, atau detail yang tidak ditemukan pada Knowledge.',
+        'Gunakan Knowledge sebagai sumber utama nama produk, aroma, klasifikasi, notes, FAQ, panduan, spesifikasi, dan ketersediaan.',
+        'Gunakan Kelompok Harga Terstruktur sebagai sumber variasi, harga, dan berat setelah klasifikasi produk diketahui.',
+        'Jangan mengarang produk, kategori, varian, harga, stok, atau detail yang tidak ditemukan pada Knowledge atau Kelompok Harga Terstruktur.',
         'Baca hubungan kolom, header tabel, tanda panah, dan pasangan data sesuai arah yang tertulis pada sumber Knowledge. Jangan membalik relasi.',
         'Jika satu produk memiliki beberapa pilihan, tampilkan hanya pilihan yang relevan dengan pertanyaan atau pilihan customer.',
+        'Jika produk tidak ditemukan di Knowledge dan lookup external aktif, gunakan lookup external hanya sebagai referensi lalu arahkan customer ke produk yang didukung Knowledge.',
         'Jika data produk atau harga ambigu, tanyakan klarifikasi singkat atau jelaskan bahwa data belum tersedia.',
         'Aturan khusus bisnis dan pengecualian produk harus ditulis di Knowledge, bukan di system prompt.',
     ].join('\n'),
+    externalReferenceRules: 'Jika customer menyebut produk atau merek di luar katalog, gunakan lookup external hanya untuk memahami karakteristik, spesifikasi, atau kebutuhan pembanding. Jangan menawarkan, memberi harga, atau memasukkan produk referensi luar ke pesanan. Cocokkan hasil referensi dengan produk internal yang benar-benar ada di Knowledge, lalu rekomendasikan hanya produk internal tersebut. Jika tidak ada kecocokan yang didukung Knowledge, katakan belum menemukan alternatif yang tepat.',
     checkoutRules: [
         'Setelah field pesanan wajib dari Profil & Alur sudah dipilih, buat rekap sementara sebelum meminta data customer.',
         'Minta hanya data checkout yang belum tersedia sesuai Profil & Alur.',
@@ -191,8 +195,8 @@ const DEFAULT_PROMPT_BUILDER = {
         'Setiap customer memberikan atau mengubah field pesanan, data checkout, atau pengiriman, simpan/update dengan tool simpanDraftPesanan.',
     ].join('\n'),
     shippingRules: [
-        'Gunakan aturan bobot yang dikonfigurasi pada Profil & Alur; jangan membuat bobot produk sendiri.',
-        'Saat memanggil cekOngkir, sertakan alamat tujuan, jumlah, dan pilihan ukuran/paket jika tersedia.',
+        'Gunakan berat pengiriman dari kombinasi variasi pada Produk & Harga; jangan membuat bobot produk sendiri.',
+        'Saat memanggil cekOngkir, sertakan alamat tujuan, jumlah, dan seluruh atribut variasi yang dipilih.',
         'Jika pengiriman nonaktif, jangan meminta alamat untuk ongkir dan jangan memanggil cekOngkir.',
     ].join('\n'),
     escalationRules: [
@@ -207,6 +211,9 @@ const DEFAULT_PROMPT_BUILDER = {
         'Jangan membuat list panjang jika customer belum meminta detail.',
         'Satu balasan satu pertanyaan lanjutan saja.',
         'Akhiri dengan satu pertanyaan pilihan yang jelas.',
+        'Jangan gunakan tabel Markdown, karakter pipa (|), atau baris pemisah tabel. Ubah data menjadi daftar vertikal dengan satu pilihan per baris.',
+        'Pisahkan judul, setiap item daftar, penjelasan setelah daftar, dan pertanyaan penutup dengan baris baru. Pertanyaan penutup wajib menjadi paragraf tersendiri, bukan lanjutan item terakhir.',
+        'Untuk daftar harga, tulis nama kelompok sebagai judul lalu ukuran dan harga sebagai baris terpisah. Jangan merapatkan seluruh harga dalam satu paragraf.',
     ].join('\n'),
     extraRules: 'Jika customer menyebut produk referensi di luar katalog, cek Knowledge terlebih dahulu. Jika tidak tersedia, jujur bahwa data belum ada dan tawarkan alternatif relevan hanya jika didukung Knowledge.',
 };
@@ -326,6 +333,7 @@ const ICON_NAMES: Record<string, string> = {
     settings: 'sliders-horizontal',
     prompt: 'waveform',
     knowledge: 'books',
+    products: 'tag',
     chat: 'chats-circle',
     check: 'check',
     empty: 'check-circle',
@@ -411,7 +419,8 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   ${options.refreshSeconds ? `<meta http-equiv="refresh" content="${options.refreshSeconds}">` : ''}
-  <title>${escapeHtml(title)}</title>
+  <title>Voidlark Dashboard</title>
+  <link rel="icon" href="/admin/assets/voidlark-logo-clean.svg" type="image/svg+xml">
   <script>
      (() => {
        const mode = localStorage.getItem('voidlark-theme') || 'system';
@@ -494,7 +503,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55; font-size: var(--text); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
-    header {
+    body.admin-app > header {
       position: fixed;
       top: 0;
       left: 0;
@@ -830,8 +839,11 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     .prompt-ai-status { color: var(--muted); font-size: 13px; font-weight: 700; }
     .prompt-ai-status.ok { color: var(--success); }
     .prompt-ai-status.error { color: var(--danger); }
-    .prompt-ai-updated { animation: prompt-ai-updated 1.8s ease-out; }
-    @keyframes prompt-ai-updated { 0% { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-weak); background: var(--primary-weak); } 100% { border-color: var(--line); box-shadow: none; background: var(--panel); } }
+    .prompt-ai-updated { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-weak); background: var(--primary-weak); }
+    .field.prompt-ai-changed > label::after { content: "Diubah AI"; display: inline-flex; margin-left: 8px; padding: 2px 7px; border-radius: 999px; background: var(--primary-weak); color: var(--primary-strong); font-size: 10px; font-weight: 800; vertical-align: middle; }
+    .reply-style-section.prompt-ai-section > summary { box-shadow: inset 3px 0 var(--primary); }
+    .prompt-ai-section-badge { margin-left: auto; padding: 3px 8px; border-radius: 999px; background: var(--primary-weak); color: var(--primary-strong); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .reply-style-section > summary .prompt-ai-section-badge + * { margin-left: 0; }
     .validator-list { display: grid; gap: 8px; margin-top: 10px; }
     .validator-item { display: flex; gap: 9px; align-items: start; color: var(--muted); font-size: 13px; }
     .validator-item::before { content: ""; width: 9px; height: 9px; margin-top: 6px; border-radius: 999px; background: #cbd5e1; flex: 0 0 auto; }
@@ -1297,7 +1309,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     html[data-theme="dark"] .config-section > summary { color: var(--ink); }
     /* Operational UI refresh: semantic tokens above keep legacy components compatible. */
     body { min-height: 100dvh; }
-    header { background: var(--surface); border-color: var(--border); }
+    body.admin-app > header { background: var(--surface); border-color: var(--border); }
     .topbar { padding: 20px 14px 16px; gap: 16px; }
     .brand { padding-inline: 10px; }
     nav { gap: 2px; padding-right: 0; }
@@ -1353,13 +1365,13 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     html[data-theme="dark"] tr:hover td { background: var(--accent-soft); }
     @media (max-width: 920px) {
       .menu-toggle { display: inline-flex; align-items: center; gap: 8px; }
-      header { position: sticky; width: auto; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+      body.admin-app > header { position: sticky; width: auto; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
       .topbar { height: auto; padding: 12px 14px; display: block; }
       .brand-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
       .brand { padding: 0; border: 0; }
       nav { position: fixed; inset: 69px 0 0 auto; z-index: 20; width: min(340px, 88vw); margin: 0; padding: 18px; display: none; align-content: start; overflow-y: auto; background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-raised); }
-      header.nav-open nav { display: grid; }
-      header.nav-open::after { content: ""; position: fixed; inset: 69px 0 0; z-index: 19; background: rgba(10, 24, 26, .45); }
+      body.admin-app > header.nav-open nav { display: grid; }
+      body.admin-app > header.nav-open::after { content: ""; position: fixed; inset: 69px 0 0; z-index: 19; background: rgba(10, 24, 26, .45); }
       .nav-group + .nav-group { margin-top: 12px; }
       nav a { min-height: 44px; padding: 10px 12px; }
       .theme-panel { margin-top: 12px; }
@@ -1477,7 +1489,8 @@ const page = (title: string, body: string, active: string, options: { refreshSec
             ['Bot', [
                 ['config', '/admin/config', 'Profil & Alur', 'settings'],
                 ['prompt', '/admin/prompt', 'Gaya Balasan', 'prompt'],
-                ['knowledge', '/admin/knowledge', 'Katalog & Informasi', 'knowledge'],
+                ['products', '/admin/products', 'Produk & Harga', 'products'],
+                ['knowledge', '/admin/knowledge', 'Knowledge & Informasi', 'knowledge'],
                 ['sandbox', '/admin/sandbox', 'Simulasi Percakapan', 'chat'],
             ]],
             ['Sistem', [
@@ -1566,17 +1579,20 @@ const page = (title: string, body: string, active: string, options: { refreshSec
     const productType = document.querySelector('[data-product-type]');
     const productDescription = document.querySelector('[data-product-description]');
     const shippingState = document.querySelector('[data-shipping-state]');
+    const shippingInput = document.querySelector('[name="enableShipping"]');
     const syncProductHelp = () => {
       const selected = productType?.selectedOptions?.[0];
       if (productDescription && selected) productDescription.textContent = selected.dataset.description || '';
       if (shippingState) {
         const physical = productType?.value !== 'digital';
-        shippingState.textContent = physical ? 'Aktif otomatis' : 'Nonaktif otomatis';
-        shippingState.classList.toggle('tone-ok', physical);
-        shippingState.classList.toggle('tone-neutral', !physical);
+        if (shippingInput) shippingInput.disabled = !physical;
+        shippingState.textContent = physical ? (shippingInput?.checked ? 'Aktif' : 'Nonaktif') : 'Nonaktif untuk digital';
+        shippingState.classList.toggle('tone-ok', physical && Boolean(shippingInput?.checked));
+        shippingState.classList.toggle('tone-neutral', !physical || !shippingInput?.checked);
       }
     };
     productType?.addEventListener('change', syncProductHelp);
+    shippingInput?.addEventListener('change', syncProductHelp);
     syncProductHelp();
     const configForm = document.querySelector('[data-config-form]');
     const configScope = document.querySelector('[data-config-scope]');
@@ -1601,34 +1617,62 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         productTypeInput.dispatchEvent(new Event('change', { bubbles: true }));
       }
       const checkoutDefaults = physical ? ['name', 'phone', 'address'] : ['name', 'phone', 'email'];
-      const orderDefaults = physical ? ['productName', 'variant', 'quantity'] : ['productName', 'variant', 'quantity'];
       for (const input of configForm.querySelectorAll('input[name="checkoutFields"]')) input.checked = checkoutDefaults.includes(input.value);
-      for (const input of configForm.querySelectorAll('input[name="orderFields"]')) input.checked = orderDefaults.includes(input.value);
       const checkoutCustom = configForm.querySelector('[name="checkoutFieldsCustom"]');
-      const orderCustom = configForm.querySelector('[name="orderFieldsCustom"]');
       if (checkoutCustom) checkoutCustom.value = '';
-      if (orderCustom) orderCustom.value = '';
       configForm.dispatchEvent(new Event('input', { bubbles: true }));
       configForm.querySelector('[name="businessName"]')?.focus();
     };
     document.querySelectorAll('[data-business-preset]').forEach((button) => button.addEventListener('click', () => applyBusinessPreset(button.dataset.businessPreset)));
-    const weightList = document.querySelector('[data-weight-list]');
-    const addWeight = document.querySelector('[data-add-weight]');
-    const bindWeightRemove = (button) => button?.addEventListener('click', () => {
-      const rows = weightList?.querySelectorAll('[data-weight-row]') || [];
-      const row = button.closest('[data-weight-row]');
-      if (rows.length > 1) row?.remove();
-      else row?.querySelectorAll('input').forEach((input) => input.value = '');
+    const axisId = (value) => value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'variasi';
+    const productEscape = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+    const combinations = (axes) => axes.reduce((rows, axis) => rows.flatMap((row) => axis.values.map((value) => ({ ...row, [axis.id]: value }))), [{}]);
+    const refreshVariationScheme = (scheme) => {
+      const axisRows = [...scheme.querySelectorAll('[data-axis]')];
+      const used = new Set();
+      const axes = axisRows.map((row, index) => {
+        const name = row.querySelector('[name="variationName"]')?.value.trim() || 'Variasi ' + (index + 1);
+        let id = row.querySelector('[name="variationId"]')?.value || axisId(name);
+        while (used.has(id)) id += '-2';
+        used.add(id);
+        row.querySelector('[name="variationId"]').value = id;
+        return { id, name, values: [...new Set((row.querySelector('[name="variationValues"]')?.value || '').split(',').map((value) => value.trim()).filter(Boolean))] };
+      }).filter((axis) => axis.values.length);
+      const body = scheme.querySelector('[data-combination-rows]');
+      const tableHead = scheme.querySelector('.product-price-table thead tr');
+      if (!body || !tableHead) return;
+      const previous = new Map([...body.querySelectorAll('tr')].map((row) => [row.querySelector('[name="optionKey"]')?.value, { price: row.querySelector('[name="price"]')?.value || '0', weight: row.querySelector('[name="weightGrams"]')?.value || '', recommendationTags: row.querySelector('[name="recommendationTags"]')?.value || '' }]));
+      const rows = combinations(axes);
+      if (!axes.length || rows.length > 500) {
+        scheme.querySelector('[data-combination-count]').textContent = rows.length > 500 ? 'Lebih dari 500' : '0';
+        return;
+      }
+      tableHead.innerHTML = axes.map((axis) => '<th>' + productEscape(axis.name) + '</th>').join('') + '<th>Harga (Rp)</th><th>Berat pengiriman (gram)</th><th>Cocok untuk</th>';
+      body.innerHTML = rows.map((values) => {
+        const key = JSON.stringify(values);
+        const saved = previous.get(key) || { price: '0', weight: '', recommendationTags: '' };
+        return '<tr>' + axes.map((axis, index) => '<td data-label="' + productEscape(axis.name) + '">' + (index === 0 ? '<input type="hidden" name="optionKey" value="' + productEscape(key) + '">' : '') + '<strong>' + productEscape(values[axis.id]) + '</strong></td>').join('') + '<td data-label="Harga (Rp)"><input name="price" type="number" min="0" value="' + productEscape(saved.price) + '" required></td><td data-label="Berat pengiriman (gram)"><input name="weightGrams" type="number" min="1" value="' + productEscape(saved.weight) + '" placeholder="100" required></td><td data-label="Cocok untuk"><input name="recommendationTags" value="' + productEscape(saved.recommendationTags) + '" placeholder="harian, kantor, acara malam"><small>Kata kebutuhan customer, pisahkan koma.</small></td></tr>';
+      }).join('');
+      scheme.querySelector('[data-combination-count]').textContent = String(rows.length);
+    };
+    const bindAxisRemove = (button) => button?.addEventListener('click', () => {
+      const scheme = button.closest('[data-variation-scheme]');
+      if ((scheme?.querySelectorAll('[data-axis]').length || 0) <= 1) return;
+      button.closest('[data-axis]')?.remove();
+      refreshVariationScheme(scheme);
     });
-    weightList?.querySelectorAll('[data-remove-weight]').forEach(bindWeightRemove);
-    addWeight?.addEventListener('click', () => {
-      const row = document.createElement('div');
-      row.className = 'repeat-row';
-      row.dataset.weightRow = '';
-      row.innerHTML = '<label><span>Label pilihan</span><input name="shippingWeightLabel" placeholder="contoh: 30ml"></label><label><span>Berat (gram)</span><input name="shippingWeightGrams" type="number" min="1" step="1" placeholder="110"></label><button type="button" class="secondary-button" data-remove-weight>Hapus</button>';
-      weightList?.append(row);
-      bindWeightRemove(row.querySelector('[data-remove-weight]'));
-      row.querySelector('input')?.focus();
+    document.querySelectorAll('[data-variation-scheme]').forEach((scheme) => {
+      scheme.querySelectorAll('[data-remove-axis]').forEach(bindAxisRemove);
+      scheme.querySelector('[data-add-axis]')?.addEventListener('click', () => {
+        const list = scheme.querySelector('[data-variation-axes]');
+        if (!list || list.children.length >= 5) return;
+        const index = list.children.length + 1;
+        const row = document.createElement('div');
+        row.className = 'variation-axis'; row.dataset.axis = '';
+        row.innerHTML = '<input type="hidden" name="variationId" value="variation-' + index + '"><label><span>Nama atribut</span><input name="variationName" placeholder="Contoh: Warna" required></label><label><span>Pilihan</span><input name="variationValues" placeholder="Merah, Hitam" required><small>Pisahkan setiap pilihan dengan koma.</small></label><button type="button" class="ghost-btn compact" data-remove-axis>Hapus</button>';
+        list.append(row); bindAxisRemove(row.querySelector('[data-remove-axis]')); row.querySelector('input:not([type="hidden"])')?.focus();
+      });
+      scheme.querySelector('[data-variation-axes]')?.addEventListener('change', () => refreshVariationScheme(scheme));
     });
     const setupShell = document.querySelector('[data-setup-shell]');
     const setupHide = document.querySelector('[data-setup-hide]');
@@ -1739,6 +1783,9 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       'ATURAN PRODUK DAN HARGA DARI KNOWLEDGE',
       promptLines(promptValue('productRules')),
       '',
+      'ATURAN PRODUK REFERENSI LUAR',
+      promptLines(promptValue('externalReferenceRules')),
+      '',
       'ATURAN CHECKOUT DAN PENYIMPANAN DRAFT',
       promptLines(promptValue('checkoutRules')),
       '',
@@ -1761,8 +1808,8 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         { ok: Boolean(promptConfig.businessName), text: 'Nama bisnis / produk diambil dari Config.' },
         { ok: Boolean(promptConfig.salesFlow), text: 'Sales flow diambil dari Config.' },
         { ok: Boolean(promptConfig.checkout), text: 'Field checkout diambil dari Config.' },
-        { ok: /eskalasi|admin|handoff/i.test(promptValue('escalationRules')), text: 'Aturan handoff admin tersedia.' },
-        { ok: promptValue('formattingRules').includes('*'), text: 'Aturan larangan tanda bintang tersedia.' },
+        { ok: /eskalasi|admin|handoff|tim terkait|bantuan manusia/i.test(promptValue('escalationRules')), text: 'Aturan handoff admin tersedia.' },
+        { ok: /(?:jangan|dilarang|tanpa|no)\\s+(?:gunakan\\s+)?(?:tanda\\s+)?(?:bintang|asterisk|\\*)/i.test(promptValue('formattingRules')), text: 'Aturan larangan tanda bintang tersedia.' },
         { ok: promptText.length < 12000, text: 'Prompt masih cukup ringkas untuk diproses.' }
       ];
       promptValidator.replaceChildren();
@@ -1800,36 +1847,63 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       });
       const promptAiButton = promptForm.querySelector('[data-prompt-ai]');
       const promptAiStatus = promptForm.querySelector('[data-prompt-ai-status]');
-      const promptFieldNames = ['preset', 'replyLength', 'sellingStyle', 'salutation', 'emojiLevel', 'role', 'style', 'greeting', 'identityRules', 'consultationRules', 'productRules', 'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules', 'extraRules'];
+      const promptFieldNames = ['preset', 'replyLength', 'sellingStyle', 'salutation', 'emojiLevel', 'role', 'style', 'greeting', 'identityRules', 'consultationRules', 'productRules', 'externalReferenceRules', 'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules', 'extraRules'];
+      const promptAiTextFields = new Set(['role', 'style', 'greeting', 'identityRules', 'consultationRules', 'productRules', 'externalReferenceRules', 'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules', 'extraRules']);
+      const promptAiDirtyFields = new Set();
       const collectPromptBuilder = () => Object.fromEntries(promptFieldNames.map((name) => {
         const field = promptForm.querySelector('[name="' + name + '"]:checked') || promptForm.querySelector('[name="' + name + '"]');
         return [name, field?.value || ''];
       }));
       const applyPromptBuilder = (builder) => {
-        let changedFields = 0;
+        for (const field of promptForm.querySelectorAll('.prompt-ai-updated')) field.classList.remove('prompt-ai-updated');
+        for (const wrapper of promptForm.querySelectorAll('.prompt-ai-changed')) wrapper.classList.remove('prompt-ai-changed');
+        for (const section of promptForm.querySelectorAll('.prompt-ai-section')) section.classList.remove('prompt-ai-section');
+        for (const badge of promptForm.querySelectorAll('.prompt-ai-section-badge')) badge.remove();
+        const changed = [];
         for (const [name, value] of Object.entries(builder || {})) {
           const radio = promptForm.querySelector('[name="' + name + '"][value="' + CSS.escape(String(value)) + '"]');
           const field = radio || promptForm.querySelector('[name="' + name + '"]');
           if (!field) continue;
           if (field.type === 'radio') {
-            if (!field.checked) changedFields += 1;
+            if (!field.checked) changed.push(field);
             field.checked = true;
           } else {
             const nextValue = value ?? '';
             if (field.value !== nextValue) {
               field.value = nextValue;
-              changedFields += 1;
-              field.classList.remove('prompt-ai-updated');
-              void field.offsetWidth;
+              changed.push(field);
               field.classList.add('prompt-ai-updated');
             }
           }
         }
+        for (const field of changed) {
+          field.closest('.field')?.classList.add('prompt-ai-changed');
+          const section = field.closest('.reply-style-section');
+          if (section && !section.classList.contains('prompt-ai-section')) {
+            section.classList.add('prompt-ai-section');
+            const badge = document.createElement('span');
+            badge.className = 'prompt-ai-section-badge';
+            badge.textContent = 'Diubah AI';
+            section.querySelector(':scope > summary')?.append(badge);
+          }
+        }
+        const firstField = changed[0];
+        if (firstField) {
+          for (const details of firstField.closest('.reply-style-section') ? [firstField.closest('.reply-style-advanced-shell'), firstField.closest('.reply-style-section')] : []) {
+            if (details) details.open = true;
+          }
+          const scrollBehavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+          setTimeout(() => firstField.scrollIntoView({ behavior: scrollBehavior, block: 'center' }), 80);
+          firstField.focus({ preventScroll: true });
+        }
         renderPromptValidator();
-        return changedFields;
+        return changed.length;
       };
       promptForm.addEventListener('input', renderPromptValidator);
       promptForm.addEventListener('change', renderPromptValidator);
+      promptForm.addEventListener('input', (event) => {
+        if (event.target?.name && promptAiTextFields.has(event.target.name)) promptAiDirtyFields.add(event.target.name);
+      });
       for (const presetInput of promptForm.querySelectorAll('[data-prompt-preset]')) {
         presetInput.addEventListener('change', () => {
           const preset = window.promptPresetValues?.[presetInput.value];
@@ -1845,19 +1919,30 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         if (!promptAiStatus || !promptAiButton) return;
         promptAiButton.disabled = true;
         promptAiStatus.className = 'prompt-ai-status';
+        if (!promptAiDirtyFields.size) {
+          promptAiStatus.textContent = 'Tidak ada teks baru untuk dirapikan. Edit bagian bahasa lanjutan terlebih dahulu.';
+          promptAiButton.disabled = false;
+          return;
+        }
         promptAiStatus.textContent = 'Menghubungi AI...';
         try {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
           const response = await fetch('/admin/prompt/assist', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(collectPromptBuilder())
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': csrfToken },
+            body: JSON.stringify({ ...collectPromptBuilder(), _aiFields: [...promptAiDirtyFields] })
           });
-          const data = await response.json();
+          const raw = await response.text();
+          let data;
+          try { data = raw ? JSON.parse(raw) : {}; }
+          catch { data = { error: response.status === 401 || response.status === 403 ? 'Sesi keamanan berubah. Muat ulang halaman lalu coba lagi.' : raw || 'AI assist gagal.' }; }
           if (!response.ok) throw new Error(data.error || 'AI assist gagal.');
+          if (!data.builder) throw new Error('AI tidak mengembalikan hasil yang dapat diterapkan.');
           const changedFields = applyPromptBuilder(data.builder);
+          promptAiDirtyFields.clear();
           promptAiStatus.className = 'prompt-ai-status ok';
           promptAiStatus.textContent = changedFields
-            ? '1 form diperbarui. Bagian yang berubah sudah ditandai. Tinjau hasilnya lalu klik Simpan gaya balasan.'
+            ? changedFields + ' bagian diperbarui. Perubahan pertama sudah dibuka; bagian lain memiliki badge Diubah AI. Tinjau lalu klik Simpan gaya balasan.'
             : 'Form sudah rapi. AI tidak menemukan perubahan yang perlu diterapkan.';
         } catch (error) {
           promptAiStatus.className = 'prompt-ai-status error';
@@ -1939,11 +2024,14 @@ const page = (title: string, body: string, active: string, options: { refreshSec
       const status = document.querySelector('[data-simulator-status]');
       const reset = document.querySelector('[data-simulator-reset]');
       const simulatorHistoryKey = 'voidlark-simulator-history';
+      const simulatorStateKey = 'voidlark-simulator-state';
       let history = [];
+      let simulatorState = {};
       try {
         const saved = JSON.parse(sessionStorage.getItem(simulatorHistoryKey) || '[]');
         if (Array.isArray(saved)) history = saved.filter((entry) => ['user', 'assistant'].includes(entry?.role) && typeof entry?.content === 'string').slice(-20);
       } catch {}
+      try { simulatorState = JSON.parse(sessionStorage.getItem(simulatorStateKey) || '{}') || {}; } catch {}
       const timeLabel = () => new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       const addMessage = (kind, text) => {
         const bubble = document.createElement('div');
@@ -1982,7 +2070,9 @@ const page = (title: string, body: string, active: string, options: { refreshSec
         responseGeneration += 1;
         activeRequest?.abort();
         history = [];
+        simulatorState = {};
         sessionStorage.removeItem(simulatorHistoryKey);
+        sessionStorage.removeItem(simulatorStateKey);
         chat?.replaceChildren();
         addMessage('bot', 'Chat simulasi dimulai ulang. Silakan kirim pesan pertama sebagai customer.');
         if (status) status.textContent = 'Riwayat simulasi dibersihkan';
@@ -2017,7 +2107,7 @@ const page = (title: string, body: string, active: string, options: { refreshSec
           const response = await fetch('/admin/sandbox/reply', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': csrfToken },
-            body: JSON.stringify({ message, history: priorHistory }),
+            body: JSON.stringify({ message, history: priorHistory, state: simulatorState }),
             signal: activeRequest.signal,
           });
           const raw = await response.text();
@@ -2061,6 +2151,8 @@ const page = (title: string, body: string, active: string, options: { refreshSec
             chat.scrollTop = chat.scrollHeight;
           }
           if (delivered.length) history.push({ role: 'assistant', content: delivered.join('\\n\\n') });
+          simulatorState = data.state && typeof data.state === 'object' ? data.state : simulatorState;
+          sessionStorage.setItem(simulatorStateKey, JSON.stringify(simulatorState));
           saveHistory();
           if (generation === responseGeneration && status) status.textContent = data.usedTools?.length ? 'Layanan: ' + data.usedTools.join(', ') : 'Balasan selesai';
         } catch (error) {
@@ -2451,18 +2543,27 @@ const leadSortControls = (sort: ReturnType<typeof resolveLeadSort>, search: stri
 
 const statusDropdown = (row: any) => {
     const s = row.status || 'new';
-    const tone = statusTone(s);
+    const statuses = [
+        ['new', 'Baru'],
+        ['interested', 'Tertarik'],
+        ['checkout', 'Checkout'],
+        ['paid', 'Lunas'],
+        ['shipped', 'Dikirim'],
+        ['completed', 'Selesai'],
+        ['lost', 'Batal'],
+    ];
+    const selectedLabel = statuses.find(([value]) => value === s)?.[1] || 'Baru';
     return `<form method="post" action="/admin/customer/update-status" style="margin: 0; display: inline-block;">
       <input type="hidden" name="jid" value="${escapeHtml(row.jid)}">
-      <select name="status" data-auto-submit class="badge-pill tone-${tone}">
-        <option value="new" class="tone-${statusTone('new')}" ${s === 'new' ? 'selected' : ''}>Baru</option>
-        <option value="interested" class="tone-${statusTone('interested')}" ${s === 'interested' ? 'selected' : ''}>Tertarik</option>
-        <option value="checkout" class="tone-${statusTone('checkout')}" ${s === 'checkout' ? 'selected' : ''}>Checkout</option>
-        <option value="paid" class="tone-${statusTone('paid')}" ${s === 'paid' ? 'selected' : ''}>Lunas</option>
-        <option value="shipped" class="tone-${statusTone('shipped')}" ${s === 'shipped' ? 'selected' : ''}>Dikirim</option>
-        <option value="completed" class="tone-${statusTone('completed')}" ${s === 'completed' ? 'selected' : ''}>Selesai</option>
-        <option value="lost" class="tone-${statusTone('lost')}" ${s === 'lost' ? 'selected' : ''}>Batal</option>
+      <select name="status" data-status-select class="sr-only" tabindex="-1" aria-hidden="true">
+        ${statuses.map(([value, label]) => `<option value="${value}" ${s === value ? 'selected' : ''}>${label}</option>`).join('')}
       </select>
+      <div class="status-picker" data-status-picker>
+        <button type="button" class="badge-pill status-select status-${escapeHtml(s)}" data-status-trigger aria-haspopup="listbox" aria-expanded="false">${escapeHtml(selectedLabel)}</button>
+        <div class="status-menu" data-status-menu role="listbox" aria-label="Pilih status pelanggan" hidden>
+          ${statuses.map(([value, label]) => `<button type="button" role="option" aria-selected="${s === value}" class="status-option status-${value}" data-status-value="${value}">${label}</button>`).join('')}
+        </div>
+      </div>
     </form>`;
 };
 
@@ -2593,6 +2694,64 @@ const leadsTable = (rows: any[], sort: ReturnType<typeof resolveLeadSort>, searc
           e.target.form.submit();
         }
       });
+      const closeStatusPickers = (except) => {
+        document.querySelectorAll('[data-status-picker]').forEach((picker) => {
+          if (picker === except) return;
+          picker.querySelector('[data-status-menu]')?.setAttribute('hidden', '');
+          picker.querySelector('[data-status-trigger]')?.setAttribute('aria-expanded', 'false');
+        });
+      };
+      document.querySelectorAll('[data-status-picker]').forEach((picker) => {
+        const trigger = picker.querySelector('[data-status-trigger]');
+        const menu = picker.querySelector('[data-status-menu]');
+        const options = [...picker.querySelectorAll('[data-status-value]')];
+        const select = picker.parentElement?.querySelector('[data-status-select]');
+        const close = (restoreFocus = false) => {
+          menu?.setAttribute('hidden', '');
+          trigger?.setAttribute('aria-expanded', 'false');
+          if (restoreFocus) trigger?.focus();
+        };
+        const open = () => {
+          closeStatusPickers(picker);
+          const rect = trigger?.getBoundingClientRect();
+          if (rect && menu) {
+            const menuHeight = Math.min(294, options.length * 38 + 12);
+            const roomBelow = window.innerHeight - rect.bottom;
+            menu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 152)) + 'px';
+            menu.style.top = (roomBelow >= menuHeight + 8 ? rect.bottom + 6 : Math.max(8, rect.top - menuHeight - 6)) + 'px';
+          }
+          menu?.removeAttribute('hidden');
+          trigger?.setAttribute('aria-expanded', 'true');
+          (options.find((option) => option.getAttribute('aria-selected') === 'true') || options[0])?.focus();
+        };
+        trigger?.addEventListener('click', () => menu?.hasAttribute('hidden') ? open() : close());
+        trigger?.addEventListener('keydown', (event) => {
+          if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) { event.preventDefault(); open(); }
+        });
+        options.forEach((option, index) => {
+          option.addEventListener('click', () => {
+            if (!select) return;
+            const value = option.dataset.statusValue;
+            select.value = value;
+            options.forEach((item) => item.setAttribute('aria-selected', String(item === option)));
+            trigger.textContent = option.textContent;
+            [...trigger.classList].filter((name) => name.startsWith('status-') && name !== 'status-select').forEach((name) => trigger.classList.remove(name));
+            trigger.classList.add('status-' + value);
+            close();
+            select.form.submit();
+          });
+          option.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') { event.preventDefault(); close(true); return; }
+            if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+            options[next]?.focus();
+          });
+        });
+      });
+      document.addEventListener('click', (event) => { if (!event.target.closest('[data-status-picker]')) closeStatusPickers(); });
+      window.addEventListener('resize', () => closeStatusPickers());
+      window.addEventListener('scroll', () => closeStatusPickers(), true);
       let waPollInterval = null;
       window.startWaStatusPolling = function startWaStatusPolling() {
         return;
@@ -2813,7 +2972,7 @@ const knowledgeTable = (files: Array<{ name: string; size: number; updated: stri
         </form>
       </article>`).join('')}
     </div>`,
-    emptyState('Katalog masih kosong', 'Unggah katalog, FAQ, atau daftar harga agar bot memiliki sumber jawaban.', '/admin/knowledge', 'Unggah file'),
+    emptyState('Knowledge masih kosong', 'Unggah FAQ, panduan, notes, atau informasi pendukung agar bot memiliki sumber jawaban.', '/admin/knowledge', 'Unggah file'),
 );
 
 const knowledgeJobsTable = (jobs: KnowledgeJob[]) => tableShell(
@@ -3056,7 +3215,13 @@ const readPromptBuilder = (): PromptBuilder => {
         return { ...DEFAULT_PROMPT_BUILDER };
     }
     const saved = JSON.parse(fs.readFileSync(PROMPT_BUILDER_PATH, 'utf-8'));
-    return { ...DEFAULT_PROMPT_BUILDER, ...saved, preset: saved.preset === 'consultative' ? 'friendly' : saved.preset };
+    return {
+        ...DEFAULT_PROMPT_BUILDER,
+        ...saved,
+        preset: saved.preset === 'consultative' ? 'friendly' : saved.preset,
+        productRules: DEFAULT_PROMPT_BUILDER.productRules,
+        shippingRules: DEFAULT_PROMPT_BUILDER.shippingRules,
+    };
 };
 
 const renderPromptLines = (value: string) => {
@@ -3151,6 +3316,9 @@ ${renderPromptLines(builder.consultationRules)}
 ATURAN PRODUK DAN HARGA DARI KNOWLEDGE
 ${renderPromptLines(builder.productRules)}
 
+ATURAN PRODUK REFERENSI LUAR
+${renderPromptLines(builder.externalReferenceRules)}
+
 ATURAN CHECKOUT DAN PENYIMPANAN DRAFT
 ${renderPromptLines(builder.checkoutRules)}
 
@@ -3178,20 +3346,14 @@ const promptBuilderFromBody = (body: Record<string, unknown>): PromptBuilder => 
     greeting: String(body.greeting || DEFAULT_PROMPT_BUILDER.greeting).trim(),
     identityRules: String(body.identityRules || DEFAULT_PROMPT_BUILDER.identityRules).trim(),
     consultationRules: String(body.consultationRules || DEFAULT_PROMPT_BUILDER.consultationRules).trim(),
-    productRules: String(body.productRules || DEFAULT_PROMPT_BUILDER.productRules).trim(),
+    productRules: DEFAULT_PROMPT_BUILDER.productRules,
+    externalReferenceRules: String(body.externalReferenceRules || DEFAULT_PROMPT_BUILDER.externalReferenceRules).trim(),
     checkoutRules: String(body.checkoutRules || DEFAULT_PROMPT_BUILDER.checkoutRules).trim(),
-    shippingRules: String(body.shippingRules || DEFAULT_PROMPT_BUILDER.shippingRules).trim(),
+    shippingRules: DEFAULT_PROMPT_BUILDER.shippingRules,
     escalationRules: String(body.escalationRules || DEFAULT_PROMPT_BUILDER.escalationRules).trim(),
     formattingRules: String(body.formattingRules || DEFAULT_PROMPT_BUILDER.formattingRules).trim(),
     extraRules: String(body.extraRules || '').trim(),
 });
-
-const extractJsonObject = (value: string) => {
-    const trimmed = value.trim();
-    if (trimmed.startsWith('{') && trimmed.endsWith('}')) return trimmed;
-    const match = trimmed.match(/\{[\s\S]*\}/);
-    return match ? match[0] : '';
-};
 
 type ChatCompletionPayload = {
     choices?: Array<{
@@ -3221,65 +3383,105 @@ const readChatCompletionContent = (rawBody: string) => {
     return chunks.join('');
 };
 
-const improvePromptBuilderWithAi = async (builder: PromptBuilder): Promise<PromptBuilder> => {
+const isCompletionCacheReference = (value: string) => /^<<ccr:[^>]+>>$/i.test(value.trim());
+
+const splitPromptField = (value: string, maxLength = 800) => {
+    const units = value.split(/(?<=\.)\s+|\r?\n+/).map((part) => part.trim()).filter(Boolean);
+    const chunks: string[] = [];
+    for (const unit of units) {
+        const current = chunks.at(-1);
+        if (current && current.length + unit.length + 1 <= maxLength) chunks[chunks.length - 1] = `${current}\n${unit}`;
+        else chunks.push(unit);
+    }
+    return chunks.length ? chunks : [value];
+};
+
+const PROMPT_AI_TEXT_FIELDS: Array<keyof PromptBuilder> = [
+    'role', 'style', 'greeting', 'identityRules', 'consultationRules', 'productRules', 'externalReferenceRules',
+    'checkoutRules', 'shippingRules', 'escalationRules', 'formattingRules', 'extraRules',
+];
+
+const PROMPT_PROTECTED_TERMS = [
+    'Knowledge', 'CUSTOMER STATE', 'simpanDraftPesanan', 'lookup external', 'cekOngkir',
+    'Profil & Alur', 'Aromatique', 'Urban', 'Nama Item', 'Karakter',
+];
+
+const validatePromptEdit = (field: keyof PromptBuilder, source: string, edited: string) => {
+    if (/^\s*(?:\*{1,2})?(?:field|role|style|productRules|checkoutRules|shippingRules|escalationRules|formattingRules)\s*:/i.test(edited)
+        || /^\s*\*\*[^*]+\*\*/.test(edited)) {
+        throw new Error(`Hasil AI untuk ${field} masih berisi label teknis.`);
+    }
+    const missingTerms = PROMPT_PROTECTED_TERMS.filter((term) => source.toLocaleLowerCase('id-ID').includes(term.toLocaleLowerCase('id-ID'))
+        && !edited.toLocaleLowerCase('id-ID').includes(term.toLocaleLowerCase('id-ID')));
+    if (missingTerms.length) throw new Error(`Hasil AI untuk ${field} menghilangkan istilah penting: ${missingTerms.join(', ')}.`);
+    if (source.length >= 160 && edited.length < source.length * 0.6) {
+        throw new Error(`Hasil AI untuk ${field} terlalu banyak menghapus isi.`);
+    }
+};
+
+const improvePromptBuilderWithAi = async (builder: PromptBuilder, requestedFields: string[]): Promise<PromptBuilder> => {
     const baseUrl = (process.env.AI_API_BASE_URL || 'http://localhost:20128/v1').replace(/\/$/, '');
     const apiKey = process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || '';
     const model = process.env.AI_MODEL || 'gemini/gemini-2.5-flash';
     if (!apiKey) throw new Error('AI_API_KEY belum diisi.');
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-            'HTTP-Referer': 'http://localhost:3000',
-            'X-Title': 'Voidlark Prompt Builder',
-        },
-        body: JSON.stringify({
+    const requestCompletion = async (field: keyof PromptBuilder, value: string, cacheBust = '') => {
+        const response = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+                'HTTP-Referer': 'http://localhost:3000',
+                'X-Title': 'Voidlark Prompt Builder',
+            },
+            body: JSON.stringify({
             model,
             temperature: 0.1,
-            stream: false,
+            stream: true,
             messages: [
                 {
                     role: 'system',
-                    content: `Kamu adalah copy editor instruksi sistem berbahasa Indonesia untuk bot WhatsApp CS.
+                    content: `Kamu adalah copy editor instruksi sistem berbahasa Indonesia untuk bot WhatsApp CS. Field yang sedang disunting: ${field}.
 
-TUGAS WAJIB:
-1. Sunting SETIAP value string yang diberikan, termasuk role, style, greeting, identityRules, consultationRules, productRules, checkoutRules, shippingRules, escalationRules, formattingRules, dan extraRules.
-2. Perbaiki semua typo, ejaan tidak baku, kapitalisasi, tanda baca, kata sambung, dan kalimat yang rancu.
-3. Susun ulang kalimat agar ringkas, tegas, tidak berulang, dan mudah dijalankan AI.
-4. Untuk field aturan multiline, tulis satu aturan utuh per baris tanpa nomor manual. Gabungkan aturan yang duplikat, tetapi jangan menghapus requirement unik.
-5. Pertahankan seluruh fakta bisnis, nama produk, nama kolom, relasi, contoh, larangan, tool, dan maksud pengguna. Jangan membuat fakta atau aturan bisnis baru.
-6. Jangan mengubah istilah teknis yang bermakna, seperti Knowledge, CUSTOMER STATE, simpanDraftPesanan, lookup external, nama item, atau karakter, kecuali hanya memperbaiki kapitalisasinya.
-7. preset adalah identifier; kembalikan nilainya tanpa perubahan.
-
-OUTPUT:
-- Balas tepat satu JSON object valid tanpa markdown, komentar, atau teks pembuka.
-- Wajib memiliki semua key berikut tepat satu kali: ${Object.keys(DEFAULT_PROMPT_BUILDER).join(', ')}.
-- Semua value wajib string.
-- Jangan mengembalikan teks input mentah jika masih memiliki typo atau struktur yang buruk.`,
+Perbaiki typo, ejaan, kapitalisasi, tanda baca, kata sambung, dan kalimat rancu.
+Susun agar ringkas, tegas, tidak berulang, dan mudah dijalankan AI.
+Pertahankan seluruh fakta, nama, relasi, contoh, larangan, tool, serta maksud pengguna.
+Jangan membuat fakta atau aturan baru. Jangan mengubah istilah teknis seperti Knowledge, CUSTOMER STATE, simpanDraftPesanan, dan lookup external.
+Balas hanya teks hasil suntingan tanpa JSON, markdown, label field, komentar, atau kalimat pembuka.`,
                 },
                 {
                     role: 'user',
-                    content: JSON.stringify(builder, null, 2),
+                    content: `${cacheBust ? `Request ID: ${cacheBust}\n` : ''}${value}`,
                 },
             ],
-        }),
-    });
+            }),
+        });
 
-    if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message.slice(0, 240) || `AI error ${response.status}`);
+        const raw = await response.text();
+        if (!response.ok) throw new Error(raw.slice(0, 240) || `AI error ${response.status}`);
+        return readChatCompletionContent(raw);
+    };
+
+    const improved = { ...builder };
+    const fields = PROMPT_AI_TEXT_FIELDS.filter((field) => requestedFields.includes(field));
+    for (const field of fields) {
+        if (!builder[field]) continue;
+        const editedChunks: string[] = [];
+        for (const chunk of splitPromptField(builder[field])) {
+            let content = await requestCompletion(field, chunk);
+            if (isCompletionCacheReference(content)) content = await requestCompletion(field, chunk, randomBytes(8).toString('hex'));
+            if (!content.trim() || isCompletionCacheReference(content)) {
+                throw new Error(`Gateway AI tidak mengirim isi lengkap untuk ${field}. Coba lagi atau ganti model AI.`);
+            }
+            const cleaned = content.trim()
+                .replace(/^\*{0,2}(?:field\s*:\s*)?[a-z]+\*{0,2}\s*/i, '')
+                .replace(/â†’/g, '→');
+            validatePromptEdit(field, chunk, cleaned);
+            editedChunks.push(cleaned);
+        }
+        improved[field] = editedChunks.join('\n');
     }
-
-    const content = readChatCompletionContent(await response.text());
-    const jsonText = extractJsonObject(content);
-    if (!jsonText) throw new Error('AI tidak mengembalikan JSON builder.');
-    const parsed = JSON.parse(jsonText) as Record<string, unknown>;
-    const expectedKeys = Object.keys(DEFAULT_PROMPT_BUILDER);
-    const missingKeys = expectedKeys.filter((key) => typeof parsed[key] !== 'string');
-    if (missingKeys.length) throw new Error(`Hasil AI tidak lengkap: ${missingKeys.join(', ')}.`);
-    return promptBuilderFromBody(parsed);
+    return promptBuilderFromBody(improved);
 };
 
 const upload = multer({
@@ -3507,6 +3709,10 @@ export const startAdminServer = async () => {
         res.setHeader('Cache-Control', 'public, max-age=86400');
         res.type('image/svg+xml').sendFile(path.resolve('docs', 'assets', 'voidlark-logo-clean.svg'));
     });
+    app.get('/favicon.ico', (_req, res) => {
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.type('image/svg+xml').sendFile(path.resolve('docs', 'assets', 'voidlark-logo-clean.svg'));
+    });
     app.get('/admin/assets/voidlark-logo.svg', (_req, res) => {
         res.setHeader('Cache-Control', 'public, max-age=86400');
         res.type('image/svg+xml').send(VOIDLARK_LOGO_SVG
@@ -3520,11 +3726,13 @@ export const startAdminServer = async () => {
     });
 
     app.get('/admin/login', (_req, res) => {
-        res.send(renderLoginPage());
+        res.send(renderLoginPage('', String(res.locals.cspNonce)));
     });
     app.post('/admin/login', loginLimiter, (req, res) => {
         const login = adminSecurity.login(String(req.body.password || ''));
-        if (!login.ok || !login.session) return res.status(401).send(renderLoginPage('Password tidak valid.'));
+        if (!login.ok || !login.session) {
+            return res.status(401).send(renderLoginPage('Password tidak valid.', String(res.locals.cspNonce)));
+        }
         res.cookie(adminSecurity.cookieName, login.session.id, adminSecurity.cookieOptions);
         return res.redirect('/admin?msg=Login+berhasil.+Selamat+datang.&type=ok');
     });
@@ -3553,7 +3761,10 @@ export const startAdminServer = async () => {
             return res.status(403).send(page('Permintaan Ditolak', `${pageHeader('Permintaan Ditolak', 'Sumber permintaan tidak dikenali.', 'SC-03')}<section class="panel"><h2>Tidak dapat menyimpan perubahan</h2><p>Sesi atau alamat halaman berubah. Muat ulang halaman admin, lalu coba simpan kembali.</p><a class="button-link" href="${escapeHtml(req.get('referer') || '/admin')}">Kembali ke halaman sebelumnya</a></section>`, '', {}));
         }
         const csrf = csrfTokenFromRequest({ body: req.body, query: req.query as Record<string, unknown>, headers: req.headers });
-        if (!adminSecurity.verifyCsrf(sessionId, csrf)) return res.status(403).send('Invalid CSRF token');
+        if (!adminSecurity.verifyCsrf(sessionId, csrf)) {
+            if (req.is('application/json') || req.accepts(['json', 'html']) === 'json') return res.status(403).json({ error: 'Sesi keamanan berubah. Muat ulang halaman lalu coba lagi.' });
+            return res.status(403).send('Invalid CSRF token');
+        }
         return next();
     });
 
@@ -3663,7 +3874,7 @@ export const startAdminServer = async () => {
         const setupSteps = [
             { done: configReady, title: 'Isi profil dan alur bisnis', text: 'Nama bisnis, tipe produk, pembayaran, dan data pelanggan.', href: '/admin/config' },
             { done: aiReady, title: 'Hubungkan layanan AI', text: 'Bot membutuhkan koneksi AI untuk menulis balasan.', href: '/admin/settings' },
-            { done: knowledgeCount > 0, title: 'Unggah katalog atau FAQ', text: 'Sumber informasi produk, harga, dan pertanyaan umum.', href: '/admin/knowledge' },
+            { done: knowledgeCount > 0, title: 'Unggah Knowledge atau FAQ', text: 'Sumber nama produk, panduan, notes, dan pertanyaan umum.', href: '/admin/knowledge' },
             { done: wa.state === 'open', title: 'Hubungkan WhatsApp', text: 'Scan QR hingga status menjadi terhubung.', href: '/admin/whatsapp' },
         ];
         const attention = [
@@ -3777,7 +3988,7 @@ export const startAdminServer = async () => {
         ].filter(Boolean) as Array<{ title: string; text: string; href: string; action: string }>;
         const setupSteps = [
             { done: profileReady, title: 'Isi profil bisnis', text: 'Nama bisnis, nama CS, tipe produk, dan data pesanan.', href: '/admin/config' },
-            { done: knowledgeCount > 0, title: 'Unggah katalog atau FAQ', text: 'Sumber informasi produk, harga, dan pertanyaan umum.', href: '/admin/knowledge' },
+            { done: knowledgeCount > 0, title: 'Unggah Knowledge atau FAQ', text: 'Sumber nama produk, panduan, notes, dan pertanyaan umum.', href: '/admin/knowledge' },
             { done: aiReady, title: 'Hubungkan layanan AI', text: 'Bot membutuhkan koneksi AI untuk menulis balasan.', href: '/admin/settings' },
             { done: whatsappReady, title: 'Hubungkan WhatsApp', text: 'Scan QR hingga satu nomor berstatus terhubung.', href: '/admin/whatsapp' },
         ];
@@ -3847,19 +4058,16 @@ ${errorCount > 0 ? `<p class="muted">Monitoring mencatat ${errorCount} hasil loo
         const configText = fs.existsSync(CONFIG_PATH) ? fs.readFileSync(CONFIG_PATH, 'utf-8') : '{}';
         const config = JSON.parse(configText);
         const checkoutFields = config.checkoutFields || [];
-        const orderFields = config.orderFields || [];
         const customCheckoutFields = checkoutFields.filter((field: string) => !CHECKOUT_FIELD_OPTIONS.some((option) => option.value === field)).join(', ');
-        const customOrderFields = orderFields.filter((field: string) => !ORDER_FIELD_OPTIONS.some((option) => option.value === field)).join(', ');
         const operationalConfig = getBusinessConfig();
         const weekdayLabels: Record<string, string> = { monday: 'Senin', tuesday: 'Selasa', wednesday: 'Rabu', thursday: 'Kamis', friday: 'Jumat', saturday: 'Sabtu', sunday: 'Minggu' };
-        const shippingWeightRows = Object.entries(config.shippingWeights || {});
         res.send(page('Config', `
 ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis tetap tersedia saat dibutuhkan.', 'CF-02')}
 <div class="config-mode-bar"><div class="config-mode-copy"><strong>Tingkat pengaturan</strong><span>Mode Dasar menampilkan hal yang dibutuhkan agar bot cepat siap.</span></div><div class="segmented-control" aria-label="Tingkat pengaturan"><button type="button" data-config-mode-button="basic" aria-pressed="true">Dasar</button><button type="button" data-config-mode-button="advanced" aria-pressed="false">Lanjutan</button></div></div>
 <div class="config-preset-bar"><div class="config-preset-copy"><strong>Mulai dengan preset</strong><span>Preset mengisi field umum. Periksa hasil sebelum menyimpan.</span></div><div class="preset-actions"><button type="button" class="secondary-button" data-business-preset="physical">Produk fisik</button><button type="button" class="secondary-button" data-business-preset="digital">Produk digital</button></div></div>
 <div data-config-scope data-config-mode="basic">
 <form method="post" action="/admin/config" data-unsaved data-config-form data-config-mode="basic">
-  <p class="basic-note">Empat bagian teknis disembunyikan. Pilih Lanjutan jika perlu mengatur referensi web, bobot ongkir, jam kerja, SLA, atau consent.</p>
+  <p class="basic-note">Bagian teknis disembunyikan. Pilih Lanjutan jika perlu mengatur referensi web, jam kerja, SLA, atau consent.</p>
   <details class="config-section" data-persist-collapse="config-business-identity" open>
     <summary><span>1. Identitas & alur<span class="config-section-copy">Pengaturan dasar yang menentukan cara bot melayani customer.</span></span></summary>
     <div class="config-section-body config-layout">
@@ -3883,8 +4091,9 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis t
       </div>
       <div class="field">
         <label>Pengiriman</label>
-        <div><span class="badge-pill ${config.productType === 'digital' ? 'tone-neutral' : 'tone-ok'}" data-shipping-state>${config.productType === 'digital' ? 'Nonaktif otomatis' : 'Aktif otomatis'}</span></div>
-        <p class="muted">Mengikuti tipe produk: otomatis aktif untuk fisik dan nonaktif untuk digital. API key, lokasi toko, dan kurir diatur di Settings.</p>
+        <div class="switchbox"><label class="switchline"><input type="checkbox" name="enableShipping" value="true" ${operationalConfig.enableShipping ? 'checked' : ''} ${config.productType === 'digital' ? 'disabled' : ''}><span class="switch-track" aria-hidden="true"></span><span class="switch-label">Gunakan alur pengiriman dan ongkir</span></label></div>
+        <div><span class="badge-pill ${operationalConfig.enableShipping ? 'tone-ok' : 'tone-neutral'}" data-shipping-state>${operationalConfig.enableShipping ? 'Aktif' : 'Nonaktif'}</span></div>
+        <p class="muted">Produk fisik dapat mematikan pengiriman, misalnya untuk pickup. Produk digital selalu nonaktif.</p>
       </div>
       <div class="field" data-config-advanced>
         <label>Pencarian referensi web</label>
@@ -3901,7 +4110,7 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis t
     </div>
   </details>
   <details class="config-section" data-persist-collapse="config-product-checkout" open>
-    <summary><span>2. Data checkout & order<span class="config-section-copy">Pilih informasi yang wajib lengkap sebelum bot mengunci pesanan.</span></span></summary>
+    <summary><span>2. Data checkout<span class="config-section-copy">Pilih data customer yang wajib lengkap sebelum bot mengunci pesanan.</span></span></summary>
     <div class="config-section-body">
     <div class="field full">
       <label>Data pelanggan yang perlu dikumpulkan</label>
@@ -3910,26 +4119,12 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis t
       <input id="checkoutFieldsCustom" name="checkoutFieldsCustom" value="${escapeHtml(customCheckoutFields)}" placeholder="Field tambahan, pisahkan koma">
       <p class="muted">Produk fisik umum: Nama, No HP / WA, Alamat. Produk digital umum: Nama, No HP / WA, Email.</p>
     </div>
-    <div class="field full">
-      <label>Detail pesanan yang perlu dicatat</label>
-      ${renderFieldChoices('orderFields', orderFields, ORDER_FIELD_OPTIONS)}
-      <label class="sr-only" for="orderFieldsCustom">Field order tambahan</label>
-      <input id="orderFieldsCustom" name="orderFieldsCustom" value="${escapeHtml(customOrderFields)}" placeholder="Field tambahan, pisahkan koma">
-      <p class="muted">Pakai default kalau belum yakin. Ini membantu bot membuat ringkasan order yang lengkap.</p>
-    </div>
+    <div class="safe-note full"><strong>Otomatis:</strong><span>Nama produk, seluruh variasi, harga, dan berat pengiriman mengikuti Produk & Harga. Bagian ini hanya mengatur data customer.</span></div>
     </div>
   </details>
   <details class="config-section" data-persist-collapse="config-payments" open>
-    <summary><span>3. Pengiriman & pembayaran<span class="config-section-copy">Pengaturan lanjutan untuk estimasi berat dan instruksi bayar.</span></span></summary>
+    <summary><span>3. Pengiriman & pembayaran<span class="config-section-copy">Instruksi pembayaran dan alur penanganan setelah checkout.</span></span></summary>
     <div class="config-section-body">
-    <div class="field full" data-config-advanced>
-      <label>Bobot ongkir per pilihan produk</label>
-      <div class="repeat-list" data-weight-list>
-        ${(shippingWeightRows.length ? shippingWeightRows : [['', '']]).map(([label, grams]) => `<div class="repeat-row" data-weight-row><label><span>Label pilihan</span><input name="shippingWeightLabel" value="${escapeHtml(label)}" placeholder="contoh: 30ml"></label><label><span>Berat (gram)</span><input name="shippingWeightGrams" type="number" min="1" step="1" value="${escapeHtml(grams)}" placeholder="110"></label><button type="button" class="secondary-button" data-remove-weight>Hapus</button></div>`).join('')}
-      </div>
-      <button type="button" class="secondary-button" data-add-weight>Tambah pilihan bobot</button>
-      <p class="muted">Baris kosong atau berat yang tidak valid akan diabaikan saat disimpan.</p>
-    </div>
     <div class="field full">
       <label for="paymentInstructions">Instruksi pembayaran</label>
       <textarea id="paymentInstructions" name="paymentInstructions" class="textarea-md">${escapeHtml(config.paymentInstructions || '')}</textarea>
@@ -3989,12 +4184,11 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis t
             businessName: String(req.body.businessName || 'Voidlark'),
             csName: String(req.body.csName || 'Anin').trim() || 'Anin',
             productType,
-            enableShipping: productType === 'physical',
+            enableShipping: productType === 'physical' && req.body.enableShipping === 'true',
             enableExternalProductLookup: req.body.enableExternalProductLookup === 'true',
             salesFlow: previous.salesFlow,
             checkoutFields: parseFieldSelection(req.body.checkoutFields, req.body.checkoutFieldsCustom),
-            orderFields: parseFieldSelection(req.body.orderFields, req.body.orderFieldsCustom),
-            shippingWeights: parseWeightRows(req.body.shippingWeightLabel, req.body.shippingWeightGrams),
+            orderFields: previous.orderFields,
             paymentInstructions: String(req.body.paymentInstructions || '').trim(),
             handoffAfterPaymentSummary: req.body.handoffAfterPaymentSummary === 'true',
             businessHours: validateBusinessHoursConfig({
@@ -4016,6 +4210,9 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis t
             },
         };
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n');
+        const builder = readPromptBuilder();
+        fs.mkdirSync(path.dirname(PROMPT_PATH), { recursive: true });
+        fs.writeFileSync(PROMPT_PATH, `${buildSystemPrompt(builder)}\n`);
         redirectWithMsg(res, '/admin/config', 'Profil dan alur bisnis berhasil disimpan.');
     });
 
@@ -4023,6 +4220,9 @@ ${pageHeader('Profil & Alur Bisnis', 'Atur kebutuhan utama dulu. Detail teknis t
         const config = String(req.body.config || '');
         JSON.parse(config);
         fs.writeFileSync(CONFIG_PATH, config.trim() + '\n');
+        const builder = readPromptBuilder();
+        fs.mkdirSync(path.dirname(PROMPT_PATH), { recursive: true });
+        fs.writeFileSync(PROMPT_PATH, `${buildSystemPrompt(builder)}\n`);
         redirectWithMsg(res, '/admin/config', 'JSON config tersimpan.');
     });
 
@@ -4096,17 +4296,11 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
           <div class="field full"><label for="promptConsultationRules">Urutan konsultasi customer</label><textarea id="promptConsultationRules" name="consultationRules" data-prompt-field>${escapeHtml(builder.consultationRules)}</textarea></div>
         </div>
       </details>
-      <details class="reply-style-section" data-persist-collapse="prompt-preferred-words">
-        <summary><span>Aturan Produk & Harga<span class="config-section-copy">Cara bot menggunakan katalog dan informasi produk dari Knowledge.</span></span></summary>
-        <div class="config-section-body builder-grid">
-          <div class="field full"><label for="promptProductRules">Cara membaca data produk</label><textarea id="promptProductRules" name="productRules" data-prompt-field>${escapeHtml(builder.productRules)}</textarea><p class="muted">Nama produk, kategori, varian, harga, dan aturan khusus dikelola melalui Katalog & Informasi agar dapat digunakan untuk bisnis apa pun.</p></div>
-        </div>
-      </details>
       <details class="reply-style-section" data-persist-collapse="prompt-response-example">
-        <summary><span>Checkout & Pengiriman<span class="config-section-copy">Rekap pesanan, penyimpanan draft, berat paket, dan cek ongkir.</span></span></summary>
+        <summary><span>Checkout<span class="config-section-copy">Rekap pesanan dan penyimpanan draft customer.</span></span></summary>
         <div class="config-section-body builder-grid">
           <div class="field full"><label for="promptCheckoutRules">Urutan checkout dan draft</label><textarea id="promptCheckoutRules" name="checkoutRules" data-prompt-field>${escapeHtml(builder.checkoutRules)}</textarea></div>
-          <div class="field full"><label for="promptShippingRules">Berat dan cek ongkir</label><textarea id="promptShippingRules" name="shippingRules" data-prompt-field>${escapeHtml(builder.shippingRules)}</textarea></div>
+          <div class="safe-note full"><strong>Otomatis:</strong><span>Kelompok, variasi, harga, berat pengiriman, dan cek ongkir dikendalikan oleh Produk & Harga serta konfigurasi sistem.</span></div>
         </div>
       </details>
       <details class="reply-style-section" data-persist-collapse="prompt-extra-instructions">
@@ -4116,6 +4310,11 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
           <div class="field full">
             <label for="promptEscalationRules">Kapan perlu bantuan admin</label>
             <textarea id="promptEscalationRules" name="escalationRules" data-prompt-field>${escapeHtml(builder.escalationRules)}</textarea>
+          </div>
+          <div class="field full">
+            <label for="promptExternalReferenceRules">Produk atau merek dari luar katalog</label>
+            <textarea id="promptExternalReferenceRules" name="externalReferenceRules" data-prompt-field>${escapeHtml(builder.externalReferenceRules)}</textarea>
+            <p class="muted">Atur bagaimana bot memakai produk luar sebagai pembanding. Produk yang dijual tetap harus berasal dari Knowledge.</p>
           </div>
           <div class="field full">
             <label for="promptFormattingRules">Cara menulis di WhatsApp</label>
@@ -4180,7 +4379,8 @@ ${pageHeader('Gaya Balasan Bot', 'Pilih karakter dan cara bot berbicara kepada p
     app.post('/admin/prompt/assist', async (req, res) => {
         try {
             const builder = promptBuilderFromBody(req.body);
-            const improved = await improvePromptBuilderWithAi(builder);
+            const requestedFields = Array.isArray(req.body?._aiFields) ? req.body._aiFields.map(String) : [];
+            const improved = await improvePromptBuilderWithAi(builder, requestedFields);
             res.json({ builder: improved });
         } catch (error) {
             res.status(500).json({ error: error instanceof Error ? error.message : 'AI assist gagal.' });
@@ -4821,14 +5021,15 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
                 res.status(503).json({ error: `${aiHealth.label}: ${aiHealth.detail}` });
                 return;
             }
-            const result = await previewAgentReply(message, getKnowledgeBase(), history);
+            const state = req.body.state && typeof req.body.state === 'object' && !Array.isArray(req.body.state) ? req.body.state : {};
+            const result = await previewAgentReply(message, getKnowledgeBase(), history, undefined, state);
             const reply = sanitizeCustomerLanguage(stripInternalMarkup(result.text));
             const safeReply = reply || 'Maaf Kak, balasan belum dapat diproses dengan aman.';
             const bubbles = result.plan.bubbles
                 .map((bubble) => sanitizeCustomerLanguage(stripInternalMarkup(bubble)))
                 .filter(Boolean)
                 .slice(0, 3);
-            res.json({ reply: safeReply, bubbles: bubbles.length ? bubbles : [safeReply], usedTools: [...new Set(result.usedTools)], citations: result.citations || [] });
+            res.json({ reply: safeReply, bubbles: bubbles.length ? bubbles : [safeReply], usedTools: [...new Set(result.usedTools)], citations: result.citations || [], state: result.state || state });
         } catch (error) {
             invalidateAiHealth();
             const detail = error instanceof Error ? error.message : 'Kesalahan tidak diketahui.';
@@ -4836,6 +5037,84 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
                 ? 'Layanan AI tidak dapat dihubungi. Periksa Koneksi Sistem.'
                 : `Simulasi gagal: ${detail}` });
         }
+    });
+
+    app.get('/admin/products', (req, res) => {
+        const catalog = readProductCatalog();
+        const schemes = catalog.schemes.map((scheme) => {
+            const heads = scheme.variations.map((axis) => `<th>${escapeHtml(axis.name)}</th>`).join('');
+            const rows = scheme.options.map((option) => {
+                const key = JSON.stringify(option.values);
+                return `<tr>${scheme.variations.map((axis, index) => `<td data-label="${escapeHtml(axis.name)}">${index === 0 ? `<input type="hidden" name="optionKey" value="${escapeHtml(key)}">` : ''}<strong>${escapeHtml(option.values[axis.id] || '-')}</strong></td>`).join('')}<td data-label="Harga (Rp)"><input name="price" type="number" min="0" value="${option.price}" required></td><td data-label="Berat pengiriman (gram)"><input name="weightGrams" type="number" min="1" value="${option.weightGrams || ''}" placeholder="100" required></td><td data-label="Cocok untuk"><input name="recommendationTags" value="${escapeHtml((option.recommendationTags || []).join(', '))}" placeholder="harian, kantor, acara malam"><small>Kata kebutuhan customer, pisahkan koma.</small></td></tr>`;
+            }).join('');
+            const deleteFormId = `delete-product-scheme-${escapeHtml(scheme.id)}`;
+            return `<section class="product-scheme" data-variation-scheme><div class="product-scheme-head"><div><h2>${escapeHtml(scheme.name)}</h2><p>Dikenali sebagai: ${escapeHtml(scheme.aliases.join(', ') || scheme.name)}</p></div>${badge(`${scheme.options.length} kombinasi`, 'info')}</div><form method="post" action="/admin/products/scheme" class="product-scheme-form"><input type="hidden" name="id" value="${escapeHtml(scheme.id)}"><div class="product-scheme-fields"><label><span>Nama kelompok</span><input name="name" value="${escapeHtml(scheme.name)}" required><small>Nama aturan harga yang tampil di dashboard.</small></label><label><span>Nama lain / penanda kelompok</span><input name="aliases" value="${escapeHtml(scheme.aliases.join(', '))}" required><small>Pisahkan dengan koma. Dipakai untuk mencocokkan klasifikasi dari Knowledge.</small></label><label><span>Peran pencocokan (opsional)</span><select name="domainRole"><option value="" ${scheme.domainRole ? '' : 'selected'}>Tidak ditentukan</option><option value="reference" ${scheme.domainRole === 'reference' ? 'selected' : ''}>Nama referensi asli</option><option value="modified" ${scheme.domainRole === 'modified' ? 'selected' : ''}>Produk pasangan modifikasi</option></select><small>Dipakai plugin domain untuk relasi produk dan lookup eksternal; bukan nama produk.</small></label></div><section class="variation-editor" aria-labelledby="variation-${escapeHtml(scheme.id)}"><div class="variation-editor-head"><div><h3 id="variation-${escapeHtml(scheme.id)}">Variasi produk</h3><p>Tambah atribut dan pilihan. Matriks harga diperbarui otomatis.</p></div><button type="button" class="secondary-button" data-add-axis>Tambah atribut</button></div><div class="variation-axes" data-variation-axes>${scheme.variations.map((axis) => `<div class="variation-axis" data-axis><input type="hidden" name="variationId" value="${escapeHtml(axis.id)}"><label><span>Nama atribut</span><input name="variationName" value="${escapeHtml(axis.name)}" placeholder="Contoh: Ukuran" required></label><label><span>Pilihan</span><input name="variationValues" value="${escapeHtml(axis.values.join(', '))}" placeholder="30ml, 50ml" required><small>Pisahkan setiap pilihan dengan koma.</small></label><button type="button" class="ghost-btn compact" data-remove-axis>Hapus</button></div>`).join('')}</div></section><div class="combination-head"><div><h3>Kombinasi harga</h3><p><span data-combination-count>${scheme.options.length}</span> kombinasi dari seluruh variasi.</p></div></div><div class="product-price-table table-wrap"><table><thead><tr>${heads}<th>Harga (Rp)</th><th>Berat pengiriman (gram)</th><th>Cocok untuk</th></tr></thead><tbody data-combination-rows>${rows}</tbody></table></div><footer class="product-scheme-actions"><button>Simpan perubahan</button><button type="submit" form="${deleteFormId}" class="danger ghost-danger">Hapus kelompok</button></footer></form><form id="${deleteFormId}" method="post" action="/admin/products/scheme/delete" class="product-scheme-delete" data-confirm="Hapus kelompok ${escapeHtml(scheme.name)}?"><input type="hidden" name="id" value="${escapeHtml(scheme.id)}"></form></section>`;
+        }).join('');
+        res.send(page('Produk & Harga', `${pageHeader('Produk & Harga', 'Susun kelompok, variasi, harga, dan berat pengiriman produk.', 'PD-05')}<section class="product-intro"><div><strong>${catalog.schemes.length}</strong><span>Kelompok harga</span></div><div><strong>${catalog.schemes.reduce((total, scheme) => total + scheme.options.length, 0)}</strong><span>Kombinasi aktif</span></div><p>Nama produk tetap berasal dari Knowledge. Variasi bebas mengikuti struktur produk bisnis Anda.</p></section><details id="add-price-scheme" class="config-section product-add" data-persist-collapse="products-add-scheme" data-add-scheme-panel><summary><span>Tambah kelompok harga<span class="config-section-copy">Hubungkan klasifikasi produk di Knowledge dengan variasi dan harga.</span></span></summary><div class="config-section-body"><form method="post" action="/admin/products/scheme/add" class="product-add-form"><label><span>Nama kelompok</span><input name="name" placeholder="Contoh: Paket Reguler" required><small>Nama klasifikasi utama produk.</small></label><label><span>Nama lain / penanda kelompok</span><input name="aliases" placeholder="reguler, paket reguler" required><small>Pisahkan setiap penanda dengan koma.</small></label><div class="product-add-actions"><button>Tambah kelompok</button></div></form></div></details><div class="section-head product-page-actions"><div><h2>Kelompok harga</h2><p class="muted">Atur atribut seperti ukuran, tingkat aroma, warna, durasi, atau paket.</p></div></div><div class="product-schemes">${schemes || emptyState('Belum ada kelompok harga', 'Tambahkan kelompok pertama untuk mulai membuat variasi dan harga.', '#add-price-scheme', 'Tambah kelompok')}</div>`, 'products', { toastHtml: toastFromQuery(req.query as Record<string, unknown>) }));
+    });
+
+    app.post('/admin/products/scheme', (req, res) => {
+        const catalog = readProductCatalog();
+        const scheme = catalog.schemes.find((item) => item.id === String(req.body.id || ''));
+        if (!scheme) return redirectWithMsg(res, '/admin/products', 'Skema harga tidak ditemukan.', 'error');
+        const name = String(req.body.name || '').trim();
+        const aliases = String(req.body.aliases || '').split(',').map((value) => value.trim()).filter(Boolean);
+        const domainRole = ['reference', 'modified'].includes(String(req.body.domainRole || '')) ? String(req.body.domainRole) : '';
+        if (!name || !aliases.length) return redirectWithMsg(res, '/admin/products', 'Nama dan penanda kelompok wajib diisi.', 'error');
+        const ids: string[] = (Array.isArray(req.body.variationId) ? req.body.variationId : [req.body.variationId]).map(String);
+        const names: string[] = (Array.isArray(req.body.variationName) ? req.body.variationName : [req.body.variationName]).map((value: unknown) => String(value || '').trim());
+        const valueLists: string[][] = (Array.isArray(req.body.variationValues) ? req.body.variationValues : [req.body.variationValues]).map((value: unknown) => [...new Set(String(value || '').split(',').map((item: string) => item.trim()).filter(Boolean))]);
+        const usedVariationIds = new Set<string>();
+        const variations: VariationAxis[] = ids.map((id: string, index: number) => {
+            const baseId = id || priceSchemeId(names[index]);
+            let stableId = baseId;
+            for (let suffix = 2; usedVariationIds.has(stableId); suffix += 1) stableId = `${baseId}-${suffix}`;
+            usedVariationIds.add(stableId);
+            return { id: stableId, name: names[index], values: valueLists[index] };
+        }).filter((axis: VariationAxis) => axis.name && axis.values.length);
+        if (!variations.length || variations.length > 5 || variations.some((axis) => axis.values.length > 30)) return redirectWithMsg(res, '/admin/products', 'Gunakan 1–5 atribut dengan maksimal 30 pilihan per atribut.', 'error');
+        const keys = Array.isArray(req.body.optionKey) ? req.body.optionKey : [req.body.optionKey];
+        const prices = Array.isArray(req.body.price) ? req.body.price : [req.body.price];
+        const weights = Array.isArray(req.body.weightGrams) ? req.body.weightGrams : [req.body.weightGrams];
+        const tagLists = Array.isArray(req.body.recommendationTags) ? req.body.recommendationTags : [req.body.recommendationTags];
+        const submitted = new Map<string, { price: number; weightGrams: number; recommendationTags: string[] }>(keys.slice(0, 500).map((key: unknown, index: number) => [String(key), { price: Number(prices[index]), weightGrams: Number(weights[index]), recommendationTags: [...new Set(String(tagLists[index] || '').split(',').map((value) => value.trim()).filter(Boolean))] }]));
+        const combinations = buildVariationCombinations(variations);
+        if (combinations.length > 500) return redirectWithMsg(res, '/admin/products', 'Kombinasi melebihi batas 500. Kurangi atribut atau pilihan.', 'error');
+        const options = combinations.map((values) => {
+            const valuesForCombination = submitted.get(JSON.stringify(values));
+            return { values, price: valuesForCombination?.price ?? NaN, weightGrams: valuesForCombination?.weightGrams ?? NaN, ...(valuesForCombination?.recommendationTags.length ? { recommendationTags: valuesForCombination.recommendationTags } : {}) };
+        });
+        if (options.some((option) => !Number.isFinite(option.price) || option.price < 0 || !Number.isFinite(option.weightGrams) || option.weightGrams <= 0)) return redirectWithMsg(res, '/admin/products', 'Harga dan berat pengiriman wajib diisi untuk seluruh kombinasi.', 'error');
+        scheme.name = name;
+        scheme.aliases = aliases;
+        if (domainRole) scheme.domainRole = domainRole;
+        else delete scheme.domainRole;
+        scheme.variations = variations;
+        scheme.options = options;
+        writeProductCatalog(catalog);
+        redirectWithMsg(res, '/admin/products', `Skema ${scheme.name} diperbarui.`);
+    });
+
+    app.post('/admin/products/scheme/add', (req, res) => {
+        const catalog = readProductCatalog();
+        const name = String(req.body.name || '').trim();
+        const aliases = String(req.body.aliases || '').split(',').map((value) => value.trim()).filter(Boolean);
+        const id = priceSchemeId(name);
+        if (!name || !aliases.length) return redirectWithMsg(res, '/admin/products', 'Nama dan penanda kelompok wajib diisi.', 'error');
+        if (catalog.schemes.some((scheme) => scheme.id === id)) return redirectWithMsg(res, '/admin/products', 'Kelompok dengan nama tersebut sudah ada.', 'error');
+        catalog.schemes.push({ id, name, aliases, variations: [{ id: 'variation-1', name: 'Variasi 1', values: ['Pilihan 1'] }], options: [{ values: { 'variation-1': 'Pilihan 1' }, price: 0, weightGrams: 1 }] });
+        writeProductCatalog(catalog);
+        redirectWithMsg(res, '/admin/products', `Kelompok ${name} ditambahkan.`);
+    });
+
+    app.post('/admin/products/scheme/delete', (req, res) => {
+        const catalog = readProductCatalog();
+        const id = String(req.body.id || '');
+        const scheme = catalog.schemes.find((item) => item.id === id);
+        if (!scheme) return redirectWithMsg(res, '/admin/products', 'Kelompok harga tidak ditemukan.', 'error');
+        catalog.schemes = catalog.schemes.filter((item) => item.id !== id);
+        writeProductCatalog(catalog);
+        redirectWithMsg(res, '/admin/products', `Kelompok ${scheme.name} dihapus.`);
     });
 
     app.get('/admin/knowledge', async (req, res) => {
@@ -4846,9 +5125,9 @@ ${pageHeader('Manajemen WhatsApp', 'Kelola nomor terhubung, rotasi CS, jeda anti
         });
         const jobs = await knowledgeStore.listJobs(20);
         res.send(page('Knowledge', `
-${pageHeader('Katalog & Informasi', 'Kelola sumber jawaban produk, harga, dan FAQ bot.', 'KB-05')}
+${pageHeader('Knowledge & Informasi', 'Kelola FAQ, panduan, notes, dan dokumen pendukung bot. Produk dan harga dikelola terpisah.', 'KB-05')}
 <section class="knowledge-intro" aria-label="Alur pengelolaan informasi">
-  <article class="knowledge-step"><span>01 · Unggah</span><h2>Tambahkan sumber</h2><p>Pilih katalog, daftar harga, FAQ, dokumen, atau gambar yang menjadi acuan bot.</p></article>
+  <article class="knowledge-step"><span>01 · Unggah</span><h2>Tambahkan sumber</h2><p>Pilih FAQ, panduan, notes, dokumen, atau gambar pendukung yang menjadi acuan bot.</p></article>
   <article class="knowledge-step"><span>02 · Periksa</span><h2>Lihat file tersimpan</h2><p>Pastikan nama, ukuran, dan waktu pembaruan file sudah sesuai.</p></article>
   <article class="knowledge-step"><span>03 · Pantau</span><h2>Cek pemrosesan</h2><p>Versi informasi aktif diperbarui hanya setelah seluruh file berhasil diproses.</p></article>
 </section>

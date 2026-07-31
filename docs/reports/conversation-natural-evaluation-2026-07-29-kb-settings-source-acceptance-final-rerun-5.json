@@ -1,0 +1,72 @@
+{
+  "generatedAt": "2026-07-29T05:21:56.399Z",
+  "scenarios": [
+    {
+      "id": 5,
+      "name": "Buru-buru mau membeli",
+      "tone": "buru-buru",
+      "messages": [
+        "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?",
+        "Pilih satu aja yang aman",
+        "EDP 30ml ready harga berapa?",
+        "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak cepet ya aku butuh buat besok. Parfum cewek yang manis lembut apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma manis, aku paling mengarah ke Beneton United Woman dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga manis. Arah parfum aslinya memuat vanila, beri merah, blackcurrant, sicilian bergamot, bunga kapas, jeruk, freesia, dan peony, jadi alasan rekomendasinya bukan hanya label manis."
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aja yang aman"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih Beneton United Woman dari Parfum Inspired, Kak. Dari pilihan yang tersedia, ini yang paling dekat dengan kebutuhan yang tadi Kakak jelaskan."
+        },
+        {
+          "role": "user",
+          "content": "EDP 30ml ready harga berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000 per item, Kak.\n\nStatus stok saat ini belum dicantumkan, jadi perlu dikonfirmasi ke admin sebelum pesanan diproses."
+        },
+        {
+          "role": "user",
+          "content": "Oke bungkus satu. Dita 081399887766, Maguwoharjo Depok Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke MAGUWOHARJO, DEPOK, SLEMAN, DI YOGYAKARTA, 55282:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\n\nKarena dibutuhkan besok, pilih layanan dengan estimasi maksimal 1 hari. Estimasi kurir bukan jaminan waktu tiba.\n\nKakak mau pakai yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache",
+        "cekOngkir"
+      ],
+      "state": {
+        "productName": "Beneton United Woman",
+        "classification": "Parfum Inspired",
+        "customer": {
+          "name": "Dita",
+          "phone": "081399887766",
+          "address": "Maguwoharjo Depok Sleman"
+        },
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 1,
+        "unitPrice": 60000,
+        "subtotal": 60000,
+        "shippingEvidence": "Ongkir ke MAGUWOHARJO, DEPOK, SLEMAN, DI YOGYAKARTA, 55282:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\n\nKarena dibutuhkan besok, pilih layanan dengan estimasi maksimal 1 hari. Estimasi kurir bukan jaminan waktu tiba.\n\nKakak mau pakai yang mana?"
+      }
+    }
+  ]
+}

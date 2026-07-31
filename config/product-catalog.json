@@ -1,0 +1,201 @@
+{
+  "version": 3,
+  "schemes": [
+    {
+      "id": "parfum-karakter",
+      "name": "Parfum Karakter",
+      "aliases": [
+        "Parfum Karakter",
+        "Karakter"
+      ],
+      "domainRole": "modified",
+      "variations": [
+        {
+          "id": "quality",
+          "name": "Kualitas",
+          "values": [
+            "Super Premium",
+            "Platinum"
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Ukuran",
+          "values": [
+            "30ml",
+            "50ml",
+            "100ml"
+          ]
+        }
+      ],
+      "options": [
+        {
+          "values": {
+            "quality": "Super Premium",
+            "size": "30ml"
+          },
+          "price": 120000,
+          "weightGrams": 200,
+          "recommendationTags": ["harian", "kantor", "kuliah", "santai", "ringan"]
+        },
+        {
+          "values": {
+            "quality": "Super Premium",
+            "size": "50ml"
+          },
+          "price": 160000,
+          "weightGrams": 300,
+          "recommendationTags": ["harian", "kantor", "kuliah", "santai", "ringan"]
+        },
+        {
+          "values": {
+            "quality": "Super Premium",
+            "size": "100ml"
+          },
+          "price": 310000,
+          "weightGrams": 450,
+          "recommendationTags": ["harian", "kantor", "kuliah", "santai", "ringan"]
+        },
+        {
+          "values": {
+            "quality": "Platinum",
+            "size": "30ml"
+          },
+          "price": 135000,
+          "weightGrams": 200,
+          "recommendationTags": ["malam", "kondangan", "pesta", "acara formal", "kuat"]
+        },
+        {
+          "values": {
+            "quality": "Platinum",
+            "size": "50ml"
+          },
+          "price": 180000,
+          "weightGrams": 300,
+          "recommendationTags": ["malam", "kondangan", "pesta", "acara formal", "kuat"]
+        },
+        {
+          "values": {
+            "quality": "Platinum",
+            "size": "100ml"
+          },
+          "price": 360000,
+          "weightGrams": 450,
+          "recommendationTags": ["malam", "kondangan", "pesta", "acara formal", "kuat"]
+        }
+      ]
+    },
+    {
+      "id": "parfum-inspired",
+      "name": "Parfum Inspired",
+      "aliases": [
+        "Parfum Inspired",
+        "Inspired"
+      ],
+      "domainRole": "reference",
+      "variations": [
+        {
+          "id": "variation-2",
+          "name": "Kualitas",
+          "values": [
+            "EDT",
+            "EDP",
+            "Murni"
+          ]
+        },
+        {
+          "id": "variation-2-2",
+          "name": "Ukuran",
+          "values": [
+            "30ml",
+            "50ml",
+            "100ml"
+          ]
+        }
+      ],
+      "options": [
+        {
+          "values": {
+            "variation-2": "EDT",
+            "variation-2-2": "30ml"
+          },
+          "price": 35000,
+          "weightGrams": 200,
+          "recommendationTags": ["harian", "kantor", "ngantor", "kuliah", "sekolah", "ringan", "kalem"]
+        },
+        {
+          "values": {
+            "variation-2": "EDT",
+            "variation-2-2": "50ml"
+          },
+          "price": 45000,
+          "weightGrams": 300,
+          "recommendationTags": ["harian", "kantor", "ngantor", "kuliah", "sekolah", "ringan", "kalem"]
+        },
+        {
+          "values": {
+            "variation-2": "EDT",
+            "variation-2-2": "100ml"
+          },
+          "price": 55000,
+          "weightGrams": 450,
+          "recommendationTags": ["harian", "kantor", "ngantor", "kuliah", "sekolah", "ringan", "kalem"]
+        },
+        {
+          "values": {
+            "variation-2": "EDP",
+            "variation-2-2": "30ml"
+          },
+          "price": 60000,
+          "weightGrams": 200,
+          "recommendationTags": ["malam", "kondangan", "pesta", "acara formal", "kuat", "strong"]
+        },
+        {
+          "values": {
+            "variation-2": "EDP",
+            "variation-2-2": "50ml"
+          },
+          "price": 75000,
+          "weightGrams": 300,
+          "recommendationTags": ["malam", "kondangan", "pesta", "acara formal", "kuat", "strong"]
+        },
+        {
+          "values": {
+            "variation-2": "EDP",
+            "variation-2-2": "100ml"
+          },
+          "price": 85000,
+          "weightGrams": 450,
+          "recommendationTags": ["malam", "kondangan", "pesta", "acara formal", "kuat", "strong"]
+        },
+        {
+          "values": {
+            "variation-2": "Murni",
+            "variation-2-2": "30ml"
+          },
+          "price": 120000,
+          "weightGrams": 200,
+          "recommendationTags": ["intens", "pekat", "ekstra kuat", "koleksi"]
+        },
+        {
+          "values": {
+            "variation-2": "Murni",
+            "variation-2-2": "50ml"
+          },
+          "price": 150000,
+          "weightGrams": 300,
+          "recommendationTags": ["intens", "pekat", "ekstra kuat", "koleksi"]
+        },
+        {
+          "values": {
+            "variation-2": "Murni",
+            "variation-2-2": "100ml"
+          },
+          "price": 165000,
+          "weightGrams": 450,
+          "recommendationTags": ["intens", "pekat", "ekstra kuat", "koleksi"]
+        }
+      ]
+    }
+  ]
+}

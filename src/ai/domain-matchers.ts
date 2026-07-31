@@ -33,9 +33,9 @@ const fragranceMatcher: DomainMatcher = {
         return {
             profileEvidence: `Notes: ${profile.notes.join(', ') || '-'}\nKeluarga: ${profile.families.join(', ') || '-'}`,
             candidateEvidence: candidates.length
-                ? candidates.map((candidate, index) => `${index + 1}. Inspired: ${candidate.inspired} | Karakter: ${candidate.character} | Keluarga terverifikasi: ${candidate.family}`).join('\n')
+                ? candidates.map((candidate, index) => `${index + 1}. Referensi pencocokan, bukan produk toko: ${candidate.inspired} | Produk internal yang boleh direkomendasikan dan dijual: ${candidate.character} | Keluarga terverifikasi: ${candidate.family}`).join('\n')
                 : 'Tidak ada kandidat katalog yang melewati pencocokan terverifikasi.',
-            policy: 'Hanya rekomendasikan kandidat terverifikasi. Pertahankan arah Inspired -> Karakter. Jangan mengarang detail notes kandidat yang tidak ada pada evidence.',
+            policy: 'Produk luar dan kolom referensi hanya dipakai untuk membaca profil pembanding. Jangan pernah menawarkan, memberi harga, menyimpan draft, atau menjual nama referensi tersebut sebagai produk toko. Hanya nama pada label "Produk internal yang boleh direkomendasikan dan dijual" yang boleh ditawarkan. Jangan mengarang detail notes kandidat yang tidak ada pada evidence.',
         };
     },
 };

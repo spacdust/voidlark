@@ -1,0 +1,131 @@
+{
+  "generatedAt": "2026-07-28T08:47:29.751Z",
+  "scenarios": [
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "EDT (2:1): 66% bibit, 34% pelarut. Aroma lembut. Aman semprot langsung ke baju tanpa noda. Spray menyebar. EDP (3:1): 75% bibit, 25% pelarut. Aroma lebih strong. Bisa ke baju, jarak semprot agak jauh. Murni (Extrait): 100% bibit. Aroma paling kuat. Tekstur kental, oily. Proyeksi dekat ke kulit. Spray tidak menyebar. Kak punya preferensi?"
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku rekomendasikan Alisya Ashley dari Parfum Inspired, Kak. Arahnya glamour dan nama produknya tercantum di katalog internal. Pilihan yang masih sesuai budget: EDP 100ml seharga Rp85.000."
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDP 30ml harganya Rp60.000, sedangkan EDP 50ml Rp75.000. Selisihnya Rp15.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku rekomendasikan Alisya Ashley dari Parfum Inspired, Kak. Arahnya glamour dan nama produknya tercantum di katalog internal. Pilihan yang masih sesuai budget: EDP 50ml seharga Rp75.000."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Alisya Ashley",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDP",
+          "variation-2-2": "50ml"
+        },
+        "unitPrice": 75000,
+        "subtotal": 75000
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, senang bisa bantu! Aku Anin dari Aromatique 😊 Sebelum rekomendasi, boleh aku tanya dulu?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Wah, anniversary dinner pasti makin spesial pakai parfum yang tepat! Untuk kesan elegan dan cocok dipakai berdua, aku rekomendasiin keluarga aroma Woody atau Leather. Dua-duanya punya karakter hangat, sophisticated, dan unisex — pas banget buat malam hari. Kalau boleh tahu, apakah pasangan Kakak lebih suka aroma yang hangat dan kuat seperti kayu-kayuan, atau yang mewah dan tegas seperti leather? Biar aku bisa rekomendasiin yang paling pas."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Dua pilihan Parfum Karakter yang terverifikasi: 1. Sun Girl – arah glamour. 2. Axbomba – arah glamour. Kakak lebih tertarik yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axbomba Parfum Karakter: Super Premium\n30ml: Rp120.000\nSuper Premium\n50ml: Rp160.000\nSuper Premium\n100ml: Rp310.000\nPlatinum\n30ml: Rp135.000\nPlatinum\n50ml: Rp180.000\nPlatinum\n100ml: Rp360.000\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak buru-buru kok. Kalau udah fix tinggal chat aja lagi ya, aku bantu proses pesanannya 😊"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "productName": "Axbomba",
+        "classification": "Parfum Karakter"
+      }
+    }
+  ]
+}

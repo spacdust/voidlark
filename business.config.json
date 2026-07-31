@@ -12,17 +12,9 @@
   ],
   "orderFields": [
     "productName",
-    "variant",
-    "quality",
     "quantity",
-    "productPrice",
     "shippingCost"
   ],
-  "shippingWeights": {
-    "30": 200,
-    "50": 350,
-    "100": 480
-  },
   "paymentInstructions": "",
   "handoffAfterPaymentSummary": true,
   "businessHours": {

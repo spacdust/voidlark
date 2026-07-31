@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { buildConsultationPolicy } from '../ai/conversation-policy.js';
 
 export interface BusinessConfig {
     businessName: string;
@@ -10,7 +11,6 @@ export interface BusinessConfig {
     salesFlow: string;
     checkoutFields: string[];
     orderFields: string[];
-    shippingWeights: Record<string, number>;
     paymentInstructions: string;
     handoffAfterPaymentSummary: boolean;
     businessHours: BusinessHoursConfig;
@@ -40,6 +40,12 @@ const DEFAULT_WEEKLY: BusinessHoursConfig['weekly'] = {
     thursday: ['09:00-17:00'], friday: ['09:00-17:00'], saturday: [], sunday: [],
 };
 
+const PRODUCT_CATALOG_FIELDS = new Set(['variant', 'quality', 'packageSize', 'productPrice']);
+const normalizeOrderFields = (value: unknown) => {
+    const saved = Array.isArray(value) ? value.map(String) : [];
+    return [...new Set(['productName', 'quantity', ...saved.filter((field) => !PRODUCT_CATALOG_FIELDS.has(field) && field !== 'productName' && field !== 'quantity')])];
+};
+
 const DEFAULT_CONFIG: BusinessConfig = {
     businessName: 'Voidlark',
     csName: 'Anin',
@@ -48,8 +54,7 @@ const DEFAULT_CONFIG: BusinessConfig = {
     enableExternalProductLookup: false,
     salesFlow: 'consultative',
     checkoutFields: ['name', 'phone', 'address'],
-    orderFields: ['productName', 'variant', 'quality', 'packageSize', 'quantity'],
-    shippingWeights: {},
+    orderFields: ['productName', 'quantity'],
     paymentInstructions: 'Transfer ke rekening toko, lalu kirim bukti transfer di chat ini.',
     handoffAfterPaymentSummary: false,
     businessHours: {
@@ -82,11 +87,11 @@ export const getBusinessConfig = (): BusinessConfig => {
         businessName: String(fileConfig.businessName || DEFAULT_CONFIG.businessName).trim(),
         csName: String(fileConfig.csName || DEFAULT_CONFIG.csName).trim() || DEFAULT_CONFIG.csName,
         productType,
-        enableShipping: productType === 'physical',
+        enableShipping: productType === 'physical' && Boolean(fileConfig.enableShipping ?? DEFAULT_CONFIG.enableShipping),
         enableExternalProductLookup: Boolean(fileConfig.enableExternalProductLookup ?? DEFAULT_CONFIG.enableExternalProductLookup),
         checkoutFields: fileConfig.checkoutFields || (productType === 'digital' ? ['name', 'phone', 'email'] : DEFAULT_CONFIG.checkoutFields),
-        shippingWeights: fileConfig.shippingWeights || DEFAULT_CONFIG.shippingWeights,
-        paymentInstructions: String(fileConfig.paymentInstructions || DEFAULT_CONFIG.paymentInstructions).trim(),
+        orderFields: normalizeOrderFields(fileConfig.orderFields),
+        paymentInstructions: String(fileConfig.paymentInstructions ?? DEFAULT_CONFIG.paymentInstructions).trim(),
         handoffAfterPaymentSummary: Boolean(fileConfig.handoffAfterPaymentSummary ?? DEFAULT_CONFIG.handoffAfterPaymentSummary),
         businessHours: {
             ...DEFAULT_CONFIG.businessHours, ...hours,
@@ -106,7 +111,7 @@ export const buildBusinessPrompt = (csNameOverride?: string) => {
     const config = getBusinessConfig();
     const csName = String(csNameOverride || config.csName).trim() || config.csName;
     const lookupRule = config.enableExternalProductLookup
-        ? `Lookup eksternal AKTIF. Jika customer sebut produk/brand/spec yang tidak ada atau kurang jelas di knowledge base, panggil tool cariReferensiProduk. Hasil web = referensi saja, bukan stok/harga toko. Setelah dapat referensi, arahkan ke katalog toko.`
+        ? `Lookup eksternal AKTIF. Gunakan untuk memahami produk/brand/spec yang disebut customer dan untuk memperkaya detail faktual produk katalog yang belum lengkap di Knowledge. Jika plugin domain memiliki kelompok harga berperan "reference" dan "modified", lookup detail wajib memakai nama pada kolom referensi asli di Knowledge; produk pasangan modifikasi dipetakan ke nama referensinya lebih dulu. Hasil web hanya menjadi referensi karakteristik, bukan bukti harga, stok, ketersediaan, atau bahwa produk modifikasi identik dengan referensinya. Rekomendasi, harga, draft, dan checkout wajib memakai nama produk internal dari Knowledge. Jika identitas hasil web ambigu atau tidak memuat bukti produk yang cocok, abaikan hasilnya; jangan mengarang.`
         : `Lookup eksternal NONAKTIF. Jika item di luar knowledge base, jujur belum ada di katalog, tawarkan opsi mirip dari knowledge base, atau escalateToHuman jika perlu.`;
 
     return `BUSINESS CONFIG:
@@ -140,5 +145,7 @@ ATURAN CHAT:
 - Ikuti tipe produk, field order, dan sales flow dari config — jangan asumsikan industri tertentu.
 
 Gunakan konfigurasi ini sebagai aturan utama. Jika produk/aturan di knowledge base berbeda, ikuti business.config.json untuk flow checkout dan shipping.
-Saat customer setuju checkout final (data lengkap + ongkir jika fisik), panggil tool konfirmasiPesanan. Setelah itu kirim ringkasan + instruksi pembayaran. Jangan bilang order lunas sebelum admin/status paid.`;
+Saat customer setuju checkout final (data lengkap + ongkir jika fisik), panggil tool konfirmasiPesanan. Ikuti aturan closing order dari sistem untuk menentukan apakah instruksi pembayaran dikirim atau chat dialihkan ke admin. Jangan bilang order lunas sebelum admin/status paid.
+
+${buildConsultationPolicy()}`;
 };

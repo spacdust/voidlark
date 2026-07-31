@@ -46,6 +46,22 @@ test('checksum dedupe stores one document for duplicate bytes', async () => {
     }
 });
 
+test('temporary editor files are ignored during knowledge ingestion', async () => {
+    const context = await setup();
+    try {
+        await writeFile(path.join(context.knowledgeDir, 'catalog.txt'), 'active catalog content');
+        await writeFile(path.join(context.knowledgeDir, '~$catalog.xlsx'), 'not a valid spreadsheet');
+        const queued = await context.store.enqueue('temporary-file', 1);
+        await context.worker.runOnce();
+        const completed = (await context.store.listJobs()).find((job) => job.id === queued.id)!;
+        assert.equal(completed.status, 'succeeded', completed.last_error || undefined);
+        assert.match(await context.store.getActiveKnowledgeBase(), /active catalog content/);
+        assert.doesNotMatch(await context.store.getActiveKnowledgeBase(), /not a valid spreadsheet/);
+    } finally {
+        context.worker.stop(); await context.database.end(); await rm(context.directory, { recursive: true, force: true });
+    }
+});
+
 test('failed corpus does not activate and preserves previous version', async () => {
     const context = await setup();
     try {

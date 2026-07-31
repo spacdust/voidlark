@@ -1,0 +1,304 @@
+{
+  "generatedAt": "2026-07-29T07:22:05.338Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Mahasiswa santai dengan budget ketat",
+      "tone": "santai",
+      "messages": [
+        "Hai kak, aku masih mahasiswa nih, budget mentok 55 ribu",
+        "Sukanya fresh agak green gitu, jangan yang manis banget",
+        "Pilihkan satu yang paling masuk akal dong",
+        "Yang itu masuk inspired apa karakter ya?",
+        "Kalau botol paling kecil, harga semua kualitasnya berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Hai kak, aku masih mahasiswa nih, budget mentok 55 ribu"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas dan ukuran dulu, Kak? Harga mengikuti kombinasi variasi pada katalog."
+        },
+        {
+          "role": "user",
+          "content": "Sukanya fresh agak green gitu, jangan yang manis banget"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, harga produk itu belum tercantum pada katalog yang aku pegang. Aku bantu konfirmasi ke admin dulu ya."
+        },
+        {
+          "role": "user",
+          "content": "Pilihkan satu yang paling masuk akal dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Berdasarkan kebutuhan Kakak yang fresh, green, dan budget maksimal Rp55.000, rekomendasi paling pas:\n\nParfum Inspired — kualitas EDT, ukuran 100ml seharga Rp55.000.\n\nCocok karena:\nEDT punya karakter ringan dan kalem, pas buat aktivitas harian kuliah.\nWanginya 1 note aja, jadi konsisten dari awal sampai akhir — cocok buat yang suka aroma simpel dan fresh.\nBudget pas pas Rp55.000.\n\nTapi untuk varian aroma fresh green spesifiknya, aku belum punya daftar varian yang tersedia. Atau mau langsung aku bantu proses ukuran 100ml EDT dulu?"
+        },
+        {
+          "role": "user",
+          "content": "Yang itu masuk inspired apa karakter ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired, Kak. Jadi 100ml EDT itu masuk kelompok Parfum Inspired, bukan Parfum Karakter.\n\nKarena budget Kakak maksimal Rp55.000, pilihan yang masuk cuma dari Parfum Inspired EDT. Parfum Karakter mulai dari Rp120.000.\n\nUntuk aromanya yang fresh green, apakah Kakak ada preferensi aroma tertentu atau boleh aku bantu lihatkan varian yang tersedia?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau botol paling kecil, harga semua kualitasnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "simpanDataPelanggan"
+      ],
+      "state": {
+        "classification": "Parfum Karakter",
+        "attributes": {
+          "Ukuran": "100ml"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Hadiah untuk ayah dan banyak pertanyaan",
+      "tone": "banyak-tanya",
+      "messages": [
+        "Mau cari kado parfum buat ayah umur 50-an, Kak",
+        "Dipakainya buat ngantor, beliau suka woody yang kalem",
+        "Biasanya tahan berapa jam ya?",
+        "Boleh kasih dua pilihan yang menurut Kakak aman?",
+        "Yang pertama tadi notes-nya apa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado parfum buat ayah umur 50-an, Kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique.\n\nKado parfum buat ayah usia 50-an, pasti senang. Kakak lebih suka yang segar-segar, hangat/kayu-kayuan, atau yang maskulin klasik?"
+        },
+        {
+          "role": "user",
+          "content": "Dipakainya buat ngantor, beliau suka woody yang kalem"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma woody, aku paling mengarah ke Black Ceruty Man dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga woody. Arah parfum aslinya memuat. agarwood (oud), guaiac wood, oud. bitter orange, black pepper, lavender. caraway, dan cedar, jadi alasan rekomendasinya bukan hanya label woody."
+        },
+        {
+          "role": "user",
+          "content": "Biasanya tahan berapa jam ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, durasi ketahanan pastinya belum tercantum di data produk. Hasil pemakaian juga bisa berbeda tergantung kondisi dan cara penggunaan."
+        },
+        {
+          "role": "user",
+          "content": "Boleh kasih dua pilihan yang menurut Kakak aman?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah woody yang dicari:\n\n1. Black Ceruty Man — keluarga woody, dengan arah notes. agarwood (oud), guaiac wood, oud. bitter orange, black pepper, lavender. caraway, dan cedar.\n\n2. BLV Woman — keluarga woody, dengan arah notes kayu cendana, ginger, bergamot, wisteria, flax, musk, black locust, dan vanila.\n\nDari dua ini, mana yang paling menarik?"
+        },
+        {
+          "role": "user",
+          "content": "Yang pertama tadi notes-nya apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Black Ceruty Man punya arah notes. bitter orange, black pepper, lavender. caraway, cedar, nutmeg. agarwood (oud), dan guaiac wood, Kak. Jadi karakter aromanya bisa dijelaskan dari profil parfum aslinya, bukan hanya dari label keluarga woody."
+        }
+      ],
+      "tools": [
+        "external:tavily",
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Black Ceruty Man",
+        "classification": "Parfum Inspired"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Customer marah meminta harga pasti",
+      "tone": "marah",
+      "messages": [
+        "Saya cuma mau tahu harga Parfum Karakter Platinum 50ml. Tolong jangan tanya balik lagi.",
+        "Nominalnya berapa?",
+        "Kalau yang 30ml selisihnya berapa dari 50ml?",
+        "Oke, itu saja. Jangan ditawari macam-macam dulu."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Saya cuma mau tahu harga Parfum Karakter Platinum 50ml. Tolong jangan tanya balik lagi."
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Platinum 50ml harganya Rp180.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Nominalnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Platinum 50ml harganya Rp180.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau yang 30ml selisihnya berapa dari 50ml?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Platinum 50ml harganya Rp180.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Oke, itu saja. Jangan ditawari macam-macam dulu."
+        },
+        {
+          "role": "assistant",
+          "content": "Oke, Kak. Pilihannya sekarang Parfum Karakter Platinum 50ml, harganya Rp180.000."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Karakter",
+        "attributes": {
+          "quality": "Platinum",
+          "size": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 180000,
+        "subtotal": 180000
+      }
+    },
+    {
+      "id": 4,
+      "name": "Typo dan bingung memilih kualitas",
+      "tone": "typo",
+      "messages": [
+        "kk yg botol pling kecil brp sih",
+        "aku blm ngerti edt edp murni bedanya apa",
+        "tampilin smua harga yg 30ml aja ya",
+        "budgetku 70rb, buat siang yg fresh enaknya ambil apa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "kk yg botol pling kecil brp sih"
+        },
+        {
+          "role": "assistant",
+          "content": "Botol 30ml.\n\nDua pilihan:\n1. Super Premium\n2. Platinum\n\nMau pilih yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "aku blm ngerti edt edp murni bedanya apa"
+        },
+        {
+          "role": "assistant",
+          "content": "Bedanya terutama di konsentrasi bibitnya, Kak.\n\n1. EDT — 66% bibit.\n\n2. EDP — 75% bibit.\n\n3. Murni — 100% bibit.\n\nJadi urutannya dari konsentrasi paling rendah ke paling tinggi adalah EDT, EDP, lalu Murni. Kalau Kak kasih tahu parfumnya dipakai untuk apa, aku bisa bantu pilih satu yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "tampilin smua harga yg 30ml aja ya"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired Murni 30ml harganya Rp120.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "budgetku 70rb, buat siang yg fresh enaknya ambil apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke annasui dolly girl dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Arah parfum aslinya memuat melon, bergamot, apel, kayu manis, mawar, magnolia, violet, dan lily of the valley, jadi alasan rekomendasinya bukan hanya label fresh."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "classification": "Parfum Inspired",
+        "productName": "annasui dolly girl"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Referensi fireplace dari luar katalog",
+      "tone": "penasaran",
+      "messages": [
+        "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?",
+        "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?",
+        "Aku pengin satu pilihan aja biar nggak bingung",
+        "Yang direkomendasiin itu aromanya gimana?",
+        "Kalau ukuran paling kecil harganya berapa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku lagi suka Maison Margiela By the Fireplace, di sini ada nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique.\n\nKalau Maison Margiela By the Fireplace itu parfum dengan aroma smoky, woody, manis khas kastanye dan vanila — hangat kayak di dekat perapian. Sayangnya untuk produk originalnya kita nggak punya, Kak.\n\nTapi kita punya alternatif yang karakter aromanya paling mendekati, yaitu dari kelompok Parfum Karakter — kita bisa pilihkan varian yang warm, woody, dan sedikit manis sesuai selera Kakak.\n\nKakak lebih suka yang smoky-nya dominan atau yang manisnya lebih terasa?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau nggak ada, dari parfum toko ada yang nuansanya paling dekat?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ada Kak. Ambil Parfum Karakter Super Premium — warm, woody, sedikit manis, cocok santai hangat kayak By Fireplace.\n\nMau ukuran 30ml, 50ml, atau 100ml?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pengin satu pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Super Premium 30ml pas. Ringan buat harian, cukup cobain dulu.\n\nLanjut checkout atau tanya dulu?"
+        },
+        {
+          "role": "user",
+          "content": "Yang direkomendasiin itu aromanya gimana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Super Premium punya 3 notes wangi, jadi aromanya berlapis — beda sama Inspired yang cuma 1 note. Profilnya warm, woody, ada sentuhan manis yang nyaman, nggak menusuk. Cocok dipakai santai, hangout, atau ke kafe.\n\nMau lanjut ke ukuran 30ml atau tanya yang lain?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil harganya berapa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Karakter",
+        "attributes": {
+          "Kualitas": "Super Premium"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-07-29T04:56:09.738Z",
+  "scenarios": [
+    {
+      "id": 10,
+      "name": "Salah chat lalu tertarik",
+      "tone": "acak",
+      "messages": [
+        "Kak ini jual case hp samsung nggak?",
+        "Oh parfum toh wkwk salah chat",
+        "Tapi sekalian deh, ada parfum cowok murah nggak?",
+        "Budget 50 ribu, yang fresh ada?",
+        "Kalau EDT 30ml berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak ini jual case hp samsung nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique.\n\nMaaf Kak, kita jual parfum, bukan case HP Samsung. Jadi untuk case HP nggak tersedia.\n\nKalau Kakak lagi cari parfum atau butuh rekomendasi wewangian, aku siap bantu. Ada referensi aroma atau karakter yang Kakak suka?"
+        },
+        {
+          "role": "user",
+          "content": "Oh parfum toh wkwk salah chat"
+        },
+        {
+          "role": "assistant",
+          "content": "Iya Kak wkwk gapapa, santai aja.\n\nKalau suatu saat Kakak tertarik cari parfum, kabari aku aja ya. Senang bisa kenalan 😊"
+        },
+        {
+          "role": "user",
+          "content": "Tapi sekalian deh, ada parfum cowok murah nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ada pilihan yang bisa disesuaikan, Kak. Supaya nggak asal memberi label cowok atau menyebut varian yang belum cocok, aku saring dari karakter aroma dan batas harganya.\n\nBudget maksimalnya berapa?"
+        },
+        {
+          "role": "user",
+          "content": "Budget 50 ribu, yang fresh ada?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kalau fokusnya aroma fresh, aku paling mengarah ke Bodyshop Oceanus dari Parfum Inspired, Kak. Dari daftar yang tersedia, varian ini paling dekat karena masuk keluarga fresh. Arah parfum aslinya memuat teratai air, dan lily-of, jadi alasan rekomendasinya bukan hanya label fresh. Pilihan yang paling pas dan masih sesuai budget: EDT 30ml seharga Rp35.000."
+        },
+        {
+          "role": "user",
+          "content": "Kalau EDT 30ml berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Bodyshop Oceanus",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "unitPrice": 35000,
+        "subtotal": 35000,
+        "maxBudget": 50000
+      }
+    }
+  ]
+}

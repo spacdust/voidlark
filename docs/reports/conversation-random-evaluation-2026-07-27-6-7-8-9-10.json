@@ -1,0 +1,226 @@
+{
+  "generatedAt": "2026-07-27T04:26:29.130Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Customer marah dan handoff",
+      "messages": [
+        "Jawaban kamu salah terus dan saya sudah kesal",
+        "Jangan tawarkan produk lagi. Alihkan saya ke admin manusia sekarang"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Jawaban kamu salah terus dan saya sudah kesal"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, saya minta maaf banget sudah bikin Kakak kesal dengan jawaban saya. 🙏 Boleh Kakak kasih tahu bagian mana yang salah? Saya perbaiki sekarang dan pastikan kali ini benar."
+        },
+        {
+          "role": "user",
+          "content": "Jangan tawarkan produk lagi. Alihkan saya ke admin manusia sekarang"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, saya paham. Mohon maaf atas ketidaknyamanannya. Saya akan alihkan Kakak ke admin Aromatique yang akan membantu langsung. Silakan tunggu sebentar ya, admin akan menghubungi Kakak di chat ini. Terima kasih atas kesabarannya. 🙏"
+        }
+      ],
+      "tools": [
+        "escalateToHuman"
+      ],
+      "state": {
+        "handoffReason": "Customer kesal dan meminta dialihkan ke admin manusia. Tidak ingin dilayani lagi oleh CS virtual."
+      }
+    },
+    {
+      "id": 7,
+      "name": "Menanyakan stok dan diskon besar",
+      "messages": [
+        "Kak, Urban Legend ada stok 200 botol nggak? Kalau ambil banyak bisa diskon 70%?",
+        "Kalau diskon segitu nggak bisa, harga normalnya berapa?",
+        "Ada pilihan ukuran apa aja?",
+        "Oke deh, aku pikir-pikir dulu ya."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, Urban Legend ada stok 200 botol nggak? Kalau ambil banyak bisa diskon 70%?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Untuk Urban Legend, kita punya di kelompok Parfum Karakter dengan kualitas Super Premium dan Platinum. Stok 200 botol perlu aku cek ke admin dulu ya, karena jumlahnya besar. Soal diskon 70%, itu di luar kewenanganku sebagai CS. Kalau minat ambil banyak, aku bantu catat dulu pesanannya, nanti admin yang handle soal harga khusus.\n\nMau aku bantu pilih dulu varian dan ukuran yang Kakak minati?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau diskon segitu nggak bisa, harga normalnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Urban Legend masuk Parfum Karakter. Dua kualitas: Super Premium (70% ekstrak) 30ml: Rp120.000 50ml: Rp160.000 100ml: Rp310.000 Platinum (90% ekstrak, lebih strong) 30ml: Rp135.000 50ml: Rp180.000 100ml: Rp360.000 Mau kualitas dan ukuran yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Ada pilihan ukuran apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Udah disebut tadi, Kak. Untuk Parfum Karakter Urban Legend, ukuran yang tersedia: 30ml, 50ml, 100ml. Mau yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Oke deh, aku pikir-pikir dulu ya."
+        },
+        {
+          "role": "assistant",
+          "content": "Siap Kak, santai aja. Kapan pun mau lanjut, tinggal chat aku ya."
+        }
+      ],
+      "tools": [],
+      "state": {}
+    },
+    {
+      "id": 8,
+      "name": "Konsultasi aroma malam",
+      "messages": [
+        "Kak, aku cari parfum yang enak dong.",
+        "Buat malam hari. Maunya yang elegan, tapi bisa dipakai cowok atau cewek.",
+        "Ada dua pilihan yang cocok nggak?",
+        "Aku pilih yang kedua. Ada ukuran apa aja?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, aku cari parfum yang enak dong."
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Aku Anin dari Aromatique. Senang bisa bantu cari parfum yang cocok 😊 Sebelum aku rekomendasiin, boleh cerita sedikit dulu? Kira-kira Kakak suka wangi yang seperti apa? Misalnya yang fresh, manis, woody, atau ada preferensi lain? Terus untuk pemakaian sehari-hari atau acara spesial?"
+        },
+        {
+          "role": "user",
+          "content": "Buat malam hari. Maunya yang elegan, tapi bisa dipakai cowok atau cewek."
+        },
+        {
+          "role": "assistant",
+          "content": "Malam hari dan elegan, cocok buat unisex. Aku punya beberapa opsi yang pas. Dari keluarga aroma yang cocok untuk malam:\n\n1. Amber – hangat, manis balsamik, misterius, mewah. Unisex banget.\n\n2. Woody – kayu-kayuan hangat, maskulin tapi tetap elegan, cocok pria maupun wanita yang suka karakter tegas.\n\n3. Oud – intens, mewah, eksklusif. Unisex, tahan lama.\n\nKalau lihat preferensi Kakak, kira-kira lebih tertarik ke arah yang hangat-manis (Amber), yang kokoh-elegan (Woody), atau yang mewah-berani (Oud)?"
+        },
+        {
+          "role": "user",
+          "content": "Ada dua pilihan yang cocok nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh, Kak. Dari tiga tadi, dua yang paling cocok buat malam hari dan unisex:\n\n1. Amber – hangat, manis balsamik, misterius. Kesan mewah dan memikat. Cocok banget buat dinner atau acara formal malam.\n\n2. Woody – aroma kayu yang hangat, kokoh, elegan. Lebih maskulin tapi tetap cocok dipakai wanita yang suka karakter tegas dan berwibawa. Mau aku jelasin lebih detail dulu salah satunya, atau langsung lihat pilihan varian dan harganya?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pilih yang kedua. Ada ukuran apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kakak pilih Woody. Level kualitas: Super Premium atau Platinum?"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    },
+    {
+      "id": 9,
+      "name": "Membeli tiga parfum hadiah",
+      "messages": [
+        "Kak, mau beli tiga parfum buat kado. Wanginya yang fresh dan sama semua ya.",
+        "Yang aman buat banyak orang apa?",
+        "Kalau EDT 50ml tiga botol totalnya berapa?",
+        "Oke lanjut. Nama Dodi, 081234560004, kirim ke Depok Sleman."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, mau beli tiga parfum buat kado. Wanginya yang fresh dan sama semua ya."
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Terima kasih sudah chat Aromatique. Sebelum aku rekomendasikan, boleh aku tanya dulu? Kak-nya cari aroma fresh yang seperti apa? Misalnya lebih suka yang citrus, oceanic, green, atau ada preferensi lain? Biar aku cocokkan produk yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Yang aman buat banyak orang apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Saran bagus, Kak. Aroma citrus sama oceanic itu paling aman buat kado karena fresh, ringan, dan hampir semua orang suka. Wanginya nggak terlalu tajam atau berat. Di Aromatique, untuk kategori fresh dan aman, aku bisa rekomendasikan dari Parfum Inspired. Ada banyak varian aroma fresh di situ. Kak, lebih tertarik ke arah citrus (jeruk, lemon, segar) atau oceanic (sea breeze, aroma laut)?\n\nBiar aku cariin varian yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Kalau EDT 50ml tiga botol totalnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Sebelum aku hitung totalnya, mau tanya dulu Kak. Untuk tiga botol EDT 50ml, apakah aromanya sama semua atau beda-beda? Soalnya kalau beda, nanti aku cocokin variannya dulu. Sementara ini, untuk 1 botol EDT 50ml harganya Rp45.\n\n000. Kalau tiga botol dengan aroma yang sama, totalnya Rp135.000."
+        },
+        {
+          "role": "user",
+          "content": "Oke lanjut. Nama Dodi, 081234560004, kirim ke Depok Sleman."
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak Dodi, rekap pesanan: - Parfum Inspired EDT 50ml x 3 botol - Kirim: Depok Sleman Kak, untuk 3 botol ini aromanya mau sama semua atau beda?"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    },
+    {
+      "id": 10,
+      "name": "Salah menghubungi toko",
+      "messages": [
+        "Kak, ada laptop gaming RTX 5090 nggak?",
+        "Oh ini toko parfum ya?",
+        "Kalau laptop memang nggak ada berarti ya?",
+        "Oke makasih, Kak."
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, ada laptop gaming RTX 5090 nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Maaf Kak, Aromatique jual parfum, bukan laptop gaming. Jadi nggak ada laptop RTX\n\n5090. Kalau Kakak cari wewangian, aku bisa bantu rekomendasiin. Ada kebutuhan aroma tertentu yang Kakak suka?"
+        },
+        {
+          "role": "user",
+          "content": "Oh ini toko parfum ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Iya Kak, betul. Aromatique jual parfum — mulai dari Parfum Inspired sampai Parfum Karakter. Kakak suka wangi yang seperti apa? Biar aku bantu cari yang cocok."
+        },
+        {
+          "role": "user",
+          "content": "Kalau laptop memang nggak ada berarti ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Nggak ada Kak, hehe. Aromatique spesialis parfum. Tapi kalau Kakak butuh rekomendasi wangi, aku siap bantu. Ada kesukaan aroma tertentu?"
+        },
+        {
+          "role": "user",
+          "content": "Oke makasih, Kak."
+        },
+        {
+          "role": "assistant",
+          "content": "Sama-sama Kak. Kalau nanti tertarik cari parfum, bilang aja ya. Aku Anin dari Aromatique, siap bantu kapan aja."
+        }
+      ],
+      "tools": [],
+      "state": {}
+    }
+  ]
+}

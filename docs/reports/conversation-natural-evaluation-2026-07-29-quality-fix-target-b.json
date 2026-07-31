@@ -1,0 +1,199 @@
+{
+  "generatedAt": "2026-07-29T08:04:15.806Z",
+  "scenarios": [
+    {
+      "id": 7,
+      "name": "Menanyakan detail produk Karakter",
+      "tone": "detail",
+      "messages": [
+        "Axbomba itu wanginya kayak gimana, Kak?",
+        "Parfum aslinya yang jadi acuan namanya apa?",
+        "Kalau buat cowok kuliah cocok nggak?",
+        "Untuk ukuran kecil, semua kualitas Karakter berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Axbomba itu wanginya kayak gimana, Kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axbomba memakai Axe Anarki sebagai acuan, Kak. Profil parfum acuannya memuat bluberi, lavender, delima, kayu cendana, dan amber putih. Karena versi Parfum Karakter dimodifikasi, susunan notes akhirnya bisa lebih berlapis dan tidak harus identik dengan parfum acuan."
+        },
+        {
+          "role": "user",
+          "content": "Parfum aslinya yang jadi acuan namanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axe Anarki adalah nama Parfum Inspired atau parfum acuannya, Kak. Nama Parfum Karakter-nya Axbomba."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat cowok kuliah cocok nggak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Axe Anarki bisa dipertimbangkan, Kak. Parfum acuannya, Axe Anarki, tercatat untuk pria. Karena Axe Anarki merupakan versi modifikasi, profil akhirnya tidak harus identik.\n\nDari pengaturan pemakaian pada Produk & Harga, kualitas EDT 30ml paling sesuai dengan kebutuhan kuliah."
+        },
+        {
+          "role": "user",
+          "content": "Untuk ukuran kecil, semua kualitas Karakter berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Karakter Ukuran 30ml:\n\nSuper Premium 30ml: Rp120.000\nPlatinum 30ml: Rp135.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Axe Anarki",
+        "classification": "Parfum Karakter"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Mengubah jumlah lalu checkout",
+      "tone": "membeli",
+      "messages": [
+        "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian",
+        "Kualitas yang paling sesuai yang mana?",
+        "Harga satu botolnya berapa?",
+        "Jadi dua botol ya, total produknya berapa?",
+        "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau Bodyshop Oceanus Inspired 50ml yang cocok buat harian"
+        },
+        {
+          "role": "assistant",
+          "content": "Bodyshop Oceanus bisa dipertimbangkan, Kak.\n\nDari pengaturan pemakaian pada Produk & Harga, kualitas EDT 30ml paling sesuai dengan kebutuhan harian."
+        },
+        {
+          "role": "user",
+          "content": "Kualitas yang paling sesuai yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yang bisa dipastikan, pilihannya memang EDT, EDP. Detail ketahanan atau hasil pemakaiannya belum dicantumkan, jadi aku nggak mau menebak. Kalau Kakak kasih tahu kebutuhan dan budgetnya, aku bantu arahkan ke satu pilihan yang paling masuk akal."
+        },
+        {
+          "role": "user",
+          "content": "Harga satu botolnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired:\n\nEDT\n30ml: Rp35.000\n50ml: Rp45.000\n100ml: Rp55.000\n\nEDP\n30ml: Rp60.000\n50ml: Rp75.000\n100ml: Rp85.000\n\nMurni\n30ml: Rp120.000\n50ml: Rp150.000\n100ml: Rp165.000\n\nKakak tertarik pilihan yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Jadi dua botol ya, total produknya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas dan ukuran dulu, Kak? Harga mengikuti kombinasi variasi pada katalog."
+        },
+        {
+          "role": "user",
+          "content": "Atas nama Fajar, 081287654321, kirim ke Mantrijeron Yogyakarta"
+        },
+        {
+          "role": "assistant",
+          "content": "Produk Bodyshop Oceanus sudah tercatat, Kak. Pilihan kualitas dan ukuran belum lengkap, jadi aku belum hitung ongkir. Pilihan yang mau dipakai yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "Bodyshop Oceanus",
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "Ukuran": "50ml"
+        },
+        "customer": {
+          "name": "Fajar",
+          "phone": "081287654321",
+          "address": "Mantrijeron Yogyakarta"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "name": "Pemula santai banyak bertanya",
+      "tone": "ceria",
+      "messages": [
+        "Wkwk aku gapaham parfum sama sekali, Kak",
+        "Fresh, floral, woody tuh gampangnya beda apa?",
+        "Aku cewek, sering panas-panasan, dan nggak suka manis",
+        "Kasih dua rekomendasi yang paling nyambung dong",
+        "Yang kedua itu nama aslinya atau nama Karakter?",
+        "Kalau ukuran paling kecil semua kualitasnya berapa?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Wkwk aku gapaham parfum sama sekali, Kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Tenang aja, justru ini seru buat dicari bareng-bareng 😊\n\nAku Anin dari Aromatique, siap bantu cariin parfum yang cocok sama Kakak.\n\nNah, biar nggak bingung, gini aja. Parfum di Aromatique itu ada dua jenis utama:\n\n1. Parfum Inspired – sederhana, satu aroma aja dari awal sampai akhir, cocok buat yang baru mau mulai pakai parfum. Harganya juga ramah di kantong.\n2. Parfum Karakter – aromanya lebih kompleks, ada perubahan dari awal ke tengah ke akhir, dan bisa beda di tiap orang. Lebih premium.\n\nKakak mau pakai parfum buat keseharian aja atau untuk acara spesial? Biar aku bantu tentuin yang paling pas 😊"
+        },
+        {
+          "role": "user",
+          "content": "Fresh, floral, woody tuh gampangnya beda apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Wah, pertanyaan bagus! Biar gampang ngebayanginnya, aku jabarin satu-satu ya Kak:\n\n1. Fresh – wangi yang ringan, segar, kayu abis mandi atau lagi di kebun jeruk. Biasanya cocok buat siang hari, cuaca panas, atau aktivitas outdoor. Contoh: jeruk, lemon, mentimun, oceanic.\n\n2. Floral – wangi bunga-bungaan. Manis, feminin, lembut. Kayak lagi di taman bunga. Contoh: mawar, melati, lavender, sakura. Cocok buat sehari-hari atau acara santai.\n\n3. Woody – wangi kayu-kayuan. Hangat, maskulin, elegan. Kayak hutan setelah hujan atau lemari kayu antik. Contoh: kayu cendana, kayu cedar, patchouli. Cocok buat malam hari atau acara formal.\n\nNah, Kakak lebih condong ke arah yang mana nih? Biar aku rekomendasiin aroma yang pas 😊"
+        },
+        {
+          "role": "user",
+          "content": "Aku cewek, sering panas-panasan, dan nggak suka manis"
+        },
+        {
+          "role": "assistant",
+          "content": "Siap, Kak. Berarti rekomendasinya perlu nyaman untuk cuaca panas dan sisi manisnya harus dihindari. Aku akan menyaring pilihan berdasarkan audience serta profil aroma yang tersedia, bukan sekadar nama variannya.\n\nDari fresh, floral, dan woody yang tadi dibahas, Kak paling tertarik ke arah mana?"
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua rekomendasi yang paling nyambung dong"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilihkan dua biar nggak bikin bingung, Kak. Keduanya paling dekat dengan arah fresh yang dicari:\n\n1. aqualuzz — keluarga fresh. Memakai Bodyshop Oceanus sebagai acuan; profil acuannya memuat teratai air. Versi Parfum Karakter dapat dimodifikasi, jadi susunannya tidak harus identik.\n\n2. Barbie — keluarga fresh.\n\nDari dua ini, mana yang paling menarik?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua itu nama aslinya atau nama Karakter?"
+        },
+        {
+          "role": "assistant",
+          "content": "Barbie adalah nama Parfum Karakter, Kak. Pasangan Parfum Inspired-nya adalah annasui dolly girl."
+        },
+        {
+          "role": "user",
+          "content": "Kalau ukuran paling kecil semua kualitasnya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired Ukuran 30ml:\n\nEDT 30ml: Rp35.000\nEDP 30ml: Rp60.000\nMurni 30ml: Rp120.000\n\nKakak tertarik kualitas yang mana?"
+        }
+      ],
+      "tools": [
+        "external:cache"
+      ],
+      "state": {
+        "productName": "annasui dolly girl",
+        "classification": "Parfum Inspired"
+      }
+    }
+  ]
+}

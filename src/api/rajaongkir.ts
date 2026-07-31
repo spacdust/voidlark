@@ -1,16 +1,11 @@
 import dotenv from 'dotenv';
-import { getBusinessConfig } from '../config/business.js';
+import { buildCatalogShippingWeights } from '../catalog/product-catalog.js';
 
 dotenv.config();
 
 const BASE_URL = 'https://rajaongkir.komerce.id/api/v1';
 const DEFAULT_WEIGHT_GRAMS = 500;
 const DEFAULT_COURIERS = 'jne,sicepat,ide,sap,ninja,jnt,tiki,wahana,pos,sentral,lion,rex';
-const SAFE_WEIGHT_BY_SIZE_ML: Record<string, number> = {
-    '30': 110,
-    '50': 275,
-    '100': 440,
-};
 let apiKeyIndex = 0;
 
 interface DomesticDestination {
@@ -178,7 +173,8 @@ export const estimateConfiguredShippingWeightGrams = (text: string, configWeight
     const configured = Object.entries(configWeights)
         .filter(([label, grams]) => label.trim() && Number.isFinite(grams) && grams > 0)
         .sort(([left], [right]) => right.length - left.length);
-    const weights = configured.length ? configured : Object.entries(SAFE_WEIGHT_BY_SIZE_ML).map(([size, grams]) => [`${size}ml`, grams] as const);
+    if (!configured.length) return fallback;
+    const weights = configured;
     const labels = weights.map(([label]) => escapeRegex(label.trim()).replace(/\\\s+/g, '\\s*'));
     const pattern = new RegExp(`(?:(\\d+)\\s*(?:x|pcs?|botol)\\s*)?(${labels.join('|')})(?:\\s*(?:x|pcs?|botol)\\s*(\\d+))?`, 'gi');
     const byLabel = new Map(weights.map(([label, grams]) => [label.toLowerCase().replace(/\s+/g, ''), Number(grams)]));
@@ -192,7 +188,7 @@ export const estimateConfiguredShippingWeightGrams = (text: string, configWeight
 
 export const estimateShippingWeightGrams = (text: string) => {
     const fallback = Number(process.env.SHIPPING_WEIGHT_GRAMS) || DEFAULT_WEIGHT_GRAMS;
-    return estimateConfiguredShippingWeightGrams(text, getBusinessConfig().shippingWeights, fallback);
+    return estimateConfiguredShippingWeightGrams(text, buildCatalogShippingWeights(), fallback);
 };
 
 const calculateDomesticCost = async (origin: string, destination: string, couriers: string[], weight: number) => {
@@ -212,11 +208,11 @@ const calculateDomesticCost = async (origin: string, destination: string, courie
     return data.data || [];
 };
 
-export const checkShippingCost = async (destinationCityName: string): Promise<string> => {
+export const checkShippingCost = async (destinationCityName: string, weightContext = destinationCityName): Promise<string> => {
     try {
         const originId = await getOriginDestinationId();
         const destination = await findDestination(destinationCityName);
-        const weight = estimateShippingWeightGrams(destinationCityName);
+        const weight = estimateShippingWeightGrams(weightContext);
 
         if (!destination) {
             return `Maaf, tujuan "${destinationCityName}" tidak ditemukan. Coba tulis nama kota/kecamatan yang lebih spesifik ya kak.`;

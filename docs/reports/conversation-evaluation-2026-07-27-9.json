@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-07-27T02:54:32.948Z",
+  "scenarios": [
+    {
+      "id": 9,
+      "name": "Jumlah banyak dan cek konsistensi total",
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Butuh parfum buat hadiah tiga orang, aroma aman dan mudah disukai"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Boleh Kak, ini rekomendasi aman buat hadiah. Sebelumnya, kira-kira penerimanya cowok, cewek, atau campuran? Biar aku sesuaikan aromanya."
+        },
+        {
+          "role": "user",
+          "content": "Pilih satu aroma yang paling aman saja, tiga botol sama semua"
+        },
+        {
+          "role": "assistant",
+          "content": "Baik Kak, untuk hadiah tiga orang dengan satu aroma yang paling aman dan universal, aku rekomendasiin Parfum Inspired karena aromanya simpel, stabil, dan cocok di siapa aja. Untuk aroma paling aman, Fresh / Aquatic — wangi segar ringan yang biasanya disukai banyak orang, cocok cowok maupun cewek. Ini pilihan kualitas dan ukurannya Kak: Kualitas EDT (ringan, aman di baju) - 30ml Rp35. 000 - 50ml Rp45.\n\n000 - 100ml Rp55. 000 Kualitas EDP (lebih strong) - 30ml Rp60. 000 - 50ml Rp75. 000 - 100ml Rp85. 000 Kualitas Murni (paling kuat, tahan lama) - 30ml Rp120. 000 - 50ml Rp150. 000 - 100ml Rp165. 000 Mau kualitas dan ukuran yang mana, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Masing-masing 50ml EDT. Berapa total harga produk?"
+        },
+        {
+          "role": "assistant",
+          "content": "Tiga botol, masing-masing 50ml EDT. Harga satuan: Rp45.000 Total produk: 3 x Rp45.000 = Rp135.000 Mau lanjut cek ongkir, Kak? Kalau ija, alamatnya dikirim ke mana?"
+        },
+        {
+          "role": "user",
+          "content": "Lanjut. Nama Andi, WA 081355566677, alamat Mlati, Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Ini ongkirnya Kak:\n\n1. WAHANA Express - Rp5.000 (2 hari)\n\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n\n3. TIKI ECO - Rp7.000 (4 hari) Paling hemat Rp5.000 via WAHANA (sampai 2 hari). Mau pakai yang mana, Kak?"
+        }
+      ],
+      "tools": [
+        "cekOngkir"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-export type ClaimType = 'price' | 'stock' | 'warranty' | 'format' | 'duration' | 'license' | 'size' | 'material' | 'spec';
+export type ClaimType = 'price' | 'stock' | 'warranty' | 'format' | 'duration' | 'license' | 'size' | 'material' | 'spec' | 'usage' | 'inclusion' | 'comparison';
 
 interface ClaimRule {
     type: ClaimType;
@@ -7,7 +7,6 @@ interface ClaimRule {
 }
 
 const normalize = (value: string) => value.toLowerCase().replace(/[.,]$/g, '').replace(/\s+/g, ' ').trim();
-
 const rules: ClaimRule[] = [
     {
         type: 'price',
@@ -16,8 +15,8 @@ const rules: ClaimRule[] = [
     },
     {
         type: 'stock',
-        pattern: /\b(?:ready stock|stok tersedia|tersedia stok|stok ready|in stock|habis|sold out)\b/gi,
-        values: (text) => text.match(/\b(?:ready stock|stok tersedia|tersedia stok|stok ready|in stock|habis|sold out)\b/gi) || [],
+        pattern: /\b(?:ready(?:\s+stock)?|stok (?:tersedia|ready|aman)|tersedia stok|tersedia kapan (?:aja|saja)|selalu tersedia|in stock|habis|sold out)\b/gi,
+        values: (text) => text.match(/\b(?:ready(?:\s+stock)?|stok (?:tersedia|ready|aman)|tersedia stok|tersedia kapan (?:aja|saja)|selalu tersedia|in stock|habis|sold out)\b/gi) || [],
     },
     {
         type: 'warranty',
@@ -31,9 +30,11 @@ const rules: ClaimRule[] = [
     },
     {
         type: 'duration',
-        pattern: /\b\d+\s*(?:bulan|tahun|hari)\s*(?:berlangganan|aktif|paket)?\b/gi,
+        pattern: /\b(?:\d+(?:\s*[-–—]\s*\d+)?\s*(?:jam|bulan|tahun|hari)\s*(?:berlangganan|aktif|paket)?|(?:lebih\s+)?tahan lama|longlasting|wangi nempel|aroma awet|tahan(?=[,.!;]|\s*$))\b/gi,
         values: (text) => {
-            const matches = text.match(/\b\d+\s*(?:bulan|tahun|hari)\b/gi) || [];
+            const numeric = text.match(/\b\d+(?:\s*[-–—]\s*\d+)?\s*(?:jam|bulan|tahun|hari)\b/gi) || [];
+            const qualitative = text.match(/\b(?:(?:lebih|makin|paling)\s+)?tahan lama\b|\blonglasting\b|\bwangi nempel\b|\baroma awet\b|\btahan(?=[,.!;]|\s*$)/gi) || [];
+            const matches = [...numeric, ...qualitative];
             // Filter out warranty matches
             return matches.filter((m) => !/\bgaransi\b/i.test(text.substring(Math.max(0, text.indexOf(m) - 15), text.indexOf(m) + m.length + 15)));
         },
@@ -58,6 +59,21 @@ const rules: ClaimRule[] = [
         pattern: /\b(?:ram\s+\d+\s*gb|storage\s+\d+\s*(?:gb|tb)|rom\s+\d+\s*gb|ssd\s+\d+\s*(?:gb|tb))\b/gi,
         values: (text) => text.match(/\b(?:ram\s+\d+\s*gb|storage\s+\d+\s*(?:gb|tb)|rom\s+\d+\s*gb|ssd\s+\d+\s*(?:gb|tb))\b/gi) || [],
     },
+    {
+        type: 'usage',
+        pattern: /\b(?:sekali semprot cukup|aman[^.!?]{0,45}(?:baju|kantor|ruangan?|tanpa noda)|(?:disarankan|sebaiknya)[^.!?]{0,35}(?:semprot|dipakai)|jaga jarak(?: semprot)?[^.!?]{0,35}|lebih hemat jangka panjang|(?:menyesuaikan|sesuaikan) (?:(?:dengan|sama) )?suhu tubuh|aroma makin enak[^.!?]{0,30}(?:suhu|badan|kulit)|cocok[^.!?]{0,35}dipakai (?:berdua|langsung ke kulit)|(?:tidak|nggak|ga) bikin pusing|(?:tidak|nggak|ga) (?:nyengat|menyengat|overload|mencolok)|(?:wangi|spray) (?:tidak |tak )?menyebar|proyeksi[^.!?]{0,25}(?:kulit|udara)|kesan profesional|profesional(?=[,.!;]|\s*$)|favorit (?:banyak )?(?:orang|pelanggan)|unisex)\b/gi,
+        values: (text) => text.match(/\b(?:sekali semprot cukup|aman[^.!?]{0,45}(?:baju|kantor|ruangan?|tanpa noda)|(?:disarankan|sebaiknya)[^.!?]{0,35}(?:semprot|dipakai)|jaga jarak(?: semprot)?[^.!?]{0,35}|lebih hemat jangka panjang|(?:menyesuaikan|sesuaikan) (?:(?:dengan|sama) )?suhu tubuh|aroma makin enak[^.!?]{0,30}(?:suhu|badan|kulit)|cocok[^.!?]{0,35}dipakai (?:berdua|langsung ke kulit)|(?:tidak|nggak|ga) bikin pusing|(?:tidak|nggak|ga) (?:nyengat|menyengat|overload|mencolok)|(?:wangi|spray) (?:tidak |tak )?menyebar|proyeksi[^.!?]{0,25}(?:kulit|udara)|kesan profesional|profesional(?=[,.!;]|\s*$)|favorit (?:banyak )?(?:orang|pelanggan)|unisex)\b/gi) || [],
+    },
+    {
+        type: 'inclusion',
+        pattern: /\b(?:bonus|gratis|free gift|sudah termasuk|dapat bonus)[^.!?\n]{0,80}\b/gi,
+        values: (text) => text.match(/\b(?:bonus|gratis|free gift|sudah termasuk|dapat bonus)[^.!?\n]{0,80}\b/gi) || [],
+    },
+    {
+        type: 'comparison',
+        pattern: /\b(?:(?:kualitas|performa|hasil|daya tahan)\s+(?:setara|sama dengan|standar seperti|sekelas|lebih (?:baik|bagus|kuat))[^.!?\n]{0,80}|(?:aroma|wangi|[\p{L}\p{N}:/-]+)[^.!?\n]{0,25}\b(?:lebih|paling)\s+(?:ringan|kuat|strong|lembut|nendang))\b/giu,
+        values: (text) => text.match(/\b(?:(?:kualitas|performa|hasil|daya tahan)\s+(?:setara|sama dengan|standar seperti|sekelas|lebih (?:baik|bagus|kuat))[^.!?\n]{0,80}|(?:aroma|wangi|[\p{L}\p{N}:/-]+)[^.!?\n]{0,25}\b(?:lebih|paling)\s+(?:ringan|kuat|strong|lembut|nendang))\b/giu) || [],
+    },
 ];
 
 export const validateClaims = (answer: string, evidence: string) => {
@@ -66,9 +82,40 @@ export const validateClaims = (answer: string, evidence: string) => {
         .filter((rule) => {
             rule.pattern.lastIndex = 0;
             if (!rule.pattern.test(answer)) return false;
-            const unsupportedValues = rule.values(answer).filter((value) => !normalizedEvidence.includes(normalize(value)));
+            const structuredPriceEvidence = evidence.match(/KELOMPOK HARGA TERSTRUKTUR[\s\S]*?\nATURAN:/i)?.[0] || evidence;
+            const verifiedClaimEvidence = evidence.match(/KLAIM PRODUK TERVERIFIKASI:[\s\S]*?(?=\n[A-Z][A-Z ]{4,}:|$)/i)?.[0] || '';
+            const unsupportedValues = rule.values(answer).filter((value) => {
+                const ruleEvidence = rule.type === 'price'
+                    ? normalize(structuredPriceEvidence)
+                : ['usage', 'inclusion', 'comparison'].includes(rule.type) || (rule.type === 'duration' && !/\d/.test(value))
+                        ? normalize(verifiedClaimEvidence)
+                        : normalizedEvidence;
+                return !ruleEvidence.includes(normalize(value));
+            });
             return unsupportedValues.length > 0;
         })
         .map((rule) => rule.type);
     return { valid: unsupportedTypes.length === 0, unsupportedTypes };
+};
+
+export const removeUnsupportedClaimSentences = (answer: string, evidence: string) => {
+    const normalizedEvidence = normalize(evidence);
+    let cleaned = answer;
+    for (const rule of rules.filter((item) => ['duration', 'stock', 'usage', 'inclusion', 'comparison'].includes(item.type))) {
+        for (const value of rule.values(answer)) {
+            const evidenceForRule = ['usage', 'inclusion', 'comparison'].includes(rule.type) || (rule.type === 'duration' && !/\d/.test(value))
+                ? normalize(evidence.match(/KLAIM PRODUK TERVERIFIKASI:[\s\S]*?(?=\n[A-Z][A-Z ]{4,}:|$)/i)?.[0] || '')
+                : normalizedEvidence;
+            if (!evidenceForRule.includes(normalize(value))) cleaned = cleaned.replace(value, '');
+        }
+    }
+    return cleaned
+        .replace(/[ \t]+([,.!?])/g, '$1')
+        .replace(/(?:^|\s)(?:dan|serta|dengan)\s*([,.!?]|$)/gi, '$1')
+        .replace(/([.!?])\s*([.!?])+/g, '$1')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/\n[ \t]+/g, '\n')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
 };

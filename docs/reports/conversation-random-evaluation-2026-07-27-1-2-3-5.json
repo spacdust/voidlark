@@ -1,0 +1,205 @@
+{
+  "generatedAt": "2026-07-27T03:43:22.702Z",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Referensi luar Mykonos Monaco Royale",
+      "messages": [
+        "Kak, ada Mykonos Monaco Royale?",
+        "Kalau itu bukan produk kalian, cari notesnya lalu rekomendasikan produk Aromatique yang benar-benar ada dan paling mirip",
+        "Jelaskan kenapa produk internal itu cocok, jangan kasih harga dulu",
+        "Sekarang kasih klasifikasi, ukuran, dan harga yang tersedia"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak, ada Mykonos Monaco Royale?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, Mykonos Monaco Royale itu produk brand Mykonos, bukan produk Aromatique. Tapi di toko kami ada versi inspired-nya dengan karakter aroma yang mirip, namanya Exotic Escape. Biar cocok, aku bantu cari tahu dulu ya. Kakak suka wewangian yang seperti apa? Biar aku rekomendasikan yang paling pas dari koleksi Aromatique."
+        },
+        {
+          "role": "user",
+          "content": "Kalau itu bukan produk kalian, cari notesnya lalu rekomendasikan produk Aromatique yang benar-benar ada dan paling mirip"
+        },
+        {
+          "role": "assistant",
+          "content": "Maaf Kak, harga produk itu belum tercantum pada katalog yang aku pegang. Aku bantu konfirmasi ke admin dulu ya."
+        },
+        {
+          "role": "user",
+          "content": "Jelaskan kenapa produk internal itu cocok, jangan kasih harga dulu"
+        },
+        {
+          "role": "assistant",
+          "content": "Informasi notes spesifik Mykonos Monaco Royale belum ketemu di web. Tapi dari namanya, \"Monaco Royale\" biasanya mengarah ke wewangian fresh aromatic dengan sentuhan woody dan sedikit aquatic — segar, elegan, kayak gaya Eropa. Dari katalog Aromatique, produk yang paling mendekati karakter itu adalah Exotic Escape dari kelompok Parfum Karakter. Kenapa cocok?\n\n- Parfum Karakter punya 3 notes wangi (top, middle, base) — jadi aroma berubah seiring waktu, sama kayak parfum Eropa premium. - Karakternya fresh dan sophisticated, cocok buat yang suka wewangian maskulin/segar kayak gaya Monaco. - Lebih tahan lama dan kompleks dibanding Inspired biasa. Kalau Kakak suka, aku bisa jelaskan pilihan kualitas dan ukurannya. Atau mau tahu dulu perbedaan Super Premium sama Platinum?"
+        },
+        {
+          "role": "user",
+          "content": "Sekarang kasih klasifikasi, ukuran, dan harga yang tersedia"
+        },
+        {
+          "role": "assistant",
+          "content": "Exotic Escape masuk ke kelompok Parfum Karakter. Ada dua kualitas:\n\n1. Super Premium (70% ekstrak parfum) - 30ml: Rp120.000 - 50ml: Rp160.000 - 100ml: Rp310.000\n\n2. Platinum (90% ekstrak, lebih kental dan strong) - 30ml: Rp135.000 - 50ml: Rp180.000 - 100ml: Rp360.000 Kakak tertarik kualitas dan ukuran yang mana?"
+        }
+      ],
+      "tools": [
+        "cariReferensiProduk"
+      ],
+      "state": {}
+    },
+    {
+      "id": 2,
+      "name": "Referensi luar Lattafa Khamrah",
+      "messages": [
+        "Ada Lattafa Khamrah ready?",
+        "Kalau tidak dijual, pakai cuma sebagai referensi dan carikan produk toko yang karakternya mendekati",
+        "Aku pilih kandidat internal pertama. Jelaskan singkat",
+        "Kasih pilihan harga resminya"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ada Lattafa Khamrah ready?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, untuk Lattafa Khamrah, itu brand referensi luar. Di Aromatique sendiri, kami punya padanan inspirednya, yaitu Vetiver Intense (padanan dari Lattafa Oud For Glory). Tapi untuk Lattafa Khamrah, aku belum menemukan padanan yang cocok di katalog kami. Kalau boleh tahu, karakter aroma seperti apa yang Kakak cari? Mungkin aku bisa bantu rekomendasikan produk Aromatique yang mendekati selera Kakak."
+        },
+        {
+          "role": "user",
+          "content": "Kalau tidak dijual, pakai cuma sebagai referensi dan carikan produk toko yang karakternya mendekati"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, Lattafa Khamrah itu Oriental Spicy dengan karakter manis-gourmand: cinnamon, nutmeg, dates, praline, vanilla, amber. Hangat dan kaya. Dari katalog Aromatique, yang paling mendekati karakter ini ada di Parfum Karakter atau Parfum Timteng-Eropa karena profil rempah-manisnya cocok.\n\nAlternatifnya, dari daftar padanan, ada Festive Love (padanan Herod) yang juga warm spicy-manis, atau Heritage (padanan Xerjof More than Words) yang woody-spicy-elegant. Mau aku jelaskan lebih detail salah satu dari ini, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Aku pilih kandidat internal pertama. Jelaskan singkat"
+        },
+        {
+          "role": "assistant",
+          "content": "Festive Love. Padanan dari Herod oleh Perfums de Marley. Profil warm spicy - manis: cinnamon, tobacco, vanilla, amber. Cocok buat malam, santai, atau kencan. Hangat, elegan, sedikit gourmand. Mau tahu pilihan kualitas, ukuran, dan harganya, Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Kasih pilihan harga resminya"
+        },
+        {
+          "role": "assistant",
+          "content": "Festive Love masuk kelompok Parfum Karakter. Pilihan kualitas & ukuran: Super Premium - 30ml – Rp120.000 (200g) - 50ml – Rp160.000 (300g) - 100ml – Rp310.000 (450g) Platinum - 30ml – Rp135.000 (200g) - 50ml – Rp180.000 (300g) - 100ml – Rp360.000 (450g) Tertarik kualitas dan ukuran yang mana, Kak?"
+        }
+      ],
+      "tools": [
+        "cariReferensiProduk"
+      ],
+      "state": {}
+    },
+    {
+      "id": 3,
+      "name": "Konsultasi kebutuhan hadiah",
+      "messages": [
+        "Cari produk buat hadiah perempuan usia 25 tahun, sukanya lembut dan nggak menusuk",
+        "Pilihkan satu yang paling aman lalu jelaskan alasannya",
+        "Kalau cocok aku ambil satu. Pilihan variasi dan harganya apa?",
+        "Pilih EDP 30ml. Nama Lala, 081234560001, alamat Ngaglik Sleman"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Cari produk buat hadiah perempuan usia 25 tahun, sukanya lembut dan nggak menusuk"
+        },
+        {
+          "role": "assistant",
+          "content": "Kak, boleh aku bantu cariin. Sebelumnya, kira-kira aroma yang disuka lebih ke arah floral, fruity, atau vanila? Biar aku bisa cocokin rekomendasinya."
+        },
+        {
+          "role": "user",
+          "content": "Pilihkan satu yang paling aman lalu jelaskan alasannya"
+        },
+        {
+          "role": "assistant",
+          "content": "Paling aman: Parfum Inspired EDP. - Aroma ringan, cocok pemula atau kulit sensitif. - Konsentrasi EDP: tahan lama tapi lembut, tidak menyengat. - Wangi tidak keras, tidak bikin pusing. Mau ukuran 30, 50, atau 100 ml?"
+        },
+        {
+          "role": "user",
+          "content": "Kalau cocok aku ambil satu. Pilihan variasi dan harganya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Ukuran 30ml cocok buat coba. 50ml lebih awet. Mau pilih yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "Pilih EDP 30ml. Nama Lala, 081234560001, alamat Ngaglik Sleman"
+        },
+        {
+          "role": "assistant",
+          "content": "Ongkir ke Ngaglik paling hemat WAHANA Express Rp5.000 (sampai 2 hari). Mau pakai itu?"
+        }
+      ],
+      "tools": [
+        "cekOngkir"
+      ],
+      "state": {
+        "shippingEvidence": "Ongkir ke DONOHARJO, NGAGLIK, SLEMAN, DI YOGYAKARTA, 55581:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Perubahan jumlah dan variasi",
+      "messages": [
+        "Aku mau produk aroma manis, satu botol EDP 30ml",
+        "Berapa harga satuannya?",
+        "Ganti jadi EDP 50ml dua botol, hitung subtotalnya",
+        "Nama Tia, 081234560003, alamat Mlati Sleman. Buat rekap sementara"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Aku mau produk aroma manis, satu botol EDP 30ml"
+        },
+        {
+          "role": "assistant",
+          "content": "Mau tau dulu Kak, aroma manis yang dimaksud lebih ke arah manis buah-buahan, manis vanilla, atau manis floral? Biar aku cocokin produknya."
+        },
+        {
+          "role": "user",
+          "content": "Berapa harga satuannya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Sebelum kasih harga, aku perlu mastiin dulu jenis parfumnya, Kak. Soalnya harga beda-beda tergantung kelompoknya. Untuk aroma manis, kira-kira Kakak ada preferensi ke Parfum Inspired (Basic Asia, aroma konstan, lebih cocok disemprot ke baju) atau Parfum Karakter (Basic Eropa, aroma kompleks, lebih tahan lama)? Ini penting biar aku kasih harga yang pas sesuai yang Kakak mau."
+        },
+        {
+          "role": "user",
+          "content": "Ganti jadi EDP 50ml dua botol, hitung subtotalnya"
+        },
+        {
+          "role": "assistant",
+          "content": "EDP 50ml itu masuk Parfum Inspired, Kak. Harganya Rp75.000 per botol. Kalau 2 botol: 2 x Rp75.000 = Rp150.\n\n000. Mau lanjut cek ongkir, Kak? Butuh alamat tujuan dulu."
+        },
+        {
+          "role": "user",
+          "content": "Nama Tia, 081234560003, alamat Mlati Sleman. Buat rekap sementara"
+        },
+        {
+          "role": "assistant",
+          "content": "Ini ongkir ke Mlati, Kak:\n\n1. WAHANA Express Rp5.000 (2 hari)\n\n2. WAHANA Ekonomis Rp5.000 (2 hari)\n\n3. TIKI ECO Rp7.000 (4 hari)\n\n4. JNE SPS Rp53.000 Paling hemat WAHANA Express Rp5.\n\n000. Mau pakai yang itu, Kak?"
+        }
+      ],
+      "tools": [
+        "cekOngkir"
+      ],
+      "state": {
+        "shippingEvidence": "Ongkir ke SENDANGADI, MLATI, SLEMAN, DI YOGYAKARTA, 55285:\n1. WAHANA Express - Rp5.000 (2 hari)\n2. WAHANA Ekonomis - Rp5.000 (2 hari)\n3. TIKI ECO - Rp7.000 (4 hari)\n4. JNE SPS - Rp53.000 (0 hari)\n\nPaling hemat: WAHANA Express Rp5.000.\nKakak mau pakai yang mana?"
+      }
+    }
+  ]
+}

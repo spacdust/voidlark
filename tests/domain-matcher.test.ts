@@ -19,3 +19,12 @@ test('generic plugin returns domain-neutral evidence contract', async () => {
     assert.equal(result.candidateEvidence, 'Gunakan hanya produk dan atribut yang ditemukan pada Knowledge relevan.');
     assert.doesNotMatch(result.policy, /parfum|aroma|inspired|karakter/i);
 });
+
+test('fragrance matcher separates external references from sellable internal products', async () => {
+    const matcher = selectDomainMatcher('fragrance', [
+        ['Inspired', 'Nama Item', 'Karakter', 'Note', 'Family'],
+    ]);
+    const result = await matcher.match('fresh pear melon cedarwood musk');
+    assert.match(result.policy, /Jangan pernah menawarkan, memberi harga, menyimpan draft, atau menjual nama referensi/i);
+    assert.match(result.policy, /Produk internal/i);
+});

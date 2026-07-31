@@ -10,6 +10,7 @@ export const buildExternalLookupFallback = (product: string, reference: string, 
         .slice(0, 1)
         .join(' ')
         .slice(0, 360);
-    if (!snippets) return `Aku sudah mencari referensi ${product}, Kak, tetapi detailnya belum cukup untuk mencocokkan dengan katalog secara aman. Aku bantu teruskan ke admin ya.`;
-    return `Aku sudah mencari referensi ${product}, Kak. ${snippets} Untuk kandidat dari katalog ${businessName}, aku belum mau menebak agar rekomendasinya tidak salah. Aku bantu teruskan ke admin untuk mencocokkan pilihan terdekat ya.`;
+    if (!snippets) return `Aku sudah mencari referensi ${product}, Kak, tetapi detailnya belum cukup untuk mencocokkan dengan katalog ${businessName} tanpa berisiko salah.`;
+    const detail = snippets.replace(/[.!?]+$/, '');
+    return `Aku sudah menemukan referensi ${product}, Kak: ${detail}. Produk referensi itu tidak dijual langsung; datanya hanya dipakai untuk mencocokkan karakter dengan produk di katalog ${businessName}. Untuk kandidat internalnya, aku belum mau menebak sebelum hasil pencocokannya cukup jelas.`;
 };

@@ -1,0 +1,185 @@
+{
+  "generatedAt": "2026-07-27T05:04:23.563Z",
+  "scenarios": [
+    {
+      "id": 6,
+      "name": "Pembeli banyak meminta diskon",
+      "tone": "negosiasi",
+      "messages": [
+        "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?",
+        "Harga normal satuannya berapa?",
+        "Berarti total normal 20 botol berapa?",
+        "Diskonnya beneran nggak ada ya?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kalau ambil 20 botol EDT 30ml bisa harga grosir nggak kak?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Aku bantu teruskan ke admin untuk konfirmasi penawaran khusus."
+        },
+        {
+          "role": "user",
+          "content": "Harga normal satuannya berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Berarti total normal 20 botol berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Parfum Inspired EDT 30ml harganya Rp35.000 per item. Untuk 20 item, totalnya Rp700.000, Kak."
+        },
+        {
+          "role": "user",
+          "content": "Diskonnya beneran nggak ada ya?"
+        },
+        {
+          "role": "assistant",
+          "content": "Info diskon atau harga grosir belum tercantum di katalog, Kak. Harga normal EDT 30ml adalah Rp35.000 per item. Aku bantu teruskan ke admin untuk konfirmasi penawaran khusus."
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "EDT",
+          "variation-2-2": "30ml"
+        },
+        "quantity": 20,
+        "unitPrice": 35000,
+        "subtotal": 700000
+      }
+    },
+    {
+      "id": 7,
+      "name": "Banyak membandingkan kualitas",
+      "tone": "detail",
+      "messages": [
+        "Kak aku bingung, EDT EDP sama murni bedanya apa?",
+        "Tahan berapa lama masing-masing?",
+        "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?",
+        "30ml sama 50ml harganya beda berapa?",
+        "Kalau Kakak sendiri pilih yang mana?"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Kak aku bingung, EDT EDP sama murni bedanya apa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak! Tentu, aku jelasin ya perbedaannya. Parfum Inspired punya 3 kualitas yang beda kadar konsentratnya: 1. EDT (2:1) - 66% bibit, 34% pelarut. Aromanya cenderung lembut, aman disemprot langsung ke baju tanpa noda. Cocok buat pemakaian sehari-hari yang ringan. 2. EDP (3:1) - 75% bibit, 25% pelarut. Aromanya lebih strong, tetap aman di baju asal jangan terlalu deket (jaga jarak semprot). Ini yang paling recommended karena udah kuat tapi masih praktis. 3. Murni (Extrait) - 100% bibit, tanpa pelarut. Aromanya paling kuat, teksturnya lebih kental dan oily. Proyeksinya lebih dekat ke kulit, penyebaran di udara lebih lembut. Kalau dilihat dari awetnya, Murni > EDP > EDT. Kalau dari harga, juga begitu urutannya. Kakak cenderung suka aroma yang ringan buat sehari-hari, atau yang strong dan tahan lama?"
+        },
+        {
+          "role": "user",
+          "content": "Tahan berapa lama masing-masing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas dan ukurannya dulu, Kak? Setelah itu aku kasih harga tepat dari katalog."
+        },
+        {
+          "role": "user",
+          "content": "Kalau buat kondangan malam tapi budget di bawah 100 ribu pilih mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Dengan budget maksimal Rp100.000, pilihan yang tersedia: Parfum Inspired EDT\n30ml: Rp35.000\nParfum Inspired EDT\n50ml: Rp45.000\nParfum Inspired EDT\n100ml: Rp55.000\nParfum Inspired EDP\n30ml: Rp60.000\nParfum Inspired EDP\n50ml: Rp75.000\nParfum Inspired EDP\n100ml: Rp85.000\nKakak mau pilih yang mana?"
+        },
+        {
+          "role": "user",
+          "content": "30ml sama 50ml harganya beda berapa?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitasnya dulu, Kak? Harga ukuran 30ml dan 50ml berbeda untuk EDT, EDP, Murni, Super Premium, dan Platinum."
+        },
+        {
+          "role": "user",
+          "content": "Kalau Kakak sendiri pilih yang mana?"
+        },
+        {
+          "role": "assistant",
+          "content": "Aku pilih EDP 50ml. Buat kondangan malam, aroma kuat dan tahan lama. Ukuran 50ml lebih worth it daripada 30ml. Kakak mau kondangan atau acara apa?"
+        }
+      ],
+      "tools": [],
+      "state": {
+        "classification": "Parfum Inspired",
+        "attributes": {
+          "variation-2": "Murni",
+          "variation-2-2": "50ml"
+        },
+        "quantity": 1,
+        "unitPrice": 150000,
+        "subtotal": 150000
+      }
+    },
+    {
+      "id": 9,
+      "name": "Hadiah untuk pasangan unisex",
+      "tone": "hangat",
+      "messages": [
+        "Mau cari kado anniversary buat pasangan nih kak",
+        "Maunya yang bisa dipakai berdua, wanginya elegan buat malam",
+        "Kasih dua pilihan aja biar nggak bingung",
+        "Yang kedua menarik. Ada ukuran sama harga apa aja?",
+        "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+      ],
+      "status": "completed",
+      "history": [
+        {
+          "role": "user",
+          "content": "Mau cari kado anniversary buat pasangan nih kak"
+        },
+        {
+          "role": "assistant",
+          "content": "Halo Kak, aku Anin dari Aromatique. Senang banget bisa bantu cari kado anniversary buat pasangan. Sebelum aku rekomendasiin, boleh aku tanya dulu satu hal? Pasangan Kakak cowok atau cewek, dan kira-kira tipe aroma yang biasa dia suka gimana? Misalnya suka yang segar, manis, wangi bunga, atau yang lebih maskulin/kuat gitu?"
+        },
+        {
+          "role": "user",
+          "content": "Maunya yang bisa dipakai berdua, wanginya elegan buat malam"
+        },
+        {
+          "role": "assistant",
+          "content": "Pasangan cowok-cewek ya Kak? Bagus, bisa pakai bareng. Dari yang Kakak sebut, aku lihat ada dua kelompok yang cocok: Parfum Karakter – aroma woody, earthy, ada sentuhan smoky/balsamic. Elegan, dewasa, berwibawa. Cocok banget buat malam hari atau acara formal. Parfum Inspired – lebih ringan dengan banyak variasi aroma. Ada yang fresh, manis, floral. Harganya juga lebih terjangkau. Nah, kira-kira pasangan Kakak lebih suka aroma yang kuat dan berwibawa kayak Parfum Karakter, atau yang lebih ringan dan variatif kayak Parfum Inspired? Biar aku bisa bantu pilih yang pas."
+        },
+        {
+          "role": "user",
+          "content": "Kasih dua pilihan aja biar nggak bingung"
+        },
+        {
+          "role": "assistant",
+          "content": "Oke Kak, dua pilihan simpel: 1. Parfum Karakter – Kualitas Super Premium, 30ml. Aroma woody-earthy, elegan, tahan lama. Pas buat dipakai bareng di malam spesial. 2. Parfum Inspired – Kualitas EDP, 30ml. Wangi lebih ringan, variatif, tetap elegan. Cocok buat acara malam yang santai. Dua-duanya bisa dipakai cowok-cewek. Parfum Karakter lebih strong dan mewah, Parfum Inspired lebih ringan dan fleksibel. Mau yang mana Kak?"
+        },
+        {
+          "role": "user",
+          "content": "Yang kedua menarik. Ada ukuran sama harga apa aja?"
+        },
+        {
+          "role": "assistant",
+          "content": "Boleh pastikan kualitas dan ukurannya dulu, Kak? Setelah itu aku kasih harga tepat dari katalog."
+        },
+        {
+          "role": "user",
+          "content": "Aku pikir dulu ya, mau tanya pasangan dulu hehe"
+        },
+        {
+          "role": "assistant",
+          "content": "Santai Kak, nggak buru-buru. Silakan diskusi dulu sama pasangan. Kapan-kapan kalau udah mantep, tinggal chat lagi aja ya. Aku siap bantu kapan aja 😊"
+        }
+      ],
+      "tools": [],
+      "state": {}
+    }
+  ]
+}
